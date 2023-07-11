@@ -2,18 +2,14 @@
   <div class="sequencer-wrapper" :style="{'--grid-rows': instruments, '--grid-columns': steps}">
     <div class="sequencer">
       <div class="sequencer-grid-instruments">
-        <div class="instrument">
-          Kick
-        </div>
-        <div class="instrument">
-          Clap
-        </div>
-        <div class="instrument">
-          Hat 1
-        </div>
-        <div class="instrument">
-          Hat 2
-        </div>
+        <button
+            v-for="instrument in sequencer.instruments.entries()"
+            :key="instrument[0]"
+            class="instrument"
+            @click="console.log('clicked', instrument[0])"
+        >
+          {{ instrument[0] }}
+        </button>
       </div>
       <div class="sequencer-grid">
         <button
@@ -22,18 +18,20 @@
             class="sequencer-grid__cell"
             :class="{ 'active': gridCell.velocity > 0 }"
             :style="getStyleForCell(gridCell.row, gridCell.column)"
+            @click="changeCellState(gridCell.row, gridCell.column)"
+            @wheel="onNoteWheel(gridCell.row, gridCell.column, $event)"
         >
-          <span class="sequencer-grid__cell__content" @click="changeCellState(gridCell.row, gridCell.column)">
+          <span v-if="gridCell.velocity > 0" class="sequencer-grid__cell__content">
             <span class="sequencer-grid__cell__content__note">
-              <span class="sequencer-grid__cell__content__note__name">{{ gridCell.noteAndOctave || '&nbsp;' }}</span>
+              <span class="sequencer-grid__cell__content__note__name">{{ gridCell.note }}</span>
             </span>
-            <span class="sequencer-grid__cell__content__velocity">{{ gridCell.velocity || '&nbsp;' }}</span>
+            <span class="sequencer-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
           </span>
         </button>
         <button v-for="i in steps" disabled
                 :style="getStyleForCell(0, i)"
                 class="indicator"
-                :class="{ 'active': playbackGridColumn + 1 === i }"
+                :class="{ 'active': playbackGridColumn === i }"
         ></button>
       </div>
     </div>
@@ -47,22 +45,43 @@
 
 <script setup lang="ts">
 import {computed} from "vue";
-import {DEFAULT_NOTE_OCTAVE, Sequencer} from "~/lib/Sequencer";
 import type {GridCell} from "~/lib/Sequencer";
-
-const steps = 16;
-const instruments = 4;
+import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
 
 const sequencer = new Sequencer();
+
+const steps = 16;
+let instruments = computed(() => sequencer.instrumentsLength);
 
 let gridCells: GridCell[] = sequencer.sequenceGrid
 
 let playbackGridColumn = computed(() => sequencer.currentStep);
 
+const onNoteWheel = (row: number, column: number, event: WheelEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const cell = sequencer.readCell(row, column);
+  const noteIndex = AVAILABLE_NOTES.indexOf(cell.note);
+
+
+  if (event.shiftKey) {
+    cell.velocity = cell.velocity + (event.deltaY < 0 ? 10 : -10);
+    cell.velocity = Math.max(0, Math.min(100, cell.velocity));
+  } else if (event.ctrlKey) {
+    const newNoteIndex = noteIndex + (event.deltaY < 0 ? 12 : -12);
+    cell.note = AVAILABLE_NOTES[newNoteIndex] || AVAILABLE_NOTES[(event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1)];
+  } else {
+    const newNoteIndex = noteIndex + (event.deltaY < 0 ? 1 : -1);
+    cell.note = AVAILABLE_NOTES[newNoteIndex] || AVAILABLE_NOTES[(event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1)];
+  }
+
+  sequencer.writeCell(Sequencer.cell(row, column, cell));
+};
+
 const changeCellState = (row: number, column: number) => {
   sequencer.writeCell(Sequencer.cell(row,column, {
     velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
-    noteAndOctave: sequencer.readCell(row, column).noteAndOctave === DEFAULT_NOTE_OCTAVE ? '' : DEFAULT_NOTE_OCTAVE
+    note: sequencer.readCell(row, column).note ? sequencer.readCell(row, column).note : DEFAULT_NOTE
   }));
 };
 
@@ -119,6 +138,8 @@ const stop = () => {
   border: none;
   cursor: pointer;
   padding: 4px;
+  height: 2rem;
+  outline: none;
 }
 
 .sequencer-grid__cell__content {
@@ -171,6 +192,7 @@ button.active {
 .sequencer {
   display: flex;
   flex-direction: row;
+  gap: 8px;
 }
 
 .sequencer-grid-instruments {
@@ -178,6 +200,8 @@ button.active {
   grid-template-rows: repeat(var(--grid-rows), 1fr) 0.5rem;
   gap: 0.25rem;
   padding: 0.25rem;
+  background-color: $color-grey-600;
+  border-radius: 4px;
 }
 
 .instrument {
