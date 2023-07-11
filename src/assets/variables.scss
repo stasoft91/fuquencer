@@ -1,0 +1,25 @@
+// Variables.scss
+* {
+  --color-grey-100: #f7fafc;
+  --color-grey-200: #edf2f7;
+  --color-grey-300: #e2e8f0;
+  --color-grey-400: #cbd5e0;
+  --color-grey-500: #a0aec0;
+  --color-grey-600: #718096;
+  --color-grey-700: #4a5568;
+  --color-grey-800: #2d3748;
+  --color-grey-900: #1a202c;
+}
+// Colors
+$color-grey-100: #f7fafc;
+$color-grey-200: #edf2f7;
+$color-grey-300: #e2e8f0;
+$color-grey-400: #cbd5e0;
+$color-grey-500: #a0aec0;
+$color-grey-600: #718096;
+$color-grey-700: #4a5568;
+$color-grey-800: #2d3748;
+$color-grey-900: #1a202c;
+$color-playback-indicator: hsla(110, 100%, 50%, 0.45);
+
+$color-orange-opaque: rgba(255, 159, 0, 0.5);
