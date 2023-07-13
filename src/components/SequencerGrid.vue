@@ -40,13 +40,22 @@
       <button @click="play">play</button>
       <button @click="stop">stop</button>
     </div>
+
+    <DisplayEnvelope :envelope="adsrOptions" fill-color="rgba(100,50,200,0.3)" stroke-color="rgba(100,50,200,0.3)" v-if="showADSR" :style="{height: '400px'}"></DisplayEnvelope>
+    <DisplayWaveform v-if="showADSR" :style="{height: '400px'}"></DisplayWaveform>
+    <button @click="showADSR=!showADSR">adsr</button>
+    <input class="attack" type="number" v-model="attack">
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import type {GridCell} from "~/lib/Sequencer";
 import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
+import type {AmplitudeEnvelope, MonoSynth} from "tone";
+import DisplayEnvelope from "@/components/DisplayEnvelope/DisplayEnvelope.vue";
+import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
+import type {ADSRType} from "@/components/DisplayEnvelope/DisplayEnvelope.types";
 
 const sequencer = new Sequencer();
 
@@ -56,6 +65,11 @@ let instruments = computed(() => sequencer.instrumentsLength);
 let gridCells: GridCell[] = sequencer.sequenceGrid
 
 let playbackGridColumn = computed(() => sequencer.currentStep);
+
+const showADSR = ref(false);
+
+// DEVELOPER TEMPORARY
+const attack = ref(0.05);
 
 const onNoteWheel = (row: number, column: number, event: WheelEvent) => {
   event.preventDefault();
@@ -99,6 +113,21 @@ const stop = () => {
   sequencer.stop();
 };
 
+const adsrOptions = computed<ADSRType>(() => {
+  const synthOptions = sequencer.instruments.get('synth') as MonoSynth;
+  const newEnvelope = synthOptions?.envelope || {} as AmplitudeEnvelope;
+
+  if (synthOptions) {
+    newEnvelope.attack = attack.value;
+  }
+
+  return {
+    attack: newEnvelope.attack || 0,
+    decay: newEnvelope.decay || 0,
+    sustain: newEnvelope.sustain || 0,
+    release: newEnvelope.release || 0,
+  } as ADSRType;
+});
 
 </script>
 
