@@ -1,5 +1,5 @@
-<script setup>
-import SequencerGrid from './components/SequencerGrid.vue';
+<script setup lang="ts">
+import SequencerGrid from './components/SequencerGrid.vue'
 </script>
 
 <template>

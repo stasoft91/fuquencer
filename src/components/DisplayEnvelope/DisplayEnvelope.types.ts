@@ -1,14 +1,7 @@
-import type {AmplitudeEnvelope} from "tone";
-
-export type ADSRType = {
-	attack: number,
-	decay: number,
-	sustain: number,
-	release: number,
-}
+import type {ADSRType} from "~/lib/SoundEngine";
 
 export type DisplayEnvelopeProps = {
-	envelope: Partial<ADSRType>,
-	strokeColor: string,
-	fillColor: string,
+  envelope: ADSRType,
+  strokeColor: string
+  fillColor: string
 }

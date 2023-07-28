@@ -20,6 +20,9 @@ $color-grey-600: #718096;
 $color-grey-700: #4a5568;
 $color-grey-800: #2d3748;
 $color-grey-900: #1a202c;
-$color-playback-indicator: hsla(110, 100%, 50%, 0.45);
 
-$color-orange-opaque: rgba(255, 159, 0, 0.5);
+$color-orange-opaque: rgba(255, 159, 0, 0.35);
+$color-orange-opaque-lighter100: rgba(200, 170, 0, 0.75);
+$color-orange-opaque-lighter500: rgba(253, 233, 100, 0.8);
+
+$first-column-spacing: 8rem;
