@@ -1,6 +1,6 @@
 <template>
-  <div class="wrapper">
-    <input type="range" :min="min" :max="max" v-model="value"/>
+  <div class="wrapper" @dblclick="onDblClick">
+    <input type="range" :min="min" :max="max" v-model.number="value"/>
   </div>
 </template>
 
@@ -10,7 +10,13 @@ const value = defineModel<number>()
 const props = defineProps<{
   min: number,
   max: number,
+  defaultValue?: number,
 }>()
+
+const onDblClick = () => {
+  console.log('dblclick')
+  props.defaultValue !== undefined && (value.value = props.defaultValue)
+}
 </script>
 
 <style scoped lang="scss">
@@ -18,7 +24,7 @@ const props = defineProps<{
   isolation: isolate;
   position: relative;
   height: 20rem;
-  width: 6rem;
+  width: 4rem;
 
   &::before,
   &::after {

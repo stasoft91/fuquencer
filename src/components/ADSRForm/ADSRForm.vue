@@ -1,81 +1,53 @@
 <template>
   <div class="wrapper adsr-form">
     <div class="envelope-controls">
-      <div class="envelope-control">
-        <label for="attack">Attack</label>
-        <FaderInput :model-value="envelope.attack * 100"
-                    :min="0"
-                    :max="100"
-                    id="attack"
-                    @input="onUpdateEnvelope(getEnvelopeWithChanges({ attack: parseFloat($event.target?.value || '0') / 100 }))"
-        />
+      <RichFaderInput
+          class="constrained-width"
+          label="Attack"
+          id="attack"
+          :default-value="1"
+          :model-value="envelope.attack * 100"
+          @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ attack: $event / 100 }))"
+      />
 
-        <input type="number"
-               min="0"
-               max="1"
-               step="0.01"
-               :value="envelope.attack"
-               @input="onUpdateEnvelope(getEnvelopeWithChanges({ attack: parseFloat($event.target?.value || '0') }))"
-        />
-      </div>
-      <div v-if="!isSampler" class="envelope-control">
-        <label for="decay">Decay</label>
-        <FaderInput :model-value="envelope.decay * 100"
-                    :min="0"
-                    :max="100"
-                    id="decay"
-                    @input="onUpdateEnvelope(getEnvelopeWithChanges({ decay: parseFloat($event.target?.value || '0') / 100 }))"
-        />
 
-        <input type="number"
-               min="0"
-               max="1"
-               step="0.01"
-               :value="envelope.decay"
-               @input="onUpdateEnvelope(getEnvelopeWithChanges({ decay: parseFloat($event.target?.value || '0') }))"
-        />
-      </div>
-      <div v-if="!isSampler" class="envelope-control">
-        <label for="sustain">Sustain</label>
-        <FaderInput :model-value="envelope.sustain * 100"
-                    :min="0"
-                    :max="100"
-                    id="sustain"
-                    @input="onUpdateEnvelope(getEnvelopeWithChanges({ sustain: parseFloat($event.target?.value || '0') / 100 }))"
-        />
+      <RichFaderInput
+          class="constrained-width"
+          v-if="!isSampler"
+          label="Decay"
+          id="decay"
+          :default-value="25"
+          :model-value="envelope.decay * 100"
+          @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ decay: $event/ 100 }))"
+      />
 
-        <input type="number"
-               min="0"
-               max="1"
-               step="0.01"
-               :value="envelope.sustain"
-               @input="onUpdateEnvelope(getEnvelopeWithChanges({ sustain: parseFloat($event.target?.value || '0') }))"
-        />
-      </div>
-      <div class="envelope-control">
-        <label for="release">Release</label>
-        <FaderInput :model-value="envelope.release * 100"
-                    :min="0"
-                    :max="100"
-                    id="release"
-                    @input="onUpdateEnvelope(getEnvelopeWithChanges({ release: parseFloat($event.target?.value || '0') / 100 }))"
-        />
 
-        <input type="number"
-               min="0"
-               max="1"
-               step="0.01"
-               :value="envelope.release"
-               @input="onUpdateEnvelope(getEnvelopeWithChanges({ release: parseFloat($event.target?.value || '0') }))"
-        />
-      </div>
+      <RichFaderInput
+          class="constrained-width"
+          v-if="!isSampler"
+          label="Sustain"
+          id="sustain"
+          :default-value="0"
+          :model-value="envelope.sustain * 100"
+          @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ sustain: $event / 100 }))"
+      />
 
-      <div v-if="!isSampler" class="envelope-display" style="width: 100px;">
+
+      <RichFaderInput
+          class="constrained-width"
+          label="Release"
+          id="release"
+          :default-value="100"
+          :model-value="envelope.release * 100"
+          @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ release: $event / 100 }))"
+      />
+
+      <div v-if="!isSampler" class="envelope-display" style="width: 200px;">
         <DisplayEnvelope
             :envelope="envelope"
             fill-color="rgba(100, 50, 200, 0.3)"
             stroke-color="rgba(200, 150, 50, 0.6)"
-            :style="{ height: '100%', width: '100%' }"
+            :style="{ height: '50%', width: '100%' }"
         ></DisplayEnvelope>
       </div>
     </div>
@@ -86,19 +58,33 @@
 import DisplayEnvelope from '@/components/DisplayEnvelope/DisplayEnvelope.vue'
 import type {ADSRType} from "~/lib/SoundEngine";
 import FaderInput from "@/components/ui/FaderInput.vue";
+import RichFaderInput from "@/components/ui/RichFaderInput.vue";
+import {computed} from "vue";
 
 const props = defineProps<{
   isSampler: boolean
-  envelope: ADSRType
+  attack: number
+  decay: number
+  sustain: number
+  release: number
 }>()
 
 const emit = defineEmits<{
   (event: 'update:envelope', payload: ADSRType): void
 }>()
 
+const envelope = computed<ADSRType>(() => {
+  return {
+    attack: props.attack,
+    decay: props.decay,
+    sustain: props.sustain,
+    release: props.release
+  }
+})
+
 const getEnvelopeWithChanges = (changes: Partial<ADSRType>) => {
   return {
-    ...props.envelope,
+    ...envelope.value,
     ...changes
   }
 }
@@ -113,7 +99,6 @@ const onUpdateEnvelope = (envelope: ADSRType) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
 }
 
 .envelope-controls {
@@ -122,14 +107,7 @@ const onUpdateEnvelope = (envelope: ADSRType) => {
   align-items: stretch;
 
   justify-content: center;
-}
-
-.envelope-control {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .envelope-display {
@@ -137,7 +115,10 @@ const onUpdateEnvelope = (envelope: ADSRType) => {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+}
+
+.constrained-width {
+  width: 8rem;
 }
 
 </style>

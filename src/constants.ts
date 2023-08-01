@@ -22,6 +22,8 @@ import type {
 
 export const GRID_ROWS = 8;
 
+export const DEFAULT_SOOTHING = 0.002
+
 export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{
 		name: 'AutoFilter',

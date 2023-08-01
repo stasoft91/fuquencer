@@ -1,7 +1,6 @@
 import type {GridCell} from './Sequencer'
 import {DEFAULT_NOTE} from './Sequencer'
 import * as Tone from 'tone/Tone'
-import {Instrument} from 'tone/Tone/instrument/Instrument'
 import type {AmplitudeEnvelope} from 'tone/Tone/component/envelope/AmplitudeEnvelope'
 import type {Ref} from "vue";
 import {reactive, ref} from "vue";
@@ -15,7 +14,7 @@ export type ADSRType = {
   release: number
 }
 
-export type AudioSource = Instrument<any> & {
+export type AudioSource = Tone.MonoSynth & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
   envelope: AmplitudeEnvelope
@@ -31,7 +30,7 @@ export class SoundEngine {
   
   public tracksCount: Ref<number> = ref(GRID_ROWS);
   
-  private signalFollower: Tone.Follower = new Tone.Follower(0.1);
+  private signalFollower?: Tone.Follower;
   
   constructor() {
   }
@@ -42,28 +41,6 @@ export class SoundEngine {
     }
 
     this.tracks.push(track)
-  }
-  
-  public getTrack(trackName: string): Track {
-    const track = this.tracks.find((track) => track.name === trackName)
-
-    if (track === undefined) {
-      throw new Error(`No track found with name ${trackName}`)
-    }
-
-    return track
-  }
-
-  public updateTrackADSR(trackName: string, envelope: ADSRType): void {
-    const track = this.getTrack(trackName)
-
-    if (track.source.envelope !== undefined) {
-      track.source.envelope.set(envelope)
-      return;
-    }
-    
-    track.source.attack = envelope.attack || 0;
-    track.source.release = envelope.release || 0;
   }
 
   public removeTrack(trackName: string): void {
@@ -113,13 +90,17 @@ export class SoundEngine {
   }
   
   public toggleSidechain(trackFrom: Track, trackTo: Track): void {
-    this.signalFollower = trackFrom.toSidechainSource()
+    if (this.signalFollower === undefined) {
+      this.signalFollower = trackFrom.toSidechainSource()
+    }
+    
     trackTo.toggleSidechain(this.signalFollower)
   }
 
   public static createSampler(samplePath: string): Promise<Tone.Sampler> {
     return new Promise((resolve, reject) => {
       const _sampler = new Tone.Sampler({
+        volume: -6,
         urls: {
           [DEFAULT_NOTE]: samplePath
         },

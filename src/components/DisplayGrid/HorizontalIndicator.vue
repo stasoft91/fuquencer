@@ -3,7 +3,7 @@
     <div
       class="display-grid__cell"
       v-for="column in columns"
-      :key="column"
+      :key="`horizontal-indicator-column-${column}`"
       :style="getStyleForCell(1, column)"
       :class="getClassesForCell(column)"
       @click="emit('selectColumn', column)"
@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<style scoped lang="scss" >
+<style scoped lang="scss">
 @import '@/assets/variables.scss';
 
 
@@ -72,8 +72,6 @@
 </style>
 
 <script setup lang="ts">
-import { computed} from 'vue'
-
 const props = defineProps({
   selectedColumn: Number,
   columns: Number,
@@ -96,8 +94,4 @@ const getClassesForCell = (column: number) => {
     'last-in-quarter': column % 4 === 0,
   }
 }
-
-const isCornerVisible = computed(() => {
-  return props.offset?.length > 0;
-})
 </script>

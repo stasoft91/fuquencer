@@ -1,5 +1,5 @@
 <template>
-  <div class="vertical-indicator" :style="{ '--grid-rows': rows}">
+  <div class="vertical-indicator" :style="{ '--grid-rows': rows, '--space': space }">
     <div
       class="vertical-indicator__cell"
       v-for="(row, rowIndex) in rows"
@@ -9,6 +9,11 @@
       @click="emit('selectRow', rowIndex)"
     >
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
+      <DisplayWaveform
+          v-if="rowCaptions && rowCaptions[rowIndex]"
+          :sample-name="rowCaptions[rowIndex]"
+          :wave-color="rowIndex === selectedRow ? '#edf2f7' : '#a0aec0'"
+      ></DisplayWaveform>
     </div>
   </div>
 </template>
@@ -20,9 +25,9 @@
 .vertical-indicator {
   display: grid;
   grid-template-columns: $first-column-spacing;
-  grid-template-rows: repeat(var(--grid-rows), 1fr) 0.5rem;
+  grid-template-rows: repeat(var(--grid-rows), 3rem) var(--space, 0.75rem);
   gap: 0.25rem;
-  padding: 0.25rem 0 0.25rem 0.25rem;
+  padding: 0.25rem 0 0 0.25rem;
 
   background-color: $color-grey-600;
   overflow: hidden;
@@ -53,12 +58,13 @@
 </style>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
 
 interface Props {
   selectedRow: number,
   rows: number,
-  rowCaptions?: string[]
+  rowCaptions?: string[],
+  space?: string
 }
 
 const props = defineProps<Props>()

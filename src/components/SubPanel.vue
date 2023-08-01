@@ -1,25 +1,35 @@
 <template>
   <div class="wrapper">
     <div class="primary-faders">
-      <FaderInput :model-value="volumeLogToPercent(track.volume)"
-                  :min="0"
-                  :max="100"
-                  @input="onUpdateVolume(volumePercentToLog($event.target?.value || 0))"
-                  @dblclick="onUpdateVolume(-6.0)"
+      <RichFaderInput
+          class="constrained-width"
+          :default-value="75"
+          label="Volume"
+          :min="0"
+          :max="100"
+          :model-value="volumeLogToPercent(track.volume)"
+          @update:model-value="onUpdateVolume(volumePercentToLog($event))"
       />
 
-      <ADSRForm :envelope="envelope" :is-sampler="isSampler" @update:envelope="onUpdateEnvelope" />
+      <RichFaderInput
+          v-if="track.source.filterEnvelope"
+          class="constrained-width"
+          label="Cut-off"
+          :min="0"
+          :max="100"
+          :default-value="herzToPercent(track.source.filterEnvelope.baseFrequency as number)"
+          :model-value="herzToPercent(track.filterEnvelopeFrequency)"
+          @update:model-value="onUpdateFilter(percentToHerz($event as number))"
+      />
 
+      <ADSRForm :attack="envelope.attack" :decay="envelope.decay" :release="envelope.release" :sustain="envelope.sustain" :is-sampler="isSampler" @update:envelope="onUpdateEnvelope" />
     </div>
 
+    <SimpleButton class="sidechain" @click="onSidechain">
+      Enable AutoDuck
+    </SimpleButton>
+
     <EffectsChainComposer :effects-chain="effectsChain" @update:chain="onUpdateEffectsChain" :key="`${track.name}-${track.middlewares.length}`"></EffectsChainComposer>
-
-     <button class="sidechain" @click="onSidechain">
-       SIDECHAIN
-     </button>
-
-
-    <DisplayWaveform v-if="isSampler" :sample-name="track.name"></DisplayWaveform>
   </div>
 </template>
 
@@ -31,11 +41,11 @@ import {TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
-import {
+import type {
   UniversalEffect,
 } from "~/lib/Effects.types";
-import {AVAILABLE_EFFECTS} from "@/constants";
-import FaderInput from "@/components/ui/FaderInput.vue";
+import RichFaderInput from "@/components/ui/RichFaderInput.vue";
+import SimpleButton from "@/components/ui/SimpleButton.vue";
 
 const props = defineProps<{
   track: Track,
@@ -49,6 +59,7 @@ const emit = defineEmits<{
   (event: 'update:sidechain', payload: undefined): void
 
   (event: 'update:chain', payload: string[]): void
+  (event: 'update:filter', payload: number): void
 }>()
 
 const volumePercentToLog = (volumePercent: number) => {
@@ -59,12 +70,25 @@ const volumeLogToPercent = (volumeLog: number) => {
   return Math.pow(10, volumeLog / 48) * 100
 }
 
+//scale between 20 and 20000 exponentially to 0 and 100
+const herzToPercent = (herz: number) => {
+  return Math.log10(herz)*23.2
+}
+
+const percentToHerz = (percent: number) => {
+  return Math.pow(10, percent/23.2)
+}
+
 const onUpdateEnvelope = (envelope: ADSRType) => {
   emit('update:envelope', envelope)
 }
 
-const onUpdateVolume = (volume: number) => {
+const onUpdateVolume = ( volume: number) => {
   emit('update:volume', volume)
+}
+
+const onUpdateFilter = ( herz: number) => {
+  emit('update:filter', herz)
 }
 
 const onUpdateEffectsChain = (chain: string[]) => {
@@ -91,5 +115,10 @@ const onSidechain = () => {
   align-items: center;
   justify-content: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.constrained-width {
+  width: 8rem;
 }
 </style>

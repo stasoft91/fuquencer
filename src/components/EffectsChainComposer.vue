@@ -2,7 +2,7 @@
   <div class="wrapper">
     <Sortable
       tag="div"
-      item-key="name"
+      :item-key="(item: any) => item.name + item.id"
       class="effects-chain-composer cloud"
       :list="availableEffects"
       :options="effectsLibraryDraggableOptions"

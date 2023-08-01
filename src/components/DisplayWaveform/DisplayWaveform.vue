@@ -1,6 +1,6 @@
 <template>
   <div ref="wrapper" class="canvas-wrapper">
-    <div ref="canvas" id="waveform"></div>
+    <div ref="canvas" :id="sampleName"></div>
   </div>
 </template>
 
@@ -8,7 +8,11 @@
 import {onMounted, onBeforeUnmount, ref, onUpdated} from 'vue'
 import WaveSurfer from 'wavesurfer.js'
 
-const props = defineProps<{sampleName: string}>()
+type Props = {
+  sampleName: string,
+  waveColor?: string
+}
+const props = defineProps<Props>()
 
 const wrapper = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLElement | null>(null)
@@ -43,14 +47,20 @@ onBeforeUnmount(() => {
 })
 
 const drawWaveform = () => {
+  if (!props.sampleName) {
+    return
+  }
+
   wavesurfer?.destroy()
+  console.log('drawWaveform', props.sampleName)
   wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: '#4F4A85',
-    progressColor: '#383351',
+    container: canvas.value as HTMLElement,
+    waveColor: props.waveColor,
+    progressColor: '#ffffff00',
     url: 'samples/' + props.sampleName,
     autoplay: false,
-    interact: false
+    interact: false,
+    height: 16
   })
 }
 </script>

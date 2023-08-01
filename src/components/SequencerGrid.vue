@@ -1,7 +1,7 @@
 <template>
   <div class="sequencer-wrapper" :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': sequencer.sequenceLength }">
     <div class="flex-horizontal">
-      <VerticalIndicator :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)" :selected-row="selectedTrackIndex" :rows="GRID_ROWS" @select-row="onSelectTrack" class="flex-auto"/>
+     <VerticalIndicator :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)" :selected-row="selectedTrackIndex" :rows="GRID_ROWS" @select-row="onSelectTrack" class="flex-auto"/>
       <div style="width:100%">
         <DisplayGrid :items="sequencer.sequenceGrid" :columns="sequencer.sequenceLength" :rows="GRID_ROWS" @click="changeCellState" @wheel="onNoteWheel" />
         <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>
@@ -21,13 +21,13 @@
 
         @update:chain="onUpdateEffects"
         @update:sidechain="onSidechain"
+        @update:filter="onFilterUpdate"
     ></SubPanel>
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue'
-import type {Ref} from 'vue'
+import {computed, ref} from 'vue'
 
 import type { GridCell } from '~/lib/Sequencer'
 import { AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer } from '~/lib/Sequencer'
@@ -39,7 +39,7 @@ import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 import type {ADSRType} from '~/lib/SoundEngine'
 import {AVAILABLE_EFFECTS, GRID_ROWS} from "@/constants";
 import type {Track} from "~/lib/Track";
-import {UniversalEffect} from "~/lib/Effects.types";
+import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
 
 const sequencer = new Sequencer(16)
@@ -151,14 +151,20 @@ const onSidechain = () => {
   sequencer.soundEngine.toggleSidechain(tracks[0], tracks[selectedTrackIndex.value])
 }
 
+const onFilterUpdate = (frequency: number) => {
+  const track = sequencer.soundEngine.tracks[selectedTrackIndex.value]
+
+  track.setFilterCutoff(frequency)
+}
+
 const onUpdateEffects = (chain: string[]) => {
   // array of effect names (:string[]) maps to actual effect objects (:UniversalEffect) then goes to initialize in middlewares `set` method
   // jsonCopy to actually have different instances of effects for each track
-  const newEffectByName =  (effectName) => jsonCopy(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
+  const newEffectByName =  (effectName:string) => jsonCopy(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
 
   sequencer.soundEngine.tracks[selectedTrackIndex.value].clearMiddlewares()
 
-  chain.forEach((effectName, index) => {
+  chain.forEach((effectName) => {
     const effect = newEffectByName(effectName)
     sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effect)
   })
