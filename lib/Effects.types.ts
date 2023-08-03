@@ -1,5 +1,4 @@
 import * as Tone from "tone/Tone";
-import {Effect} from "tone/Tone/effect/Effect";
 
 export type AvailableEffectsInTone =
 	Tone.AutoFilter |

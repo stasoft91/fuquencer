@@ -1,7 +1,7 @@
 import type {GridCell} from './Sequencer'
 import {DEFAULT_NOTE} from './Sequencer'
 import * as Tone from 'tone/Tone'
-import type {AmplitudeEnvelope} from 'tone/Tone/component/envelope/AmplitudeEnvelope'
+// import type {AmplitudeEnvelope} from 'tone/Tone/component/envelope/AmplitudeEnvelope'
 import type {Ref} from "vue";
 import {reactive, ref} from "vue";
 import {GRID_ROWS} from "@/constants";
@@ -17,7 +17,7 @@ export type ADSRType = {
 export type AudioSource = Tone.MonoSynth & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
-  envelope: AmplitudeEnvelope
+	envelope: any
 };
 
 export enum TrackTypes {

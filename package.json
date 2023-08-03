@@ -22,9 +22,9 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
-    "@tsconfig/node18": "^2.0.1",
+    "@tsconfig/node16": "^16.1.0",
     "@types/jsdom": "^21.1.1",
-    "@types/node": "^18.16.17",
+    "@types/node": "^16.18.39",
     "@types/sortablejs": "^1.15.1",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/eslint-config-prettier": "^7.1.0",

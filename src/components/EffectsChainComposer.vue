@@ -48,7 +48,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Sortable } from "sortablejs-vue3";
+// @ts-ignore - this is a bug in the types (sortablejs-vue3 is not typed well)
+import {Sortable} from "sortablejs-vue3";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {ref} from "vue";
 import {AVAILABLE_EFFECTS} from "@/constants";

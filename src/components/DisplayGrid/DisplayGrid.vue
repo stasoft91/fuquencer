@@ -110,11 +110,10 @@ button.active {
 </style>
 
 <script setup lang="ts">
-import {onMounted, Ref} from 'vue'
 import {GRID_ROWS} from "@/constants";
 import type {GridCell} from "~/lib/Sequencer";
-import HorizontalIndicator from "@/components/DisplayGrid/HorizontalIndicator.vue";
-// import {DEFAULT_NOTE} from "~/lib/Sequencer";
+import type {Ref} from "vue";
+import {toRef} from "vue";
 
 interface DisplayGridProps {
   rows: number,
@@ -122,11 +121,11 @@ interface DisplayGridProps {
   items: Ref<GridCell[]>
 }
 
-const props = withDefaults<DisplayGridProps>(defineProps<DisplayGridProps>(), {
+const props = withDefaults(defineProps<DisplayGridProps>(), {
   rows: GRID_ROWS,
   columns: 16,
-  items: []
-}) as DisplayGridProps;
+  items: () => toRef([])
+});
 
 const emit = defineEmits([
     'change',
