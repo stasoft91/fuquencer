@@ -94,7 +94,7 @@ export class Track {
 		return this._middlewares;
 	}
 	
-	public addMiddleware(middleware: UniversalEffect): void {
+	public addMiddleware(middleware: UniversalEffect | UniversalEffect[]): void {
 		this._middlewares = this._middlewares.concat(middleware);
 		this.reconnectMiddlewares();
 	}
@@ -104,7 +104,6 @@ export class Track {
 		
 		this._middlewares.map((middleware) => {
 			middleware.effect?.dispose();
-			middleware.mountedId = undefined;
 			middleware.effect = undefined;
 			
 			if (middleware.name === 'AutoDuck' && this.sidechainSource) {
@@ -114,6 +113,7 @@ export class Track {
 				this.sidechainSource.connect(scale);
 				
 			} else if (middleware.name !== 'AutoDuck') {
+				console.log('asdasdd', middleware.options);
 				// @ts-ignore
 				middleware.effect = new Tone[middleware.name](middleware.options);
 				
@@ -121,8 +121,6 @@ export class Track {
 				console.error('You need to add a sidechain source to use AutoDuck');
 				return undefined;
 			}
-			
-			middleware.mountedId = Math.random().toString(36).substring(7);
 		});
 		
 		this._follower && this._source.connect(this._follower);
@@ -141,7 +139,6 @@ export class Track {
 	public clearMiddlewares(): void {
 		this._middlewares = this._middlewares.map((middleware) => {
 			middleware.effect?.dispose();
-			middleware.mountedId = undefined;
 			middleware.effect = undefined;
 			return middleware
 		});

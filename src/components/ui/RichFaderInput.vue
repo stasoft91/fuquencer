@@ -13,10 +13,10 @@
         :show-button="isInputFieldButtonsVisible"
         v-model:value="value"
         :format="(val) => (val || 0).toFixed(1)"
-        placeholder="42%"
+        :step="step"
         :min="min"
         :max="max"
-        step="0.1"
+        placeholder="42.0"
         @mouseleave="isInputFieldButtonsVisible = false"
         @mouseenter="isInputFieldButtonsVisible = true"
     />
@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import FaderInput from "@/components/ui/FaderInput.vue";
-import { NInputNumber } from 'naive-ui'
+import {NInputNumber} from 'naive-ui'
 import {ref} from "vue";
 import * as Tone from 'tone/Tone'
 import SimpleButton from "@/components/ui/SimpleButton.vue";
@@ -44,6 +44,7 @@ type Props = {
   min?: number,
   max?: number,
   defaultValue?: number,
+  step?: number,
   connector?: Tone.Param<any>, //not sure about this one
 }
 
@@ -52,6 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
   max: 100,
   id: 'fader-input',
   label: 'Fader Input',
+  step: 0.1,
 })
 
 const emit = defineEmits<{

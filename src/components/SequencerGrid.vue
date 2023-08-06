@@ -29,8 +29,8 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 
-import type { GridCell } from '~/lib/Sequencer'
-import { AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer } from '~/lib/Sequencer'
+import type {GridCell} from '~/lib/Sequencer'
+import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import HorizontalIndicator from '@/components/DisplayGrid/HorizontalIndicator.vue'
@@ -160,14 +160,21 @@ const onFilterUpdate = (frequency: number) => {
 const onUpdateEffects = (chain: string[]) => {
   // array of effect names (:string[]) maps to actual effect objects (:UniversalEffect) then goes to initialize in middlewares `set` method
   // jsonCopy to actually have different instances of effects for each track
-  const newEffectByName =  (effectName:string) => jsonCopy(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
+  const newEffectByName = (effectName: string): UniversalEffect => {
+    const track = sequencer.soundEngine.tracks[selectedTrackIndex.value];
+    const effect = track.middlewares.find(_ => _.name === effectName)
+
+    if (effect) {
+      return effect as UniversalEffect
+    }
+
+    return jsonCopy(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
+  }
+
+  const effects: UniversalEffect[] = chain.map(newEffectByName)
 
   sequencer.soundEngine.tracks[selectedTrackIndex.value].clearMiddlewares()
-
-  chain.forEach((effectName) => {
-    const effect = newEffectByName(effectName)
-    sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effect)
-  })
+  sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effects)
 }
 
 </script>

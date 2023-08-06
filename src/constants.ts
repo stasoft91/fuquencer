@@ -1,24 +1,5 @@
-import type {
-	AutoDuck,
-	AutoFilter,
-	AutoPanner,
-	AutoWah,
-	BitCrusher,
-	Chebyshev,
-	Chorus, Compressor,
-	Distortion,
-	FeedbackDelay,
-	Freeverb,
-	FrequencyShifter,
-	JCReverb,
-	Phaser,
-	PingPongDelay, PitchShift,
-	Reverb,
-	StereoWidener,
-	Tremolo,
-	UniversalEffect,
-	Vibrato
-} from "~/lib/Effects.types";
+import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
+import type {ToneOscillatorType} from "tone";
 
 export const GRID_ROWS = 8;
 
@@ -34,7 +15,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			octaves: 2.6,
 			wet: 1
 		}
-	} as AutoFilter,
+	} as UniversalEffect,
 	{
 		name: 'AutoPanner',
 		options: {
@@ -43,7 +24,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			type: 'sine',
 			wet: 1
 		}
-	} as AutoPanner,
+	} as UniversalEffect,
 	{
 		name: 'AutoWah',
 		options: {
@@ -54,14 +35,14 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			gain: 2,
 			wet: 1
 		}
-	} as AutoWah,
+	} as UniversalEffect,
 	{
 		name: 'BitCrusher',
 		options: {
 			bits: 4,
 			wet: 1
 		}
-	} as BitCrusher,
+	} as UniversalEffect,
 	{
 		name: 'Chebyshev',
 		options: {
@@ -69,7 +50,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			oversample: 'none',
 			wet: 1
 		}
-	} as Chebyshev,
+	} as UniversalEffect,
 	{
 		name: 'Chorus',
 		options: {
@@ -80,14 +61,15 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			spread: 180,
 			wet: 1
 		}
-	} as Chorus,
+	} as UniversalEffect,
 	{
 		name: 'Distortion',
 		options: {
 			distortion: 0.4,
-			oversample: 'none'
+			oversample: 'none',
+			wet: 1
 		}
-	} as Distortion,
+	} as UniversalEffect,
 	{
 		name: 'FeedbackDelay',
 		options: {
@@ -96,7 +78,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			feedback: 0.125,
 			wet: 0.5
 		}
-	} as FeedbackDelay,
+	} as UniversalEffect,
 	{
 		name: 'Freeverb',
 		options: {
@@ -104,21 +86,21 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			dampening: 3000,
 			wet: 0.5
 		}
-	} as Freeverb,
+	} as UniversalEffect,
 	{
 		name: 'FrequencyShifter',
 		options: {
 			frequency: 0,
 			wet: 0.5
 		}
-	} as FrequencyShifter,
+	} as UniversalEffect,
 	{
 		name: 'JCReverb',
 		options: {
 			roomSize: 0.5,
 			wet: 0.5
 		}
-	} as JCReverb,
+	} as UniversalEffect,
 	{
 		name: 'Phaser',
 		options: {
@@ -129,7 +111,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			baseFrequency: 350,
 			wet: 0.5
 		}
-	} as Phaser,
+	} as UniversalEffect,
 	{
 		name: 'PingPongDelay',
 		options: {
@@ -137,7 +119,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			delayTime: "8n.",
 			feedback: 0.5
 		}
-	} as PingPongDelay,
+	} as UniversalEffect,
 	{
 		name: 'Tremolo',
 		options: {
@@ -147,7 +129,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			spread: 180,
 			wet: 0.5
 		}
-	} as Tremolo,
+	} as UniversalEffect,
 	{
 		name: 'Vibrato',
 		options: {
@@ -157,14 +139,14 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			type: 'sine',
 			wet: 0.5
 		}
-	} as Vibrato,
+	} as UniversalEffect,
 	{
 		name: 'StereoWidener',
 		options: {
 			width: 0.5,
 			wet: 1
 		}
-	} as StereoWidener,
+	} as UniversalEffect,
 	{
 		name: 'Reverb',
 		options: {
@@ -172,17 +154,17 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			preDelay: 0.01,
 			wet: 0.5
 		}
-	} as Reverb,
+	} as UniversalEffect,
 	{
 		name: 'PitchShift',
 		options: {
-			pitch: 0,
+			pitch: 7,
 			windowSize: 0.1,
-			delayTime: 0,
-			feedback: 0,
-			wet: 0.5
+			delayTime: 0.1,
+			feedback: 0.2,
+			wet: 0.2
 		}
-	} as PitchShift,
+	} as UniversalEffect,
 	{
 		name: 'Compressor',
 		options: {
@@ -192,10 +174,157 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			release: 0.25,
 			knee: 30,
 		},
-	} as Compressor,
+	} as UniversalEffect,
 	{
 		name: "AutoDuck",
 		options: {},
 		isHidden: true
 	} as UniversalEffect
 ]
+
+export const AVAILABLE_OSCILLATOR_TYPES: ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
+export const DELAY_OPTIONS: string[] = ['1n', '2n', '4n', '8n', '16n', '1n.', '2n.', '4n.', '8n.', '16n.'];
+
+// below is two-dimensional array of options names per each effect
+export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParametersDescriptor<any>[]> = {
+	AutoFilter: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'depth'},
+		{name: 'baseFrequency', min: 10, max: 20000},
+		{name: 'octaves', min: 0, max: 8, step: 1},
+		{name: 'wet'},
+	] as EffectParametersDescriptor<'AutoFilter'>[],
+	
+	AutoPanner: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'depth'},
+		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'AutoPanner'>[],
+	
+	AutoWah: [
+		{name: 'baseFrequency', min: 10, max: 20000},
+		{name: 'octaves', min: 0, max: 8, step: 1},
+		{name: 'sensitivity', min: -40, max: 0},
+		{name: 'Q'},
+		{name: 'gain'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'AutoWah'>[],
+	
+	BitCrusher: [
+		{name: 'bits', min: 1, max: 16, step: 1},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'BitCrusher'>[],
+	
+	Chebyshev: [
+		{name: 'order', min: 1, max: 100},
+		{name: 'oversample', enum: ['none', '2x', '4x']},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Chebyshev'>[],
+	
+	Chorus: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'delayTime', enum: DELAY_OPTIONS},
+		{name: 'depth'},
+		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
+		{name: 'spread', min: 0, max: 360},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Chorus'>[],
+	
+	Distortion: [
+		{name: 'distortion'},
+		{name: 'oversample', enum: ['none', '2x', '4x']},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Distortion'>[],
+	
+	FeedbackDelay: [
+		{name: 'delayTime', enum: DELAY_OPTIONS},
+		{name: 'maxDelay', enum: DELAY_OPTIONS},
+		{name: 'feedback'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'FeedbackDelay'>[],
+	
+	Freeverb: [
+		{name: 'roomSize'},
+		{name: 'dampening', min: 10, max: 20000},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Freeverb'>[],
+	
+	FrequencyShifter: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'FrequencyShifter'>[],
+	
+	JCReverb: [
+		{name: 'roomSize'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'JCReverb'>[],
+	
+	Phaser: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'octaves', min: 0, max: 8, step: 1},
+		{name: 'stages', min: 1, max: 12, step: 1},
+		{name: 'Q'},
+		{name: 'baseFrequency', min: 10, max: 20000},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Phaser'>[],
+	
+	PingPongDelay: [
+		{name: 'wet'},
+		{name: 'delayTime', enum: DELAY_OPTIONS},
+		{name: 'feedback'}
+	] as EffectParametersDescriptor<'PingPongDelay'>[],
+	
+	Tremolo: [
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
+		{name: 'depth'},
+		{name: 'spread', min: 0, max: 360},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Tremolo'>[],
+	
+	Vibrato: [
+		{name: 'maxDelay', enum: DELAY_OPTIONS},
+		{name: 'frequency', min: 10, max: 20000},
+		{name: 'depth'},
+		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Vibrato'>[],
+	
+	StereoWidener: [
+		{name: 'width'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'StereoWidener'>[],
+	
+	Reverb: [
+		{name: 'decay'},
+		{name: 'preDelay'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'Reverb'>[],
+	
+	PitchShift: [
+		{name: 'pitch', min: -12, max: 12, step: 1},
+		{name: 'windowSize', enum: DELAY_OPTIONS},
+		{name: 'delayTime', enum: DELAY_OPTIONS},
+		{name: 'feedback'},
+		{name: 'wet'}
+	] as EffectParametersDescriptor<'PitchShift'>[],
+	
+	Compressor: [
+		{name: 'threshold', min: -100, max: 0.01,},
+		{name: 'ratio', min: 1, max: 20, step: 1},
+		{name: 'attack'},
+		{name: 'release'},
+		{name: 'knee', min: 0, max: 40},
+	] as EffectParametersDescriptor<'Compressor'>[],
+	
+	// AutoDuck: [{ name: '' }],
+}
+
+const scale = (value: number, min: number, max: number) => {
+	return (value - min) / (max - min)
+}
+
+const scaleBack = (value: number, min: number, max: number) => {
+	return value * (max - min) + min
+}

@@ -29,21 +29,23 @@
       Enable AutoDuck
     </SimpleButton>
 
-    <EffectsChainComposer :effects-chain="effectsChain" @update:chain="onUpdateEffectsChain" :key="`${track.name}-${track.middlewares.length}`"></EffectsChainComposer>
+    <EffectsChainComposer
+        :key="`${track.name}-${track.middlewares.length}`"
+        :effects-chain="effectsChain"
+        :selected-track-name="track.name"
+        @update:chain="onUpdateEffectsChain"
+    ></EffectsChainComposer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
-import DisplayWaveform from '@/components/DisplayWaveform/DisplayWaveform.vue'
 import type {ADSRType} from "~/lib/SoundEngine";
 import {TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
-import type {
-  UniversalEffect,
-} from "~/lib/Effects.types";
+import type {UniversalEffect,} from "~/lib/Effects.types";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 

@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref, onUpdated} from 'vue'
+import {onBeforeUnmount, onMounted, onUpdated, ref} from 'vue'
 import WaveSurfer from 'wavesurfer.js'
 
 type Props = {
@@ -52,7 +52,7 @@ const drawWaveform = () => {
   }
 
   wavesurfer?.destroy()
-  console.log('drawWaveform', props.sampleName)
+
   wavesurfer = WaveSurfer.create({
     container: canvas.value as HTMLElement,
     waveColor: props.waveColor,

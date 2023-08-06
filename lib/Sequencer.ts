@@ -1,5 +1,5 @@
-import {ref, toRef} from 'vue'
 import type {Ref} from 'vue'
+import {ref} from 'vue'
 import * as Tone from 'tone/Tone'
 import type {AudioSource} from '~/lib/SoundEngine'
 import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
@@ -33,8 +33,8 @@ export class Sequencer {
   private readonly _sequenceLength: number = 16
 
   private _currentStep = ref(1)
-
-  public readonly soundEngine: SoundEngine = new SoundEngine()
+  
+  public readonly soundEngine: SoundEngine = SoundEngine.getInstance()
 
   constructor(sequenceLength: number = 16) {
     this._sequenceGrid = ref(this.generateGrid())

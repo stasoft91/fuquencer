@@ -26,6 +26,16 @@ export enum TrackTypes {
 }
 
 export class SoundEngine {
+	private static instance: SoundEngine;
+	
+	public static getInstance(): SoundEngine {
+		if (!SoundEngine.instance) {
+			SoundEngine.instance = new SoundEngine();
+		}
+		
+		return SoundEngine.instance;
+	}
+  
   public tracks: Track[] = reactive([])
   
   public tracksCount: Ref<number> = ref(GRID_ROWS);
