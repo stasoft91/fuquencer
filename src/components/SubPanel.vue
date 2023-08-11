@@ -231,16 +231,6 @@ const onStartLoop = (loop: PolyrhythmLoop) => {
 const onStopLoop = (loop: PolyrhythmLoop) => {
   loop.stop(getToneTimeNextMeasure())
 }
-
-const onUpdateOscillator = (oscillatorType: Tone.OmniOscillator<any>['type']) => {
-  props.track.source.set({
-    oscillator: {
-      type: oscillatorType
-    } as Tone.OmniOscillatorOptions
-  })
-
-  props.track.oscillatorType = oscillatorType
-}
 </script>
 
 <style lang="scss">
