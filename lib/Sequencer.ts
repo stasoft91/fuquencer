@@ -4,6 +4,7 @@ import * as Tone from 'tone/Tone'
 import type {AudioSource} from '~/lib/SoundEngine'
 import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
+import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -35,6 +36,8 @@ export class Sequencer {
   private _currentStep = ref(1)
   
   public readonly soundEngine: SoundEngine = SoundEngine.getInstance()
+  
+  private _mainLoop: number = 0;
 
   constructor(sequenceLength: number = 16) {
     this._sequenceGrid = ref(this.generateGrid())
@@ -76,6 +79,11 @@ export class Sequencer {
   }
 
   public set currentStep(newValue: number) {
+    if (newValue > this._sequenceLength) {
+      this._currentStep.value = 1
+      return
+    }
+    
     this._currentStep.value = newValue
   }
 
@@ -101,6 +109,10 @@ export class Sequencer {
   public advanceStep(): void {
     this.currentStep = this.currentStep === this._sequenceLength ? 1 : this.currentStep + 1
   }
+  
+  public setStep(step: number): void {
+    this.currentStep = step
+  }
 
   public readStep(): GridCell[] {
     return this._sequenceGrid.value.filter((cell) => cell.column === this.currentStep)
@@ -121,20 +133,48 @@ export class Sequencer {
   }
 
   public async play() {
-    await Tone.start()
-
     // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
     if (this.soundEngine.tracks.length === 0) {
       await this.initTracksDemo()
     }
 
     Tone.Transport.bpm.value = 120
-
-    Tone.Transport.scheduleRepeat((time) => {
-      this.playNotes(time)
-
-      this.advanceStep()
-    }, this._sequenceLength + 'n')
+    
+    this.setStep(1)
+    Tone.Transport.cancel()
+    
+    this._mainLoop = Tone.Transport.scheduleRepeat((time) => {
+      const step = getStepFromBarsBeatsSixteens(Tone.Transport.position as Tone.Unit.BarsBeatsSixteenths)
+      
+      for (let i = 0; i < this.soundEngine.tracks.length; i++) {
+        const cell = this._sequenceGrid.value.filter(_ => _.column === step)[i]
+        this.soundEngine.tracks[i].source.releaseAll().triggerAttackRelease(
+          cell.note,
+          '8n',
+          time,
+          cell.velocity / 100
+        )
+      }
+      
+      Tone.Draw.schedule(() => {
+        this.currentStep++
+      }, time);
+    }, '16n', 0)
+    
+    //
+    // this._mainLoop = Tone.Transport.scheduleRepeat((time) => {
+    //   console.log('NOTE',
+    //     this.currentStep,
+    //     Tone.Transport.position,
+    //     getStepFromBarsBeatsSixteens(Tone.Time(time).toBarsBeatsSixteenths()),
+    //     Tone.Time(time).toBarsBeatsSixteenths(),
+    //     Tone.Time(Tone.Time('@1m').quantize('2m')).toBarsBeatsSixteenths()
+    //   )
+    //
+    //   this.playNotes(time)
+    //
+    //   ++this.currentStep
+    // }, this._sequenceLength + 'n')
     
     // const loop = new Tone.Loop((time) => {
     //   // triggered every eighth note.
@@ -154,7 +194,7 @@ export class Sequencer {
   public stop() {
     Tone.Transport.stop()
     Tone.Transport.cancel()
-    Tone.Transport.position = 0
+    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     this.currentStep = 1
   }
 

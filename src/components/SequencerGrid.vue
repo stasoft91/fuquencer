@@ -1,7 +1,9 @@
 <template>
   <div class="sequencer-wrapper" :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': sequencer.sequenceLength }">
     <div class="flex-horizontal">
-     <VerticalIndicator :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)" :selected-row="selectedTrackIndex" :rows="GRID_ROWS" @select-row="onSelectTrack" class="flex-auto"/>
+      <VerticalIndicator :polyrythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)" :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
+                         :rows="GRID_ROWS" :selected-row="selectedTrackIndex" class="flex-auto"
+                         @select-row="onSelectTrack"/>
       <div style="width:100%">
         <DisplayGrid :items="sequencer.sequenceGrid" :columns="sequencer.sequenceLength" :rows="GRID_ROWS" @click="changeCellState" @wheel="onNoteWheel" />
         <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>
@@ -27,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 
 import type {GridCell} from '~/lib/Sequencer'
 import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from '~/lib/Sequencer'
@@ -41,6 +43,8 @@ import {AVAILABLE_EFFECTS, GRID_ROWS} from "@/constants";
 import type {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
+import {useDialog} from "naive-ui";
+import * as Tone from "tone/Tone";
 
 const sequencer = new Sequencer(16)
 
@@ -107,7 +111,7 @@ const play = () => {
 
   isPlaying.value = true
 
-  const notesInPhrygian = ['C2', 'B2', 'E2']
+  const notesInPhrygian = ['C2', 'B2', 'E2', 'F2']
 
   sequencer.sequenceGrid.value.filter(cell => cell.row === 5).forEach(cell => {
     cell.velocity = cell.column % 2 === 1 ? 100 : 0;
@@ -177,6 +181,20 @@ const onUpdateEffects = (chain: string[]) => {
   sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effects)
 }
 
+const dialog = useDialog()
+
+onMounted(() => {
+  const VERSION = '0.2.0'
+
+  dialog.info({
+    title: `fuquencer v${VERSION}`,
+    content: `Welcome to fuquencer! Click anywhere to start playing.`,
+    closeOnEsc: false,
+    onClose: async () => {
+      await Tone.start()
+    }
+  })
+})
 </script>
 
 <style scoped lang="scss">

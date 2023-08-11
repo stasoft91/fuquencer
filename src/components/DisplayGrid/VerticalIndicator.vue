@@ -9,6 +9,7 @@
       @click="emit('selectRow', rowIndex)"
     >
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
+      {{ polyrythms && polyrythms[rowIndex] ? `(+${polyrythms[rowIndex]})` : '' }}
       <DisplayWaveform
           v-if="rowCaptions && rowCaptions[rowIndex]"
           :sample-name="rowCaptions[rowIndex]"
@@ -65,6 +66,7 @@ interface Props {
   rows: number,
   rowCaptions?: string[],
   space?: string
+  polyrythms?: number[]
 }
 
 const props = defineProps<Props>()

@@ -14,11 +14,11 @@ export type ADSRType = {
   release: number
 }
 
-export type AudioSource = Tone.MonoSynth & {
+export type AudioSource = Tone.PolySynth<Tone.MonoSynth> & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
-	envelope: any
-};
+  envelope: any
+}
 
 export enum TrackTypes {
   'synth' = 'synth',
@@ -65,33 +65,27 @@ export class SoundEngine {
     this.tracksCount.value = this.tracks.length;
   }
 
-  public playStepData(time: Tone.Unit.Time, stepData: GridCell[]): void {
-    let tracks = this.tracks.filter((_) => _.isSolo.value)
-
-    if (tracks.length === 0) {
-      tracks = this.tracks
-    }
+  public static createInstrument(): Tone.PolySynth<any> {
+    const synth = new Tone.PolySynth(Tone.MonoSynth, {
+      oscillator: {
+        type: 'pwm'
+      },
+      envelope: {
+        attack: 0.01,
+        decay: 0.5,
+        sustain: 0
+      },
+      filterEnvelope: {
+        attack: 0.001,
+        decay: 0.01,
+        sustain: 0.5,
+      },
+      volume: -6
+    }).toDestination()
     
-    tracks = tracks.filter((_) => !_.isMuted.value)
-
-    tracks.forEach((track, trackIndex) => {
-      const trackStepData = stepData[trackIndex]
-
-      if (trackStepData === undefined || trackStepData.velocity === 0) {
-        return
-      }
-
-      if (track.type === TrackTypes.sample) {
-        track.source.triggerAttackRelease(trackStepData.note, '16n', time, trackStepData.velocity / 100)
-      } else {
-        track.source.triggerAttackRelease(
-          trackStepData.note,
-          '16n',
-          time,
-          trackStepData.velocity / 100
-        )
-      }
-    })
+    synth.maxPolyphony = 8
+    
+    return synth
   }
 
   public clearTracks(): void {
@@ -126,23 +120,18 @@ export class SoundEngine {
       })
     })
   }
-
-  public static createInstrument(): Tone.MonoSynth {
-    return new Tone.MonoSynth({
-      oscillator: {
-        type: 'pwm'
-      },
-      envelope: {
-        attack: 0.01,
-        decay: 0.5,
-        sustain: 0
-      },
-      filterEnvelope: {
-        attack: 0.001,
-        decay: 0.01,
-        sustain: 0.5,
-      },
-      volume: -6
-    }).toDestination()
+  
+  public playStepData(time: Tone.Unit.Time, stepData: GridCell[]): void {
+    this.tracks.forEach((track, trackIndex) => {
+      if (!track.isSolo.value || track.isMuted.value) {
+        return
+      }
+      
+      if (stepData[trackIndex] === undefined || stepData[trackIndex].velocity === 0) {
+        return
+      }
+      
+      track.source.releaseAll(time).triggerAttackRelease(stepData[trackIndex].note, '16n', time, stepData[trackIndex].velocity / 100)
+    })
   }
 }

@@ -1,5 +1,5 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
-import type {ToneOscillatorType} from "tone";
+import * as Tone from "tone/Tone";
 
 export const GRID_ROWS = 8;
 
@@ -182,8 +182,9 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	} as UniversalEffect
 ]
 
-export const AVAILABLE_OSCILLATOR_TYPES: ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
-export const DELAY_OPTIONS: string[] = ['1n', '2n', '4n', '8n', '16n', '1n.', '2n.', '4n.', '8n.', '16n.'];
+export const AVAILABLE_OSCILLATOR_TYPES: Tone.ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
+export const DELAY_OPTIONS: string[] = ['1n', '2n', '4n', '8n', '16n', '1n.', '2n.', '4n.', '8n.', '16n.', '32n', '32n.'];
+export const DELAY_OPTIONS_WITH_ZERO: string[] = ['0', '128n', '256n', '256t'];
 
 // below is two-dimensional array of options names per each effect
 export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParametersDescriptor<any>[]> = {
@@ -224,7 +225,7 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	
 	Chorus: [
 		{name: 'frequency', min: 10, max: 20000},
-		{name: 'delayTime', enum: DELAY_OPTIONS},
+		{name: 'delayTime'},
 		{name: 'depth'},
 		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
 		{name: 'spread', min: 0, max: 360},
@@ -284,8 +285,8 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	] as EffectParametersDescriptor<'Tremolo'>[],
 	
 	Vibrato: [
-		{name: 'maxDelay', enum: DELAY_OPTIONS},
-		{name: 'frequency', min: 10, max: 20000},
+		{name: 'maxDelay'},
+		{name: 'frequency', min: 0, max: 2000, step: 0.1},
 		{name: 'depth'},
 		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
 		{name: 'wet'}
@@ -319,12 +320,4 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	] as EffectParametersDescriptor<'Compressor'>[],
 	
 	// AutoDuck: [{ name: '' }],
-}
-
-const scale = (value: number, min: number, max: number) => {
-	return (value - min) / (max - min)
-}
-
-const scaleBack = (value: number, min: number, max: number) => {
-	return value * (max - min) + min
 }

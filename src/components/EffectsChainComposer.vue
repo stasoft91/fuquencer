@@ -125,7 +125,8 @@ const onChange = () => {
 
 const getClasses = (element: UniversalEffect, isActiveEffectsContainer: boolean) => {
   return {
-    active: isFocusOnActiveEffectsContainer.value === isActiveEffectsContainer && element.name === selectedEffectName.value
+    active: isFocusOnActiveEffectsContainer.value === isActiveEffectsContainer && element.name === selectedEffectName.value,
+    ignore: element.name === 'AutoDuck'
   }
 }
 
@@ -209,5 +210,9 @@ const getFields = (effectName: string) => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+}
+
+.draggable.ignore {
+  opacity: 0.65;
 }
 </style>

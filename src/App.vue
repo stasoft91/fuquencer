@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import SequencerGrid from './components/SequencerGrid.vue'
+import {darkTheme, NConfigProvider, NDialogProvider} from 'naive-ui'
 </script>
 
 <template>
+
   <header>
     <div class="wrapper">
       <h1 class="title">fuquencer</h1>
@@ -11,9 +13,14 @@ import SequencerGrid from './components/SequencerGrid.vue'
 
   <main>
     <div class="wrapper">
-      <SequencerGrid />
+      <n-config-provider :theme="darkTheme">
+        <n-dialog-provider>
+          <SequencerGrid/>
+        </n-dialog-provider>
+      </n-config-provider>
     </div>
   </main>
+
 </template>
 
 <style scoped>
