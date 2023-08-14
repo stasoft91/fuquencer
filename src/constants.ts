@@ -19,7 +19,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{
 		name: 'AutoPanner',
 		options: {
-			frequency: 1,
+			frequency: '4n',
 			depth: 1,
 			type: 'sine',
 			wet: 1
@@ -28,11 +28,11 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{
 		name: 'AutoWah',
 		options: {
-			baseFrequency: 100,
-			octaves: 6,
+			baseFrequency: 10,
+			octaves: 5,
 			sensitivity: 0,
-			Q: 2,
-			gain: 2,
+			Q: 1,
+			gain: 1,
 			wet: 1
 		}
 	} as UniversalEffect,
@@ -184,27 +184,37 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 
 export const AVAILABLE_OSCILLATOR_TYPES: Tone.ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
 export const DELAY_OPTIONS: string[] = ['1n', '2n', '4n', '8n', '16n', '1n.', '2n.', '4n.', '8n.', '16n.', '32n', '32n.'];
-export const DELAY_OPTIONS_WITH_ZERO: string[] = ['0', '128n', '256n', '256t'];
+export const DELAY_OPTIONS_ADDITIONAL: string[] = ['64n', '128n', '256n', '256t'];
+export const DELAY_OPTIONS_WITH_ZERO: string[] = ['0', ...DELAY_OPTIONS_ADDITIONAL];
+
+export const DELAY_OPTIONS_LONG: string[] = [
+	(1.5 * Tone.Time('1n').toSeconds()).toString(),
+	(2 * Tone.Time('1n').toSeconds()).toString(),
+	(2.5 * Tone.Time('1n').toSeconds()).toString(),
+	(3 * Tone.Time('1n').toSeconds()).toString(),
+	(3.5 * Tone.Time('1n').toSeconds()).toString(),
+	(4 * Tone.Time('1n').toSeconds()).toString(),
+]
 
 // below is two-dimensional array of options names per each effect
 export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParametersDescriptor<any>[]> = {
 	AutoFilter: [
-		{name: 'frequency', min: 10, max: 20000},
+		{name: 'frequency', enum: DELAY_OPTIONS},
 		{name: 'depth'},
 		{name: 'baseFrequency', min: 10, max: 20000},
-		{name: 'octaves', min: 0, max: 8, step: 1},
+		{name: 'octaves', min: 0, max: 10, step: 1},
 		{name: 'wet'},
 	] as EffectParametersDescriptor<'AutoFilter'>[],
 	
 	AutoPanner: [
-		{name: 'frequency', min: 10, max: 20000},
+		{name: 'frequency', enum: DELAY_OPTIONS},
 		{name: 'depth'},
 		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
 		{name: 'wet'}
 	] as EffectParametersDescriptor<'AutoPanner'>[],
 	
 	AutoWah: [
-		{name: 'baseFrequency', min: 10, max: 20000},
+		{name: 'baseFrequency', min: 0, max: 100},
 		{name: 'octaves', min: 0, max: 8, step: 1},
 		{name: 'sensitivity', min: -40, max: 0},
 		{name: 'Q'},
@@ -262,8 +272,8 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	] as EffectParametersDescriptor<'JCReverb'>[],
 	
 	Phaser: [
-		{name: 'frequency', min: 10, max: 20000},
-		{name: 'octaves', min: 0, max: 8, step: 1},
+		{name: 'frequency', enum: [...DELAY_OPTIONS_LONG, ...DELAY_OPTIONS]},
+		{name: 'octaves', min: 0, max: 10, step: 1},
 		{name: 'stages', min: 1, max: 12, step: 1},
 		{name: 'Q'},
 		{name: 'baseFrequency', min: 10, max: 20000},
@@ -277,7 +287,7 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	] as EffectParametersDescriptor<'PingPongDelay'>[],
 	
 	Tremolo: [
-		{name: 'frequency', min: 10, max: 20000},
+		{name: 'frequency', enum: DELAY_OPTIONS},
 		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
 		{name: 'depth'},
 		{name: 'spread', min: 0, max: 360},
@@ -286,7 +296,7 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	
 	Vibrato: [
 		{name: 'maxDelay'},
-		{name: 'frequency', min: 0, max: 2000, step: 0.1},
+		{name: 'frequency', enum: DELAY_OPTIONS},
 		{name: 'depth'},
 		{name: 'type', enum: AVAILABLE_OSCILLATOR_TYPES},
 		{name: 'wet'}
