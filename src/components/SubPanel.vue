@@ -1,8 +1,36 @@
 <template>
   <div class="wrapper">
     <n-card :title="props.track.name">
-      <div v-if="track.type === TrackTypes.sample" class="primary-faders">
-        <SampleEditorButton :key="track.meta.get('url') as string" :track="track" color="rgba(26, 32, 44, 1)"/>
+      <div class="primary-faders">
+        <div class="columns grow">
+          <div class="column flex-start grow">
+            <div class="columns grow">
+              <SimpleButton class="grow big" @click="onFillTrack(2)">Fill x2</SimpleButton>
+              <SimpleButton class="grow big" @click="onFillTrack(4)">Fill x4</SimpleButton>
+              <SimpleButton class="grow big" @click="onFillTrack(8)">Fill x8</SimpleButton>
+              <SimpleButton class="grow big" @click="onFillTrack(16)">Fill x16</SimpleButton>
+            </div>
+
+            <div class="columns grow">
+              <SimpleButton class="grow big" @click="onShiftTrackLeft">Shift Left</SimpleButton>
+              <SimpleButton class="grow big" @click="onShiftTrackRight">Shift Right</SimpleButton>
+            </div>
+
+            <div class="columns grow">
+              <SimpleButton class="grow big" @click="onFillTrack()">Clear</SimpleButton>
+              <SimpleButton class="grow long" @click="onHumanizeTrack">Humanize</SimpleButton>
+            </div>
+          </div>
+          <div v-if="track.type === TrackTypes.sample" class="column grow">
+            <SampleEditorButton :key="track.meta.get('url') as string" :track="track" color="rgba(26, 32, 44, 1)"
+                                width="100%" @click="onSampleChangeButton">
+              Change
+            </SampleEditorButton>
+          </div>
+          <div v-if="track.type === TrackTypes.synth" class="column grow">
+            <SimpleButton class="grow" @click="onGenerateBassline">Generate new bassline</SimpleButton>
+          </div>
+        </div>
       </div>
       <n-tabs animated type="line">
         <n-tab-pane name="instrument" tab="INSTRUMENT">
@@ -128,19 +156,19 @@ import {NCard, NSelect, NSwitch, NTabPane, NTabs} from 'naive-ui';
 import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
 import BeatDisplay from '@/components/ui/BeatDisplay.vue'
 import type {ADSRType} from "~/lib/SoundEngine";
-import {TrackTypes} from "~/lib/SoundEngine";
+import {SoundEngine, TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
 import type {UniversalEffect,} from "~/lib/Effects.types";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
-import {AVAILABLE_NOTES} from "~/lib/Sequencer";
+import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
 import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
-import SampleEditorButton from "@/components/SampleEditor/SampleEditorButton.vue";
+import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 
 const props = defineProps<{
   track: Track,
@@ -240,6 +268,90 @@ const onStartLoop = (loop: PolyrhythmLoop) => {
 const onStopLoop = (loop: PolyrhythmLoop) => {
   loop.stop(getToneTimeNextMeasure())
 }
+
+const onSampleChangeButton = () => {
+  const url = prompt('Enter a URL to a *.wav sample', props.track.meta.get('urls')[DEFAULT_NOTE])
+
+  if (url) {
+    SoundEngine.createSampler(url, '').then((sampler) => {
+      props.track.source.dispose();
+      // eslint-disable-next-line vue/no-mutating-props
+      props.track.source = sampler
+    }).catch((e) => {
+      console.error(e)
+    })
+  }
+}
+
+const onFillTrack = (repeats?: number) => {
+  const sequencer = Sequencer.getInstance()
+  const trackNumber = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
+
+  for (let i = 1; i <= 16; i++) {
+    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
+      velocity: 0,
+      note: DEFAULT_NOTE,
+    }))
+  }
+
+  if (!repeats) {
+    return
+  }
+
+  const step = 16 / repeats;
+
+  for (let i = 1; i <= 16; i += step) {
+    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
+      velocity: 100,
+      note: DEFAULT_NOTE,
+    }))
+  }
+}
+
+const onShiftTrackLeft = () => {
+  const sequencer = Sequencer.getInstance()
+  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
+
+  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+    const nextCellPosition = cellPosition.column === 1 ? 16 : cellPosition.column - 1
+    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
+    sequencer.writeCell(newCell)
+  })
+}
+const onShiftTrackRight = () => {
+  const sequencer = Sequencer.getInstance()
+  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
+
+  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+    const nextCellPosition = cellPosition.column === 16 ? 1 : cellPosition.column + 1
+    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
+    sequencer.writeCell(newCell)
+  })
+}
+
+const onHumanizeTrack = () => {
+  const sequencer = Sequencer.getInstance()
+  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
+
+  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+    let newVelocity = Math.ceil(Math.random() * 25) + 75
+    newVelocity = newVelocity < 0 ? 0 : newVelocity
+    newVelocity = newVelocity > 100 ? 100 : newVelocity
+
+    const newCell = Sequencer.cell(trackIndex, cellPosition.column, {
+      ...cellPosition,
+      velocity: cellPosition.velocity > 0 ? newVelocity : 0,
+    })
+    sequencer.writeCell(newCell)
+  })
+}
+
+const onGenerateBassline = () => {
+  const sequencer = Sequencer.getInstance()
+  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
+
+  sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2'])
+}
 </script>
 
 <style lang="scss">
@@ -317,5 +429,40 @@ const onStopLoop = (loop: PolyrhythmLoop) => {
 
 .width100px {
   flex-basis: 100px;
+}
+
+.columns {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.flex-start {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.grow {
+  flex: 1 1 100%;
+}
+
+.big {
+  width: 5rem !important;
+  height: 3rem !important;
+}
+
+.long {
+  width: 8rem !important;
+  height: 3rem !important;
 }
 </style>

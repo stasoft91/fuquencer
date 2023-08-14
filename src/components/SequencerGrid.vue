@@ -5,7 +5,15 @@
                          :rows="GRID_ROWS" :selected-row="selectedTrackIndex" class="flex-auto"
                          @select-row="onSelectTrack"/>
       <div style="width:100%">
-        <DisplayGrid :items="sequencer.sequenceGrid" :columns="sequencer.sequenceLength" :rows="GRID_ROWS" @click="changeCellState" @wheel="onNoteWheel" />
+        <DisplayGrid
+            :columns="sequencer.sequenceLength"
+            :items="sequencer.sequenceGrid"
+            :rows="GRID_ROWS"
+            @click="changeCellState"
+            @wheel="onNoteWheel"
+            @ctrl-wheel="onNoteWheel"
+            @shift-wheel="onNoteWheel"
+        />
         <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>
       </div>
     </div>
@@ -46,7 +54,7 @@ import {useDialog} from "naive-ui";
 import * as Tone from "tone/Tone";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 
-const sequencer = new Sequencer(16)
+const sequencer = Sequencer.getInstance(16)
 
 // DEVELOPER TEMPORARY
 const selectedTrackIndex = ref<number>(0)
@@ -111,24 +119,7 @@ const play = () => {
 
   isPlaying.value = true
 
-  const notesInPhrygian = ['C2', 'B2', 'E2', 'F2']
-
-  sequencer.sequenceGrid.value.filter(cell => cell.row === 5).forEach(cell => {
-    cell.velocity = cell.column % 2 === 1 ? 100 : 0;
-
-    if (cell.column % 3 === 0 && Math.random() > 0.75) {
-      cell.velocity = 100;
-      return
-    }
-
-    if (cell.velocity === 100 && Math.random() > 0.75) {
-      cell.velocity = 0;
-      return
-    }
-
-
-    cell.note = notesInPhrygian.sort(() => Math.random() - 0.5)[Math.floor(Math.random() * notesInPhrygian.length)]
-  })
+  sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
 
   sequencer.sequenceGrid.value.filter(cell => cell.row === 1 && cell.column % 4 === 1).forEach(cell => {
     cell.velocity = 100;
@@ -278,13 +269,12 @@ button.active {
 }
 
 .sequence-control button {
-  background-color: $color-grey-800;
-  border: none;
-  color: $color-grey-100;
   padding: 0.5rem 1rem;
   margin: 0 0.25rem;
   border-radius: 4px;
   cursor: pointer;
+  height: 2.5rem;
+  font-size: 1.25rem;
 }
 
 .sequencer {

@@ -27,6 +27,16 @@ export function generateListOfAvailableNotes(): string[] {
 export const AVAILABLE_NOTES = generateListOfAvailableNotes()
 
 export class Sequencer {
+  private static instance: Sequencer;
+  
+  public static getInstance(sequenceLength: number = 16): Sequencer {
+    if (!Sequencer.instance) {
+      Sequencer.instance = new Sequencer(sequenceLength);
+    }
+    
+    return Sequencer.instance;
+  }
+  
   private readonly _bpm: Ref<number> = ref(120)
   
   private readonly _sequenceGrid: Ref<GridCell[]> = ref([])
@@ -202,16 +212,7 @@ export class Sequencer {
     this.soundEngine.playStepData(time, this.readStep())
   }
   
-  public get bpm(): Ref<number> {
-    return this._bpm
-  }
-  
-  public set bpm(value: number) {
-    this._bpm.value = value
-    Tone.Transport.bpm.value = value
-  }
-
-  static cell(row: number, column: number, params: Partial<GridCell>): GridCell {
+  static cell(row: number, column: number, params?: Partial<GridCell>): GridCell {
     return {
       note: '',
       velocity: 0,
@@ -222,6 +223,34 @@ export class Sequencer {
       row: row,
       column: column
     }
+  }
+  
+  public get bpm(): Ref<number> {
+    return this._bpm
+  }
+  
+  public set bpm(value: number) {
+    this._bpm.value = value
+    Tone.Transport.bpm.value = value
+  }
+  
+  public regenerateSequence(trackNumber: number, notesInKey: string[]): void {
+    this.sequenceGrid.value.filter(cell => cell.row === trackNumber).forEach(cell => {
+      cell.velocity = cell.column % 2 === 1 ? 100 : 0;
+      
+      if (cell.column % 3 === 0 && Math.random() > 0.75) {
+        cell.velocity = 100;
+        return
+      }
+      
+      if (cell.velocity === 100 && Math.random() > 0.75) {
+        cell.velocity = 0;
+        return
+      }
+      
+      
+      cell.note = notesInKey.sort(() => Math.random() - 0.5)[Math.floor(Math.random() * notesInKey.length)]
+    })
   }
 }
 
