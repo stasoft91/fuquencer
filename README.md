@@ -1,7 +1,10 @@
 # fuquencer (Vue / Tone.js)
 
-Working on a sequencer with Vue and Tone.js
-Play @ https://zeye.ru/
+Working on a daw\sequencer with Vue and Tone.js
+
+Mouse wheel to change notes, click to enable\disable notes
+
+[Play online](https://zeye.ru/)
 
 ## Project setup
 
