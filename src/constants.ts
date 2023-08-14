@@ -76,7 +76,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{
 		name: 'FeedbackDelay',
 		options: {
-			delayTime: 0.25,
+			delayTime: '4n.',
 			maxDelay: 1,
 			feedback: 0.125,
 			wet: 0.5

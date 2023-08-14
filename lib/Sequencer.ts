@@ -243,7 +243,7 @@ export class Sequencer {
         return
       }
       
-      if (cell.velocity === 100 && Math.random() > 0.75) {
+      if (cell.velocity === 100 && Math.random() > 0.65) {
         cell.velocity = 0;
         return
       }

@@ -5,10 +5,8 @@
         <div class="columns grow">
           <div class="column flex-start grow">
             <div class="columns grow">
-              <SimpleButton class="grow big" @click="onFillTrack(2)">Fill x2</SimpleButton>
-              <SimpleButton class="grow big" @click="onFillTrack(4)">Fill x4</SimpleButton>
-              <SimpleButton class="grow big" @click="onFillTrack(8)">Fill x8</SimpleButton>
-              <SimpleButton class="grow big" @click="onFillTrack(16)">Fill x16</SimpleButton>
+              <SimpleButton v-for="i in [2,4,8,16]" :key="i" class="grow big" @click="onFillTrack(i)">Fill x{{ i }}
+              </SimpleButton>
             </div>
 
             <div class="columns grow">
@@ -28,7 +26,7 @@
             </SampleEditorButton>
           </div>
           <div v-if="track.type === TrackTypes.synth" class="column grow">
-            <SimpleButton class="grow" @click="onGenerateBassline">Generate new bassline</SimpleButton>
+            <SimpleButton class="grow big long" @click="onGenerateBassline">Generate new bassline</SimpleButton>
           </div>
         </div>
       </div>
@@ -46,7 +44,7 @@
             />
 
             <RichFaderInput
-                v-if="'filterEnvelope' in track.source.get()"
+                v-if="hasCutoff"
                 :default-value="50"
                 :max="100"
                 :min="0"
@@ -155,7 +153,6 @@
 import {NCard, NSelect, NSwitch, NTabPane, NTabs} from 'naive-ui';
 import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
 import BeatDisplay from '@/components/ui/BeatDisplay.vue'
-import type {ADSRType} from "~/lib/SoundEngine";
 import {SoundEngine, TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
@@ -176,8 +173,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'update:envelope', payload: ADSRType): void
-
   (event: 'update:sidechain', payload: undefined): void
 
   (event: 'update:chain', payload: string[]): void
@@ -219,21 +214,8 @@ const onUpdateEffectsChain = (chain: string[]) => {
   emit('update:chain', chain)
 }
 
-const isSampler = computed<boolean>(() => {
-  return props.track.type === TrackTypes.sample
-})
-
-const envelope = computed<ADSRType>(() => {
-  return props.track.meta.has('envelope') ? props.track.meta.get('envelope') : {
-    attack: props.track.meta.get('attack') ?? 0,
-    decay: 0,
-    sustain: 0,
-    release: props.track.meta.get('release') ?? 0,
-  }
-})
-
 const hasCutoff = computed<boolean>(() => {
-  return 'filterEnvelope' in props.track
+  return 'filterEnvelope' in props.track.source.get()
 })
 
 const onToggleSidechain = () => {
@@ -247,7 +229,7 @@ const onAddPolyrhythm = (): void => {
 }
 
 const onLoopUpdate = (loop: PolyrhythmLoop, fieldName: keyof LoopParams, $event: string | Event) => {
-  // decide where in $event we have actual value
+  // decide where in $event we have actual value (is $event a string or Event object)
   const value: string = Object.getOwnPropertyNames($event).includes('isTrusted') ? (($event as InputEvent).target as HTMLInputElement).value : $event as string
 
   console.log('onLoopUpdate', fieldName, value)
@@ -258,7 +240,7 @@ const onLoopUpdate = (loop: PolyrhythmLoop, fieldName: keyof LoopParams, $event:
 }
 
 const hasDuckingEnabled = computed<boolean>(() => {
-  return props.track.middlewares.find(middleware => middleware.name === 'AutoDuck') !== undefined
+  return Boolean(props.track.middlewares.find(middleware => middleware.name === 'AutoDuck'))
 })
 
 const onStartLoop = (loop: PolyrhythmLoop) => {
@@ -349,8 +331,8 @@ const onHumanizeTrack = () => {
 const onGenerateBassline = () => {
   const sequencer = Sequencer.getInstance()
   const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
-
-  sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2'])
+  //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
+  sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
 }
 </script>
 
