@@ -1,6 +1,9 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 
+export const VERSION = '0.4.0'
+
+
 export const GRID_ROWS = 8;
 
 export const DEFAULT_SOOTHING = 0.002

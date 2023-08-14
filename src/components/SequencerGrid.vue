@@ -46,7 +46,7 @@ import HorizontalIndicator from '@/components/DisplayGrid/HorizontalIndicator.vu
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
-import {AVAILABLE_EFFECTS, GRID_ROWS} from "@/constants";
+import {AVAILABLE_EFFECTS, GRID_ROWS, VERSION} from "@/constants";
 import type {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
@@ -175,7 +175,6 @@ const onUpdateEffects = (chain: string[]) => {
 const dialog = useDialog()
 
 onMounted(() => {
-  const VERSION = '0.3.0'
 
   dialog.info({
     title: `fuquencer v${VERSION}`,
