@@ -14,6 +14,7 @@
   padding: 0.5rem 1rem;
   height: 2rem;
   outline: none;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .simple-button:hover {

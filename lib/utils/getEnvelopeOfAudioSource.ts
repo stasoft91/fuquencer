@@ -1,7 +1,7 @@
 import type {ADSRType, AudioSource} from "../SoundEngine";
 
 export function getEnvelopeOfAudioSource(audioSource: AudioSource): ADSRType {
-	const rawEnvelope = audioSource.envelope?.get() || audioSource.get()
+	const rawEnvelope = 'envelope' in audioSource ? audioSource.envelope.get() : audioSource.get()
 	return {
 		attack: rawEnvelope.attack || 0,
 		decay: rawEnvelope.decay || 0,

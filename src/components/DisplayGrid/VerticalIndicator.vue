@@ -14,6 +14,7 @@
           v-if="rowCaptions && rowCaptions[rowIndex]"
           :sample-name="rowCaptions[rowIndex]"
           :wave-color="rowIndex === selectedRow ? '#edf2f7' : '#a0aec0'"
+          :normalize="true"
       ></DisplayWaveform>
     </div>
   </div>

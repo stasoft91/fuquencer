@@ -11,7 +11,7 @@
     </div>
 
     <div class="sequence-control">
-      <button @click="play">{{ isPlaying ? 'Stop' : 'Play' }}</button>
+      <SimpleButton @click="play">{{ isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
     </div>
 
     <SubPanel
@@ -19,7 +19,6 @@
         :track="selectedTrack"
         :effects-chain="selectedTrack.middlewares"
         @update:envelope="onEnvelopeUpdate"
-        @update:volume="onUpdateVolume"
 
         @update:chain="onUpdateEffects"
         @update:sidechain="onSidechain"
@@ -45,6 +44,7 @@ import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
 import {useDialog} from "naive-ui";
 import * as Tone from "tone/Tone";
+import SimpleButton from "@/components/ui/SimpleButton.vue";
 
 const sequencer = new Sequencer(16)
 
@@ -184,11 +184,11 @@ const onUpdateEffects = (chain: string[]) => {
 const dialog = useDialog()
 
 onMounted(() => {
-  const VERSION = '0.2.0'
+  const VERSION = '0.3.0'
 
   dialog.info({
     title: `fuquencer v${VERSION}`,
-    content: `Welcome to fuquencer! Click anywhere to start playing.`,
+    content: `Welcome to fuquencer! Click anywhere to start playing. Huge thanks to Tone.js.`,
     closeOnEsc: false,
     onClose: async () => {
       await Tone.start()
@@ -274,6 +274,7 @@ button.active {
   align-items: stretch;
   align-content: stretch;
   margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .sequence-control button {

@@ -26,3 +26,5 @@ fuquencer/.vscode/extensions.json
 *.njsproj
 *.sln
 *.sw?
+
+!public/*

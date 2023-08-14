@@ -13,7 +13,7 @@
 
       <RichFaderInput
           class="constrained-width"
-          v-if="!isSampler"
+          v-if="track.type === TrackTypes.synth"
           label="Decay"
           id="decay"
           :default-value="25"
@@ -24,7 +24,7 @@
 
       <RichFaderInput
           class="constrained-width"
-          v-if="!isSampler"
+          v-if="track.type === TrackTypes.synth"
           label="Sustain"
           id="sustain"
           :default-value="0"
@@ -42,7 +42,7 @@
           @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ release: $event / 100 }))"
       />
 
-      <div v-if="!isSampler" class="envelope-display" style="width: 200px;">
+      <div v-if="track.type === TrackTypes.synth" class="envelope-display" style="width: 200px;">
         <DisplayEnvelope
             :envelope="envelope"
             fill-color="rgba(100, 50, 200, 0.3)"
@@ -57,28 +57,25 @@
 <script setup lang="ts">
 import DisplayEnvelope from '@/components/DisplayEnvelope/DisplayEnvelope.vue'
 import type {ADSRType} from "~/lib/SoundEngine";
-import FaderInput from "@/components/ui/FaderInput.vue";
+import {TrackTypes} from "~/lib/SoundEngine";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import {computed} from "vue";
+import type {Track} from "~/lib/Track";
 
 const props = defineProps<{
-  isSampler: boolean
-  attack: number
-  decay: number
-  sustain: number
-  release: number
-}>()
-
-const emit = defineEmits<{
-  (event: 'update:envelope', payload: ADSRType): void
+  track: Track
 }>()
 
 const envelope = computed<ADSRType>(() => {
+  if (props.track.meta.has('envelope')) {
+    return props.track.meta.get('envelope')
+  }
+
   return {
-    attack: props.attack,
-    decay: props.decay,
-    sustain: props.sustain,
-    release: props.release
+    attack: props.track.meta.get('attack') ?? 0,
+    decay: 0,
+    sustain: 0,
+    release: props.track.meta.get('release') ?? 1,
   }
 })
 
@@ -90,7 +87,12 @@ const getEnvelopeWithChanges = (changes: Partial<ADSRType>) => {
 }
 
 const onUpdateEnvelope = (envelope: ADSRType) => {
-  emit('update:envelope', envelope)
+  if (props.track.meta.has('envelope')) {
+    props.track.set('envelope', envelope)
+  } else {
+    props.track.set('attack', envelope.attack)
+    props.track.set('release', envelope.release)
+  }
 }
 </script>
 

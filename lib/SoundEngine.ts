@@ -17,7 +17,7 @@ export type AudioSource = Tone.PolySynth<Tone.MonoSynth> & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
   envelope: any
-}
+} | Tone.Sampler
 
 export enum TrackTypes {
   'synth' = 'synth',
@@ -99,8 +99,17 @@ export class SoundEngine {
     
     trackTo.toggleSidechain(this.signalFollower)
   }
-
-  public static createSampler(samplePath: string): Promise<Tone.Sampler> {
+  
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The%2520Modern%2520Kit/The%2520Modern%2520Drum%2520Kit%2520Samples/Kicks/16x24%2520-%2520DW%2520Collector's%2520Maple%2520w.Plastic%2520Beater/16x24%2520DW%2520Collectors%2520Maple%2520w.%2520Plastic%2520Beater%2520-%25201%2520-%2520Extra%2520Hard%252001.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The%20Modern%20Drum%20Kit%20Samples/Kicks/16x24%20-%20DW%20Collector's%20Maple%20w.Plastic%20Beater/16x24%20DW%20Collectors%20Maple%20w.%20Plastic%20Beater%20-%201%20-%20Extra%20Hard%2001.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The Modern Kit/The Modern Drum Kit Samples/Kicks/16x24 - DW Collector's Maple w.Plastic Beater/16x24 DW Collectors Maple w. Plastic Beater - 1 - Extra Hard 01.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The-Drum-Kit/The%20Modern%20Kit/The%20Modern%20Drum%20Kit%20Samples/Kicks/16x24%20-%20DW%20Collector's%20Maple%20w.Plastic%20Beater/16x24%20DW%20Collectors%20Maple%20w.%20Plastic%20Beater%20-%201%20-%20Extra%20Hard%2001.wav
+  //The-Drum-Kit/The Modern Kit/The Modern Drum Kit Samples/Kicks/16x24 - DW Collector's Maple w.Plastic Beater/16x24 DW Collectors Maple w. Plastic Beater - 1 - Extra Hard 01.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The%20Modern%20Kit/The%20Modern%20Drum%20Kit%20Samples/Kicks/16x24%20-%20DW%20Collector's%20Maple%20w.Plastic%20Beater/16x24%20DW%20Collectors%20Maple%20w.%20Plastic%20Beater%20-%201%20-%20Extra%20Hard%2001.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The%20Modern%20Kit/The%20Modern%20Drum%20Kit%20Samples/Kicks/16x24%20-%20DW%20Collector's%20Maple%20w.Plastic%20Beater%20/16x24%20DW%20Collectors%20Maple%20w.%20Plastic%20Beater%20-%201%20-%20Extra%20Hard%2001.wav
+  //https://github.com/rrsolomon/The-Drum-Kit/raw/master/The%20Modern%20Kit/The%20Modern%20Drum%20Kit%20Samples/Kicks/16x24%20-%20DW%20Collector's%20Maple%20w.Plastic%20Beater/16x24%20DW%20Collectors%20Maple%20w.%20Plastic%20Beater%20-%201%20-%20Extra%20Hard%2001.wav
+  
+  public static createSampler(samplePath: string, baseUrl: string = '/samples/'): Promise<Tone.Sampler> {
     return new Promise((resolve, reject) => {
       const _sampler = new Tone.Sampler({
         volume: -6,
@@ -108,7 +117,7 @@ export class SoundEngine {
           [DEFAULT_NOTE]: samplePath
         },
         release: 1,
-        baseUrl: '/samples/',
+        baseUrl,
         onload: () => {
           _sampler.toDestination()
           resolve(_sampler)

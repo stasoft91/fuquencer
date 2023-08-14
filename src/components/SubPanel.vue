@@ -1,32 +1,34 @@
 <template>
   <div class="wrapper">
     <n-card :title="props.track.name">
+      <div v-if="track.type === TrackTypes.sample" class="primary-faders">
+        <SampleEditorButton :key="track.meta.get('url') as string" :track="track" color="rgba(26, 32, 44, 1)"/>
+      </div>
       <n-tabs animated type="line">
         <n-tab-pane name="instrument" tab="INSTRUMENT">
           <div class="primary-faders">
             <RichFaderInput
                 :default-value="75"
-                :max="100"
+                :max="120"
                 :min="0"
-                :model-value="volumeLogToPercent(track.volume)"
+                :model-value="volumeLogToPercent(parseFloat(track.meta.get('volume') as string))"
                 class="constrained-width"
                 label="Volume"
                 @update:model-value="onUpdateVolume(volumePercentToLog($event))"
             />
 
             <RichFaderInput
-                v-if="track.source.get().filterEnvelope"
-                :default-value="herzToPercent(track.source.get().filterEnvelope.baseFrequency as number)"
+                v-if="'filterEnvelope' in track.source.get()"
+                :default-value="50"
                 :max="100"
                 :min="0"
-                :model-value="herzToPercent(track.filterEnvelopeFrequency)"
+                :model-value="herzToPercent(track.meta.get('filterEnvelope')?.baseFrequency)"
                 class="constrained-width"
                 label="Cut-off"
                 @update:model-value="onUpdateFilter(percentToHerz($event as number))"
             />
 
-            <ADSRForm :attack="envelope.attack" :decay="envelope.decay" :is-sampler="isSampler"
-                      :release="envelope.release" :sustain="envelope.sustain" @update:envelope="onUpdateEnvelope"/>
+            <ADSRForm :track="track"/>
           </div>
         </n-tab-pane>
 
@@ -138,6 +140,7 @@ import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
+import SampleEditorButton from "@/components/SampleEditor/SampleEditorButton.vue";
 
 const props = defineProps<{
   track: Track,
@@ -146,12 +149,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:envelope', payload: ADSRType): void
-  (event: 'update:volume', payload: number): void
 
   (event: 'update:sidechain', payload: undefined): void
 
   (event: 'update:chain', payload: string[]): void
-  (event: 'update:filter', payload: number): void
 }>()
 
 const volumePercentToLog = (volumePercent: number) => {
@@ -163,7 +164,10 @@ const volumeLogToPercent = (volumeLog: number) => {
 }
 
 //scale between 20 and 20000 exponentially to 0 and 100
-const herzToPercent = (herz: number) => {
+const herzToPercent = (herz: number | string) => {
+  if (typeof herz === 'string') {
+    herz = parseFloat(herz)
+  }
   return Math.log10(herz)*23.2
 }
 
@@ -171,16 +175,16 @@ const percentToHerz = (percent: number) => {
   return Math.pow(10, percent/23.2)
 }
 
-const onUpdateEnvelope = (envelope: ADSRType) => {
-  emit('update:envelope', envelope)
-}
-
 const onUpdateVolume = ( volume: number) => {
-  emit('update:volume', volume)
+  props.track.set('volume', volume)
 }
 
-const onUpdateFilter = ( herz: number) => {
-  emit('update:filter', herz)
+const onUpdateFilter = (frequency: number) => {
+  props.track.set({
+    filterEnvelope: {
+      baseFrequency: frequency
+    }
+  })
 }
 
 const onUpdateEffectsChain = (chain: string[]) => {
@@ -192,11 +196,16 @@ const isSampler = computed<boolean>(() => {
 })
 
 const envelope = computed<ADSRType>(() => {
-  return props.track.envelope
+  return props.track.meta.has('envelope') ? props.track.meta.get('envelope') : {
+    attack: props.track.meta.get('attack') ?? 0,
+    decay: 0,
+    sustain: 0,
+    release: props.track.meta.get('release') ?? 0,
+  }
 })
 
 const hasCutoff = computed<boolean>(() => {
-  return props.track.source.get().filterEnvelope !== undefined
+  return 'filterEnvelope' in props.track
 })
 
 const onToggleSidechain = () => {
