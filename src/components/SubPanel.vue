@@ -80,13 +80,16 @@
           <div v-for="loop in (track.getLoops().value)" :key="loop.name" class="polyrythm-card">
             <beat-display :interval="loop.interval" :is-playing="loop.isRunning"></beat-display>
 
-            <div class="polyrythm-card-row">
+            <div v-if="!loop.isAutomation.value" class="polyrythm-card-row">
               <span>Note</span>
               <div class="width100px">
                 <select :value="loop.note" class="select-note" @change="onLoopUpdate(loop, 'note', $event)">
                   <option v-for="note in AVAILABLE_NOTES" :key="note" :value="note">{{ note }}</option>
                 </select>
               </div>
+            </div>
+            <div v-if="loop.isAutomation.value" class="polyrythm-card-row">
+              <span><h2>Automation</h2></span>
             </div>
 
             <div class="polyrythm-card-row">

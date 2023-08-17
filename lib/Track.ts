@@ -191,11 +191,15 @@ export class Track {
 		return shallowRef(this._loops);
 	}
 	
-	public addLoop(loop: Omit<LoopParams, 'track' | 'context'>): void {
+	public addLoop(loop: Omit<LoopParams, 'track' | 'context'>): PolyrhythmLoop {
+		const newLoop = (new PolyrhythmLoop({...loop, track: this}) as PolyrhythmLoop)
+		
 		this._loops.value = [
 			...this._loops.value,
-			(new PolyrhythmLoop({...loop, track: this}) as PolyrhythmLoop),
+			newLoop,
 		]
+		
+		return newLoop
 	}
 	
 	public removeLoop(loop: PolyrhythmLoop): void {

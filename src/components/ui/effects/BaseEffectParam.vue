@@ -10,6 +10,7 @@
         :step="step"
         class="constrained-width"
         @update:model-value="onUpdate(controlToRawValue($event))"
+        @click:link="onLinkClick"
     />
     <n-card v-else :size="'small'" :title="fieldName">
       <n-select v-model:value="currentValue" :options="selectOptions" class="constrained-width" size="large"
@@ -35,6 +36,9 @@ import {onMounted, ref} from "vue";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {EFFECTS_OPTIONS} from "@/constants";
 import type {SelectMixedOption} from "naive-ui/es/select/src/interface";
+import * as Tone from "tone/Tone";
+import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
+import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 
 const emit = defineEmits<{
   (event: `update:value`, payload: UniversalEffect): void
@@ -120,4 +124,52 @@ onMounted(() => {
     rawValueToControl = fieldMeta.rawValueToControl
   }
 })
+
+const onLinkClick = () => {
+  const sequencer = Sequencer.getInstance()
+  const soundEngine = sequencer.soundEngine
+
+  const track = soundEngine.tracks
+      .find(_ => _.name === props.trackName)!
+
+  const middlewares = track.middlewares
+      .find(__ => __.name === props.effectName)!
+
+  const effect = middlewares.effect
+
+  if (!effect) {
+    return;
+  }
+
+  // !isNaN === is number
+  // isNaN === is not number === e.g. object
+  if (!isNaN(effect[props.fieldName])) {
+
+    //effect[props.fieldName]
+    track.addLoop({
+      isAutomation: true,
+      callback: (_time: number) => {
+        effect.set({[props.fieldName]: 0});
+        const measure = Tone.Time(_time).toBarsBeatsSixteenths().split(':').map(_ => parseInt(_))
+        console.log(measure)
+        //
+        // if (getStepFromBarsBeatsSixteens(Tone.Time(_time).toBarsBeatsSixteenths()) === 1) {
+        //   effect.set({[props.fieldName]: 0});
+        // }
+        //
+        // let unsafeValue = effect[props.fieldName] + 1/32
+        // console.log(getStepFromBarsBeatsSixteens(Tone.Time(_time).toBarsBeatsSixteenths()), unsafeValue)
+        // if (unsafeValue > 1) {
+        //   unsafeValue = 1
+        // }
+        // effect[props.fieldName] = unsafeValue
+      },
+      note: DEFAULT_NOTE,
+      interval: '16n',
+    }).start(getToneTimeNextMeasure()).stop(getToneTimeNextMeasure(2))
+  } else {
+    effect.set({[props.fieldName]: 0});
+    effect[props.fieldName].linearRampTo(1, Tone.Time('1m').toSeconds() * 2, getToneTimeNextMeasure())
+  }
+}
 </script>

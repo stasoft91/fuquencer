@@ -22,7 +22,7 @@
     />
 
     <div class="buttons">
-      <SimpleButton icon="/icons/link.svg"></SimpleButton>
+      <SimpleButton icon="/icons/link.svg" @click="onLinkClick"></SimpleButton>
     </div>
   </div>
 </template>
@@ -31,7 +31,6 @@
 import FaderInput from "@/components/ui/FaderInput.vue";
 import {NInputNumber} from 'naive-ui'
 import {ref} from "vue";
-import * as Tone from 'tone/Tone'
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 
 const value = defineModel<number>()
@@ -45,7 +44,6 @@ type Props = {
   max?: number,
   defaultValue?: number,
   step?: number,
-  connector?: Tone.Param<any>, //not sure about this one
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -58,7 +56,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (event: 'update:model-value', payload: number): void
+  (event: 'click:link'): void
 }>()
+
+const onLinkClick = () => {
+  emit('click:link')
+}
 </script>
 
 <style lang="scss" scoped>

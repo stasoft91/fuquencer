@@ -204,6 +204,7 @@ export class Sequencer {
   public stop() {
     Tone.Transport.stop()
     Tone.Transport.cancel()
+    Tone.Transport.position = 0
     this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     this.currentStep = 1
   }
