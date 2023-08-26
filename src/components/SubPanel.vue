@@ -2,6 +2,11 @@
   <div class="wrapper">
     <n-card :title="props.track.name">
       <div class="primary-faders">
+        <div class="grow">
+          <div id="analyzer"></div>
+        </div>
+      </div>
+      <div class="primary-faders">
         <div class="columns grow">
           <div class="column flex-start grow">
             <div class="columns grow">
@@ -20,8 +25,12 @@
             </div>
           </div>
           <div v-if="track.type === TrackTypes.sample" class="column grow">
-            <SampleEditorButton :key="track.meta.get('url') as string" :track="track" color="rgba(26, 32, 44, 1)"
-                                width="100%" @click="onSampleChangeButton">
+            <SampleEditorButton
+                :sampleUrl="selectedSampleUrl"
+                :track="track"
+                color="rgba(26, 32, 44, 1)"
+                width="100%"
+            >
               Change
             </SampleEditorButton>
           </div>
@@ -70,7 +79,7 @@
 
           <EffectsChainComposer
               :key="`${track.name}-${track.middlewares.length}`"
-              :effects-chain="effectsChain"
+              :effects-chain="track.middlewares"
               :selected-track-name="track.name"
               @update:chain="onUpdateEffectsChain"
           ></EffectsChainComposer>
@@ -80,59 +89,77 @@
           <div v-for="loop in (track.getLoops().value)" :key="loop.name" class="polyrythm-card">
             <beat-display :interval="loop.interval" :is-playing="loop.isRunning"></beat-display>
 
-            <div v-if="!loop.isAutomation.value" class="polyrythm-card-row">
+            <div v-if="!loop.isAutomation.value" class="polyrhythm-card-row">
               <span>Note</span>
               <div class="width100px">
-                <select :value="loop.note" class="select-note" @change="onLoopUpdate(loop, 'note', $event)">
+                <select :value="loop.note" class="select" @change="onLoopUpdate(loop, 'note', $event)">
                   <option v-for="note in AVAILABLE_NOTES" :key="note" :value="note">{{ note }}</option>
                 </select>
               </div>
             </div>
-            <div v-if="loop.isAutomation.value" class="polyrythm-card-row">
+            <div v-if="loop.isAutomation.value" class="polyrhythm-card-row">
               <span><h2>Automation</h2></span>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <div>Duration</div>
               <div class="width100px">
-                <n-select :options="DELAY_OPTIONS.map(_=>({label: _, value: _}))"
-                          :value="Tone.Time(loop.duration).toNotation()"
-                          @update:value="onLoopUpdate(loop, 'duration', $event)"/>
+                <select
+                    :value="Tone.Time(loop.duration).toNotation()"
+                    class="select"
+                    @change="onLoopUpdate(loop, 'duration', $event)"
+                >
+                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ time }}</option>
+                </select>
               </div>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <div>Interval</div>
               <div class="width100px">
-                <n-select :options="DELAY_OPTIONS.map(_=>({label: _, value: _}))"
-                          :value="Tone.Time(loop.interval).toNotation()"
-                          @update:value="onLoopUpdate(loop, 'interval', $event)"/>
+                <select
+                    :value="Tone.Time(loop.interval).toNotation()"
+                    class="select"
+                    @change="onLoopUpdate(loop, 'interval', $event)"
+                >
+                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ time }}</option>
+                </select>
               </div>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <div>Humanize</div>
               <div class="width100px">
                 <div class="width100px">
-                  <n-select :options="DELAY_OPTIONS_WITH_ZERO.map(_=>({label: _, value: _}))"
-                            :value="Tone.Time(loop.humanize as Tone.Unit.Time).toNotation()"
-                            @update:value="onLoopUpdate(loop, 'humanize', $event)"/>
+                  <select
+                      :value="Tone.Time(loop.humanize as Tone.Unit.Time).toNotation()"
+                      class="select"
+                      @change="onLoopUpdate(loop, 'humanize', $event)"
+                  >
+                    <option v-for="time in DELAY_OPTIONS_WITH_ZERO" :key="time" :value="time">{{ time }}</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <div>Probability</div>
               <div class="width100px">
                 <div class="width100px">
-                  <n-select
-                      :options="[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map(_=>({label: _.toString(), value: _.toString()}))"
-                      :value="loop.probability" @update:value="onLoopUpdate(loop, 'probability', $event)"/>
+                  <select
+                      :value="loop.probability"
+                      class="select"
+                      @change="onLoopUpdate(loop, 'probability', $event)"
+                  >
+                    <option v-for="probability in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]"
+                            :key="probability" :value="probability">{{ probability }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <div>Status</div>
               <div class="horizontal">
                 {{ loop.isRunning ? 'Playing' : 'Stopped' }}
@@ -140,7 +167,7 @@
               </div>
             </div>
 
-            <div class="polyrythm-card-row">
+            <div class="polyrhythm-card-row">
               <SimpleButton @click="onStartLoop(loop)"> start</SimpleButton>
               <SimpleButton @click="onStopLoop(loop)"> stop</SimpleButton>
               <SimpleButton @click="() => loop.remove()"> remove</SimpleButton>
@@ -153,14 +180,13 @@
 </template>
 
 <script lang="ts" setup>
-import {NCard, NSelect, NSwitch, NTabPane, NTabs} from 'naive-ui';
+import {NCard, NSwitch, NTabPane, NTabs} from 'naive-ui';
 import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
 import BeatDisplay from '@/components/ui/BeatDisplay.vue'
-import {SoundEngine, TrackTypes} from "~/lib/SoundEngine";
+import {TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
-import type {UniversalEffect,} from "~/lib/Effects.types";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
@@ -172,7 +198,6 @@ import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 
 const props = defineProps<{
   track: Track,
-  effectsChain: UniversalEffect[]
 }>()
 
 const emit = defineEmits<{
@@ -235,8 +260,6 @@ const onLoopUpdate = (loop: PolyrhythmLoop, fieldName: keyof LoopParams, $event:
   // decide where in $event we have actual value (is $event a string or Event object)
   const value: string = Object.getOwnPropertyNames($event).includes('isTrusted') ? (($event as InputEvent).target as HTMLInputElement).value : $event as string
 
-  console.log('onLoopUpdate', fieldName, value)
-
   loop.set({
     [fieldName]: value,
   });
@@ -247,25 +270,14 @@ const hasDuckingEnabled = computed<boolean>(() => {
 })
 
 const onStartLoop = (loop: PolyrhythmLoop) => {
-  loop.start(getToneTimeNextMeasure())
+  const quantizedTime = getToneTimeNextMeasure()
+  loop.start(quantizedTime)
 }
 
 const onStopLoop = (loop: PolyrhythmLoop) => {
-  loop.stop(getToneTimeNextMeasure())
-}
+  const quantizedTime = getToneTimeNextMeasure()
 
-const onSampleChangeButton = () => {
-  const url = prompt('Enter a URL to a *.wav sample', props.track.meta.get('urls')[DEFAULT_NOTE])
-
-  if (url) {
-    SoundEngine.createSampler(url, '').then((sampler) => {
-      props.track.source.dispose();
-      // eslint-disable-next-line vue/no-mutating-props
-      props.track.source = sampler
-    }).catch((e) => {
-      console.error(e)
-    })
-  }
+  loop.stop(quantizedTime)
 }
 
 const onFillTrack = (repeats?: number) => {
@@ -337,6 +349,8 @@ const onGenerateBassline = () => {
   //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
   sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
 }
+
+const selectedSampleUrl = computed(() => props.track.meta.get('urls')[DEFAULT_NOTE] || (props.track.source.get() as Tone.SamplerOptions).urls[DEFAULT_NOTE])
 </script>
 
 <style lang="scss">
@@ -373,7 +387,7 @@ const onGenerateBassline = () => {
   border: 1px solid var(--color-grey-600);
 }
 
-.polyrythm-card-row {
+.polyrhythm-card-row {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -382,12 +396,16 @@ const onGenerateBassline = () => {
   width: 100%;
 }
 
-.polyrythm-card-row .select-note {
+.polyrhythm-card-row .select {
   outline: none;
   border: none;
   background: (var(--color-grey-300));
   padding: 0.5rem;
   width: 100%;
+}
+
+.polyrhythm-card-row .select option {
+  padding: 1rem;
 }
 
 .circle {

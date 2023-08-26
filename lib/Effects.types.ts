@@ -39,7 +39,8 @@ export type AvailableEffectNames =
 	'StereoWidener' |
 	'Tremolo' |
 	'Vibrato' |
-	'Compressor';
+	'Compressor' |
+	'AutoDuck';
 
 export type AutoFilter = {
 	name: 'AutoFilter';
@@ -159,9 +160,8 @@ export type Compressor = {
 
 export type AutoDuck = {
 	name: 'AutoDuck';
-	options?: Tone.CompressorOptions & { [key: string]: any };
+	options?: { [key: string]: any };
 	effect?: any;
-	kickFollower?: Tone.Follower
 }
 
 
@@ -192,7 +192,7 @@ export type GetOptionsType<T extends AvailableEffectNames> =
 																	T extends 'Tremolo' ? Tone.TremoloOptions :
 																		T extends 'Vibrato' ? Tone.VibratoOptions :
 																			T extends 'Compressor' ? Tone.CompressorOptions :
-																				T extends 'AutoDuck' ? Tone.StereoWidenerOptions : never;
+																				T extends 'AutoDuck' ? Tone.EnvelopeOptions : never;
 
 export type UnionAllEffectParameters = {
 	[T in AvailableEffectNames]: GetOptionsType<T>

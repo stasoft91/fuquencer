@@ -1,7 +1,7 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 
-export const VERSION = '0.4.0'
+export const VERSION = '0.5.0'
 
 
 export const GRID_ROWS = 8;
@@ -180,13 +180,18 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	} as UniversalEffect,
 	{
 		name: "AutoDuck",
-		options: {},
-		isHidden: true
+		options: {
+			attack: 0,
+			release: 0.2,
+			sustain: 0,
+			delay: 0,
+		},
+		// isHidden: true
 	} as UniversalEffect
 ]
 
 export const AVAILABLE_OSCILLATOR_TYPES: Tone.ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
-export const DELAY_OPTIONS: string[] = ['1n', '2n', '4n', '8n', '16n', '1n.', '2n.', '4n.', '8n.', '16n.', '32n', '32n.'];
+export const DELAY_OPTIONS: string[] = ['1m', '2n', '4n', '8n', '16n', '1m.', '2n.', '4n.', '8n.', '16n.', '32n', '32n.'];
 export const DELAY_OPTIONS_ADDITIONAL: string[] = ['64n', '128n', '256n', '256t'];
 export const DELAY_OPTIONS_WITH_ZERO: string[] = ['0', ...DELAY_OPTIONS_ADDITIONAL];
 
@@ -332,5 +337,10 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 		{name: 'knee', min: 0, max: 40},
 	] as EffectParametersDescriptor<'Compressor'>[],
 	
-	// AutoDuck: [{ name: '' }],
+	AutoDuck: [
+		{name: 'attack'},
+		{name: 'decay'},
+		{name: 'sustain'},
+		{name: 'release'},
+	] as EffectParametersDescriptor<'AutoDuck'>[],
 }

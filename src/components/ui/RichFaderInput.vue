@@ -22,7 +22,7 @@
     />
 
     <div class="buttons">
-      <SimpleButton icon="/icons/link.svg" @click="onLinkClick"></SimpleButton>
+      <SimpleButton :disabled="isLinkDisabled" icon="/icons/link.svg" @click="onLinkClick"></SimpleButton>
     </div>
   </div>
 </template>
@@ -44,6 +44,7 @@ type Props = {
   max?: number,
   defaultValue?: number,
   step?: number,
+  isLinkDisabled?: boolean,
 }
 
 const props = withDefaults(defineProps<Props>(), {

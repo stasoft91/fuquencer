@@ -99,12 +99,10 @@ export class PolyrhythmLoop {
 		this._humanize.value = params.humanize ? params.humanize : this._humanize.value;
 		this._probability.value = params.probability ? params.probability : this._probability.value;
 		
-		this._callback = params.callback || this._callback || this.defaultCallback
-
+		this._callback = params.callback || this._callback || this.defaultCallback.bind(this)
+		
 		this._loop?.stop(getToneTimeNextMeasure());
 		
-		// после глобальной старт\стопа перестают работать лупы
-		// ставим на то что счетчик у глобал транспорта смывается
 		this._loop.set({
 			interval: this._interval.value,
 			callback: this._callback,

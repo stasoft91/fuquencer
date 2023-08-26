@@ -5,7 +5,6 @@ import {ref, shallowReactive, shallowRef} from "vue";
 import {getEnvelopeOfAudioSource} from "~/lib/utils/getEnvelopeOfAudioSource";
 import * as Tone from "tone/Tone";
 import type {UniversalEffect} from "~/lib/Effects.types";
-import {DEFAULT_SOOTHING} from "@/constants";
 import type {LoopParams} from "~/lib/PolyrhythmLoop";
 import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 
@@ -19,15 +18,11 @@ export class Track {
 	public isSolo: Ref<boolean> = ref(true);
 	
 	private _source: AudioSource;
-	private _follower: Tone.Follower | undefined = undefined;
-	private _sidechainSource: Tone.Follower | undefined = undefined;
-	
+	private _sidechainEnvelope: Tone.Envelope | undefined = undefined;
 	
 	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
 	private _middlewares = shallowReactive({value: [] as UniversalEffect[]});
 	
-	/** follow kick amplitude to sidechain other channels */
-	/** get set in toSidechainSource() */
 	public isMuted: Ref<boolean> = ref(false);
 
 	constructor(params: { name: string, volume: number, source: AudioSource, type: TrackTypes }) {
@@ -126,6 +121,10 @@ export class Track {
 		})
 	}
 	
+	public get sidechainEnvelope(): Tone.Envelope | undefined {
+		return this._sidechainEnvelope;
+	}
+	
 	public removeMiddleware(middleware: UniversalEffect): void {
 		this._middlewares.value = this._middlewares.value.filter((m) => m.name !== middleware.name);
 		this.reconnectMiddlewares();
@@ -150,23 +149,24 @@ export class Track {
 			middleware.effect?.dispose();
 			middleware.effect = undefined;
 			
-			if (middleware.name === 'AutoDuck' && this._sidechainSource) {
+			if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
 				middleware.effect = new Tone.Gain(1, "normalRange");
 				const scale = new Tone.Scale(1, 0);
 				scale.connect(middleware.effect.gain);
-				this._sidechainSource.connect(scale);
+				// this._sidechainSource.connect(scale);
+				console.log('middleware.options', middleware.options);
+				this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
+				this._sidechainEnvelope?.connect(scale);
 				
 			} else if (middleware.name !== 'AutoDuck') {
 				// @ts-ignore
 				middleware.effect = new Tone[middleware.name](middleware.options);
 				
-			} else if (middleware.name === 'AutoDuck' && !this._sidechainSource) {
+			} else if (middleware.name === 'AutoDuck' && !this._sidechainEnvelope) {
 				console.error('You need to add a sidechain source to use AutoDuck');
 				return undefined;
 			}
 		});
-		
-		this._follower && this._source.connect(this._follower);
 		
 		this._source.chain(
 			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],
@@ -174,12 +174,12 @@ export class Track {
 		);
 	}
 	
-	public toSidechainSource(): Tone.Follower {
-		this._follower = new Tone.Follower(DEFAULT_SOOTHING); // 0.2 is the smoothing time (in seconds)
+	public toSidechainSource(): Tone.Envelope {
+		this._sidechainEnvelope = new Tone.Envelope(0, 0.2, 0, 0);
 		
 		this.reconnectMiddlewares()
 		
-		return this._follower
+		return this._sidechainEnvelope
 	}
 	
 	public setFilterCutoff(value: number): void {
@@ -206,8 +206,8 @@ export class Track {
 		this._loops.value = this._loops.value.filter((l) => l.name !== loop.name);
 	}
 	
-	public toggleSidechain(follower: Tone.Follower): void {
-		this._sidechainSource = follower;
+	public toggleSidechain(env: Tone.Envelope): void {
+		this._sidechainEnvelope = env;
 		
 		if (this._middlewares.value.find((middleware) => middleware.name === 'AutoDuck')) {
 			this.removeMiddleware({
@@ -219,6 +219,12 @@ export class Track {
 		
 		this.addMiddleware({
 			name: 'AutoDuck',
+			options: {
+				attack: 0,
+				decay: 0.1,
+				sustain: 0.9,
+				release: 0.5,
+			}
 		})
 		this.reconnectMiddlewares()
 	}

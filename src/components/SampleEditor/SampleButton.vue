@@ -1,24 +1,36 @@
 <template>
   <button :style="{'--bg-color': bgcolor ?? 'hsl(51, 60%, 69%)', width}" class="ghost-button" @click="onClick">
-    <DisplayWaveform id="sample-editor-button" :height="64" :normalize="false" :sample-name="track.name" :wave-color="color"
-                     class="waveform"/>
+    <DisplayWaveform
+        id="sample-editor-button"
+        :height="64"
+        :normalize="false"
+        :sample-name="track.name"
+        :url="props.sampleUrl ?? track.meta.get('urls')[DEFAULT_NOTE] ?? ''"
+        :wave-color="color"
+        class="waveform"
+    />
     <span class="hover-text">
       <span class="text">
         <slot></slot>
       </span>
     </span>
+    <input ref="file" style="display:none" type="file"/>
   </button>
 </template>
 
 <script lang="ts" setup>
 import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
 import type {Track} from "~/lib/Track";
+import {ref} from "vue";
+import {DEFAULT_NOTE} from "~/lib/Sequencer";
+import {SoundEngine} from "~/lib/SoundEngine";
 
 const props = defineProps<{
   track: Track
   color: string,
   bgcolor?: string,
   width?: string,
+  sampleUrl?: string
 }>()
 
 const emit = defineEmits<{
@@ -26,7 +38,34 @@ const emit = defineEmits<{
 }>()
 
 const onClick = async (event: MouseEvent) => {
-  emit('click', event)
+  getFile()
+  // emit('click', event)
+}
+
+const file = ref<HTMLInputElement | null>(null)
+
+function getFile() {
+  if (file.value === null) {
+    return
+  }
+
+  file.value.onchange = () => {
+    if (file.value?.files !== null && file.value?.files.length && file.value?.files.length > 0) {
+      const url = URL.createObjectURL(file.value.files[0])
+
+      SoundEngine.createSampler(url, '').then((sampler) => {
+        props.track.source.dispose();
+        // eslint-disable-next-line vue/no-mutating-props
+        props.track.source = sampler;
+
+        props.track.meta.set('urls', {[DEFAULT_NOTE]: url})
+      }).catch((e) => {
+        console.error(e)
+      })
+    }
+  };
+
+  file.value.click();
 }
 </script>
 

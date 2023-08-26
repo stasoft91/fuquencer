@@ -8,6 +8,7 @@
         :min="min"
         :model-value="rawValueToControl(currentValue as number)"
         :step="step"
+        :is-link-disabled="!isAutomatable"
         class="constrained-width"
         @update:model-value="onUpdate(controlToRawValue($event))"
         @click:link="onLinkClick"
@@ -32,13 +33,12 @@ import {NCard, NSelect} from 'naive-ui'
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import {SoundEngine} from "~/lib/SoundEngine";
 import type {Ref} from "vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {EFFECTS_OPTIONS} from "@/constants";
 import type {SelectMixedOption} from "naive-ui/es/select/src/interface";
 import * as Tone from "tone/Tone";
-import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
-import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
+import {Sequencer} from "~/lib/Sequencer";
 
 const emit = defineEmits<{
   (event: `update:value`, payload: UniversalEffect): void
@@ -57,6 +57,8 @@ const min: Ref<number> = ref(0)
 const max: Ref<number> = ref(100)
 const step: Ref<number> = ref(0.1)
 const selectOptions = ref<SelectMixedOption[]>([])
+const sequencer = Sequencer.getInstance()
+const soundEngine = sequencer.soundEngine
 
 let controlToRawValue = (value: number) => value
 let rawValueToControl = (value: number) => value
@@ -79,9 +81,15 @@ const onUpdate = (value: string | number) => {
     // @ts-ignore
     editedEffect.options[props.fieldName] = value
 
-    editedEffect.effect.set({
-      [props.fieldName]: value
-    })
+    if (editedEffect.name === 'AutoDuck') {
+      soundEngine.sidechainEnvelopeSource?.set({
+        [props.fieldName]: value
+      })
+    } else {
+      editedEffect.effect.set({
+        [props.fieldName]: value
+      })
+    }
 
     emit(`update:value`, editedEffect as UniversalEffect)
     return;
@@ -125,10 +133,19 @@ onMounted(() => {
   }
 })
 
-const onLinkClick = () => {
-  const sequencer = Sequencer.getInstance()
-  const soundEngine = sequencer.soundEngine
+const isAutomatable = computed(() => {
+  const track = soundEngine.tracks
+      .find(_ => _.name === props.trackName)!
 
+  const middlewares = track.middlewares
+      .find(__ => __.name === props.effectName)!
+
+  const effect = middlewares.effect
+
+  return isNaN(effect[props.fieldName])
+})
+
+const onLinkClick = () => {
   const track = soundEngine.tracks
       .find(_ => _.name === props.trackName)!
 
@@ -141,35 +158,24 @@ const onLinkClick = () => {
     return;
   }
 
-  // !isNaN === is number
-  // isNaN === is not number === e.g. object
-  if (!isNaN(effect[props.fieldName])) {
-
-    //effect[props.fieldName]
-    track.addLoop({
-      isAutomation: true,
-      callback: (_time: number) => {
-        effect.set({[props.fieldName]: 0});
-        const measure = Tone.Time(_time).toBarsBeatsSixteenths().split(':').map(_ => parseInt(_))
-        console.log(measure)
-        //
-        // if (getStepFromBarsBeatsSixteens(Tone.Time(_time).toBarsBeatsSixteenths()) === 1) {
-        //   effect.set({[props.fieldName]: 0});
-        // }
-        //
-        // let unsafeValue = effect[props.fieldName] + 1/32
-        // console.log(getStepFromBarsBeatsSixteens(Tone.Time(_time).toBarsBeatsSixteenths()), unsafeValue)
-        // if (unsafeValue > 1) {
-        //   unsafeValue = 1
-        // }
-        // effect[props.fieldName] = unsafeValue
-      },
-      note: DEFAULT_NOTE,
-      interval: '16n',
-    }).start(getToneTimeNextMeasure()).stop(getToneTimeNextMeasure(2))
-  } else {
-    effect.set({[props.fieldName]: 0});
-    effect[props.fieldName].linearRampTo(1, Tone.Time('1m').toSeconds() * 2, getToneTimeNextMeasure())
+  // we can`t do anything if it is a number
+  // it should be an automatable param (object)
+  if (typeof effect[props.fieldName] === 'number') {
+    return
   }
+
+  const prop = effect[props.fieldName] as Tone.Param
+  const startTimeRaw: number = Tone.Time(Tone.Time('@1m').quantize('1m')).toSeconds();
+
+  const afterEnd: number = (Tone.Time('1m').toSeconds() * 1) + Tone.Time(startTimeRaw).toSeconds()
+
+  Tone.Transport.scheduleOnce((time) => {
+    prop.linearRampTo(1, '1m', time)
+  }, startTimeRaw)
+
+  Tone.Transport.scheduleOnce((time) => {
+    prop.setValueAtTime(0, time)
+    prop.setValueAtTime(0, time + 0.01)
+  }, afterEnd)
 }
 </script>

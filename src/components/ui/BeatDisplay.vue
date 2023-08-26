@@ -29,16 +29,12 @@ onUnmounted(() => {
   loop = null
 })
 
-watch(() => props.interval, () => {
-  stop()
-
-  loop?.dispose()
-  loop = null
+watch(() => [props.interval], () => {
   initLoop()
 })
 
 const stop = () => {
-  loop?.stop(Tone.Time('@2n').quantize('2n') as Tone.Unit.Time)
+  loop?.stop()
   progress.value = 0
 }
 
@@ -46,6 +42,7 @@ const initLoop = () => {
   stop()
   loop?.dispose()
   loop = null
+  progress.value = 0
 
   const hasDot = Tone.Time(props.interval).toNotation().includes('.');
 

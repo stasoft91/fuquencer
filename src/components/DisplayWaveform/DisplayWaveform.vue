@@ -1,6 +1,6 @@
 <template>
   <div ref="wrapper" class="canvas-wrapper">
-    <div :id="id ?? '' + sampleName" ref="canvas"></div>
+    <div :id="(id ?? '') + url" ref="canvas"></div>
   </div>
 </template>
 
@@ -10,10 +10,11 @@ import WaveSurfer from 'wavesurfer.js'
 
 type Props = {
   id?: string,
-  sampleName: string,
+  url: string,
+
   waveColor?: string,
   height?: number,
-  normalize?: boolean
+  normalize?: boolean,
 }
 const props = defineProps<Props>()
 
@@ -49,8 +50,8 @@ onBeforeUnmount(() => {
   }
 })
 
-const drawWaveform = () => {
-  if (!props.sampleName) {
+const drawWaveform = async () => {
+  if (!props.url) {
     return
   }
 
@@ -61,7 +62,7 @@ const drawWaveform = () => {
     waveColor: props.waveColor,
     progressColor: '#ffffff00',
 
-    url: 'samples/' + props.sampleName,
+    url: props.url,
     autoplay: false,
     interact: false,
     normalize: props.normalize,

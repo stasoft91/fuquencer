@@ -1,5 +1,5 @@
 <template>
-  <button class="simple-button" @click="onClick">
+  <button :class="{disabled}" :disabled="disabled" class="simple-button" @click="onClick">
     <img v-if="icon" :src="icon" alt="" style="height:100%" />
     <slot></slot>
   </button>
@@ -32,6 +32,15 @@
 .simple-button img {
   height: 1rem;
 }
+
+.simple-button.disabled {
+  background-color: transparentize($color-grey-700, .8);
+  cursor: not-allowed;
+}
+
+.simple-button.disabled:hover {
+  background-color: transparentize($color-grey-700, .8);
+}
 </style>
 
 <script setup lang="ts">
@@ -39,6 +48,7 @@ const emits = defineEmits(['click'])
 
 type Props = {
   icon?: string
+  disabled?: boolean
 }
 
 const props = defineProps<Props>()

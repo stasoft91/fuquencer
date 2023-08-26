@@ -1,9 +1,15 @@
 <template>
   <div class="sequencer-wrapper" :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': sequencer.sequenceLength }">
     <div class="flex-horizontal">
-      <VerticalIndicator :polyrythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)" :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
-                         :rows="GRID_ROWS" :selected-row="selectedTrackIndex" class="flex-auto"
-                         @select-row="onSelectTrack"/>
+      <VerticalIndicator
+          :polyrythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)"
+          :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
+          :rows="GRID_ROWS"
+          :selected-row="selectedTrackIndex"
+          :tracks="sequencer.soundEngine.tracks"
+          class="flex-auto"
+          @select-row="onSelectTrack"
+      />
       <div style="width:100%">
         <DisplayGrid
             :columns="sequencer.sequenceLength"
@@ -119,11 +125,13 @@ const play = () => {
 
   isPlaying.value = true
 
-  sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
+  if (sequencer.sequenceGrid.value.find(cell => cell.velocity > 0) === undefined) {
+    sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
 
-  sequencer.sequenceGrid.value.filter(cell => cell.row === 1 && cell.column % 4 === 1).forEach(cell => {
-    cell.velocity = 100;
-  })
+    sequencer.sequenceGrid.value.filter(cell => cell.row === 1 && cell.column % 4 === 1).forEach(cell => {
+      cell.velocity = 100;
+    })
+  }
 
   sequencer.play()
 }

@@ -11,8 +11,9 @@
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
       {{ polyrythms && polyrythms[rowIndex] ? `(+${polyrythms[rowIndex]})` : '' }}
       <DisplayWaveform
-          v-if="rowCaptions && rowCaptions[rowIndex]"
-          :sample-name="rowCaptions[rowIndex]"
+          v-if="shouldDisplayWaveform(rowIndex)"
+          :id="`vertical-indicator-${rowIndex}`"
+          :url="tracks[rowIndex].meta.get('urls')[DEFAULT_NOTE] ?? ''"
           :wave-color="rowIndex === selectedRow ? '#edf2f7' : '#a0aec0'"
           :normalize="true"
       ></DisplayWaveform>
@@ -22,7 +23,6 @@
 
 <style scoped lang="scss" >
 @import '@/assets/variables.scss';
-
 
 .vertical-indicator {
   display: grid;
@@ -61,11 +61,15 @@
 
 <script setup lang="ts">
 import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
+import type {Track} from "~/lib/Track";
+import {computed} from "vue";
+import {DEFAULT_NOTE} from "~/lib/Sequencer";
 
 interface Props {
+  tracks: Track[],
+
   selectedRow: number,
   rows: number,
-  rowCaptions?: string[],
   space?: string
   polyrythms?: number[]
 }
@@ -80,4 +84,12 @@ const getStyleForCell = (rowNumber: number, columnNumber: number) => {
     gridColumn: columnNumber
   }
 }
+
+const shouldDisplayWaveform = (rowIndex: number) => {
+  return props.tracks.find(t => t.name === rowCaptions.value[rowIndex])?.type === 'sample'
+}
+
+const rowCaptions = computed(() => {
+  return props.tracks.map(t => t.name)
+})
 </script>

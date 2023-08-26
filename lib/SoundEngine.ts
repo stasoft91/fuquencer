@@ -16,7 +16,7 @@ export type ADSRType = {
 export type AudioSource = Tone.PolySynth<Tone.MonoSynth> & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
-  envelope: any
+  envelope: Tone.EnvelopeOptions
 } | Tone.Sampler
 
 export enum TrackTypes {
@@ -39,17 +39,19 @@ export class SoundEngine {
   
   public tracksCount: Ref<number> = ref(GRID_ROWS);
   
-  private signalFollower?: Tone.Follower;
+  public sidechainEnvelopeSource?: Tone.Envelope;
   
   constructor() {
   }
-
-  public addTrack(track: Track): void {
+  
+  public addTrack(track: Track): Track {
     if (!track.source) {
       throw new Error('No source provided for track')
     }
 
     this.tracks.push(track)
+    
+    return track
   }
 
   public removeTrack(trackName: string): void {
@@ -93,11 +95,9 @@ export class SoundEngine {
   }
   
   public toggleSidechain(trackFrom: Track, trackTo: Track): void {
-    if (this.signalFollower === undefined) {
-      this.signalFollower = trackFrom.toSidechainSource()
-    }
+    this.sidechainEnvelopeSource = trackFrom.toSidechainSource()
     
-    trackTo.toggleSidechain(this.signalFollower)
+    trackTo.toggleSidechain(this.sidechainEnvelopeSource)
   }
   
   public static createSampler(samplePath: string, baseUrl: string = '/samples/'): Promise<Tone.Sampler> {
