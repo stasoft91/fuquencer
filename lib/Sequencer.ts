@@ -5,6 +5,7 @@ import type {AudioSource} from '~/lib/SoundEngine'
 import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
+import {KeyboardManager} from "~/lib/KeyboardManager";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -52,6 +53,8 @@ export class Sequencer {
   private _currentStep = ref(1)
   
   public readonly soundEngine: SoundEngine = SoundEngine.getInstance()
+  
+  public readonly keyboardManager: KeyboardManager = KeyboardManager.getInstance()
   
   private _mainLoop: Tone.Loop<any> | null = null;
   

@@ -26,6 +26,7 @@
 
     <div class="sequence-control">
       <SimpleButton @click="play">{{ isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
+      <SimpleButton @click="isSettingsOpen = !isSettingsOpen">SETTINGS</SimpleButton>
     </div>
 
     <SubPanel
@@ -38,6 +39,29 @@
         @update:sidechain="onSidechain"
         @update:filter="onFilterUpdate"
     ></SubPanel>
+
+    <n-drawer v-model:show="isSettingsOpen" placement="left">
+      <n-drawer-content cloasble title="Settings">
+        <n-switch v-model:value="sequencer.keyboardManager.isAudible" size="large"
+                  @update:value="onKeyboardSettingsUpdate">
+          <template #checked>
+            KB Sound On
+          </template>
+          <template #unchecked>
+            KB Sound Off
+          </template>
+        </n-switch>
+        <n-switch v-model:value="sequencer.keyboardManager.isRecording" size="large"
+                  @update:value="onKeyboardSettingsUpdate">
+          <template #checked>
+            KB Rec On
+          </template>
+          <template #unchecked>
+            KB Rec Off
+          </template>
+        </n-switch>
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 
@@ -56,7 +80,7 @@ import {AVAILABLE_EFFECTS, GRID_ROWS, VERSION} from "@/constants";
 import type {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
-import {useDialog} from "naive-ui";
+import {NDrawer, NDrawerContent, NSwitch, useDialog} from "naive-ui";
 import * as Tone from "tone/Tone";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 
@@ -67,15 +91,24 @@ const selectedTrackIndex = ref<number>(0)
 
 const isPlaying = ref(false);
 
+const isSettingsOpen = ref(false);
+
+const onKeyboardSettingsUpdate = () => {
+  sequencer.keyboardManager.unregisterEvents()
+  sequencer.keyboardManager.registerEvents(selectedTrack.value)
+}
+
 const onSelectTrack = (trackIndex: number) => {
   selectedTrackIndex.value = trackIndex
+  sequencer.keyboardManager.unregisterEvents()
+  sequencer.keyboardManager.registerEvents(selectedTrack.value)
 }
 
 const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks[selectedTrackIndex.value]
 })
 
-const onNoteWheel = (cell:GridCell, event: WheelEvent) => {
+const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
   const noteIndex = AVAILABLE_NOTES.indexOf(cell.note)
@@ -183,7 +216,6 @@ const onUpdateEffects = (chain: string[]) => {
 const dialog = useDialog()
 
 onMounted(() => {
-
   dialog.info({
     title: `fuquencer v${VERSION}`,
     content: `Welcome to fuquencer! Click anywhere to start playing. Huge thanks to Tone.js.`,
