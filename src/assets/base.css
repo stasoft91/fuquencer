@@ -74,3 +74,7 @@ body {
 .constrained-width {
   width: 8rem;
 }
+
+button {
+  font-family: "Roboto Mono", monospace;
+}

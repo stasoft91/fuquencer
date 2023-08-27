@@ -47,6 +47,8 @@
   cursor: pointer;
   padding: 4px;
   outline: none;
+
+  border-radius: 3px;
 }
 
 .active {

@@ -29,6 +29,7 @@ export type PartEvent = {
   time: any
   note: string,
   velocity: number,
+  duration: string
 }
 
 export const AVAILABLE_NOTES = generateListOfAvailableNotes()
@@ -110,17 +111,17 @@ export class Sequencer {
     this._currentStep.value = newValue
   }
 
-  public initGrid(): void {
-    for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
-      for (let j = 1; j <=  this._sequenceLength; j++) {
-        this._sequenceGrid.value.push({
-          id: `${i}-${j}`,
-          velocity: 0,
-          row: i,
-          column: j,
-          note: DEFAULT_NOTE
-        })
-      }
+  static cell(row: number, column: number, params?: Partial<GridCell>): GridCell {
+    return {
+      note: '',
+      velocity: 0,
+      duration: '16n',
+
+      ...params,
+
+      id: `${row}-${column}`,
+      row: row,
+      column: column,
     }
   }
 
@@ -146,6 +147,21 @@ export class Sequencer {
     return this._sequenceGrid.value[cellIndex]
   }
 
+  public initGrid(): void {
+    for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
+      for (let j = 1; j <=  this._sequenceLength; j++) {
+        this._sequenceGrid.value.push({
+          id: `${i}-${j}`,
+          velocity: 0,
+          row: i,
+          column: j,
+          note: DEFAULT_NOTE,
+          duration: '16n'
+        })
+      }
+    }
+  }
+
   public writeCell(cell: GridCell): void {
     const cellIndex = this.getCellIndex(cell.row, cell.column)
     this._sequenceGrid.value[cellIndex] = Sequencer.cell(cell.row, cell.column, cell)
@@ -154,10 +170,24 @@ export class Sequencer {
       this._parts[cell.row - 1].at(getBarsBeatsSixteensFromStep(cell.column - 1), {
         note: cell.note,
         velocity: cell.velocity / 100,
+        duration: cell.duration
       } as PartEvent)
     }
   }
 
+  public stop() {
+    this._parts.forEach((part) => part.cancel().stop().dispose())
+    this._parts = []
+    Tone.Transport.stop()
+    this._mainLoop?.stop()
+    
+    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
+  }
+  
+  // public playNotes(time: Tone.Unit.Time) {
+  //   this.soundEngine.playStepData(time, this.readStep())
+  // }
+  
   public async play() {
     // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
     if (this.soundEngine.tracks.length === 0) {
@@ -175,10 +205,14 @@ export class Sequencer {
           
           // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
           if (i === 0) {
-            track.sidechainEnvelope?.triggerAttackRelease('16n', time)
+            track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
           }
           
-          track.source.releaseAll().triggerAttackRelease(value.note, "8n", time, value.velocity);
+          if (value.velocity === 0) {
+            return
+          }
+          
+          track.source.releaseAll(time).triggerAttackRelease(value.note, value.duration, time, value.velocity);
         }),
         [
           ...this._sequenceGrid.value.filter(_ => ((_.row === i + 1) && (_.velocity > 0))).map(_ => {
@@ -187,11 +221,12 @@ export class Sequencer {
             return {
               time: getBarsBeatsSixteensFromStep(step),
               note: _.note,
-              velocity: _.velocity / 100
+              velocity: _.velocity / 100,
+              duration: _.duration
             }
           })
         ]
-      ).start(0).set({loop: true})
+      ).start(0).set({loop: true,})
       
       this._parts.push(
         part
@@ -252,32 +287,6 @@ export class Sequencer {
     //   // subdivisions are given as subarrays
     // }, ["C3", ["E3", "D3"], "G3", ["A3", "G3"], ["G3", "E3"]]).start(0);
   }
-
-  public stop() {
-    this._parts.forEach((part) => part.cancel().stop().dispose())
-    this._parts = []
-    Tone.Transport.stop()
-    this._mainLoop?.stop()
-    
-    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
-  }
-
-  public playNotes(time: Tone.Unit.Time) {
-    this.soundEngine.playStepData(time, this.readStep())
-  }
-  
-  static cell(row: number, column: number, params?: Partial<GridCell>): GridCell {
-    return {
-      note: '',
-      velocity: 0,
-
-      ...params,
-
-      id: `${row}-${column}`,
-      row: row,
-      column: column
-    }
-  }
   
   public get bpm(): Ref<number> {
     return this._bpm
@@ -320,4 +329,5 @@ export interface GridCell {
   velocity: number
   row: number
   column: number
+  duration: string
 }

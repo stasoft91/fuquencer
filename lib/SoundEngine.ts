@@ -1,4 +1,3 @@
-import type {GridCell} from './Sequencer'
 import {DEFAULT_NOTE} from './Sequencer'
 import * as Tone from 'tone/Tone'
 import type {Ref} from "vue";
@@ -73,12 +72,13 @@ export class SoundEngine {
       },
       envelope: {
         attack: 0.01,
-        decay: 0.5,
-        sustain: 0
+        decay: 0.42,
+        sustain: 0.01,
+        release: 0.25
       },
       filterEnvelope: {
         attack: 0.001,
-        decay: 0.01,
+        decay: 0.1,
         sustain: 0.5,
       },
       volume: -6
@@ -120,17 +120,17 @@ export class SoundEngine {
     })
   }
   
-  public playStepData(time: Tone.Unit.Time, stepData: GridCell[]): void {
-    this.tracks.forEach((track, trackIndex) => {
-      if (!track.isSolo.value || track.isMuted.value) {
-        return
-      }
-      
-      if (stepData[trackIndex] === undefined || stepData[trackIndex].velocity === 0) {
-        return
-      }
-      
-      track.source.releaseAll(time).triggerAttackRelease(stepData[trackIndex].note, '16n', time, stepData[trackIndex].velocity / 100)
-    })
-  }
+  // public playStepData(time: Tone.Unit.Time, stepData: GridCell[]): void {
+  //   this.tracks.forEach((track, trackIndex) => {
+  //     if (!track.isSolo.value || track.isMuted.value) {
+  //       return
+  //     }
+  //
+  //     if (stepData[trackIndex] === undefined || stepData[trackIndex].velocity === 0) {
+  //       return
+  //     }
+  //
+  //     track.source.releaseAll(time).triggerAttackRelease(stepData[trackIndex].note, '16n', time, stepData[trackIndex].velocity / 100)
+  //   })
+  // }
 }

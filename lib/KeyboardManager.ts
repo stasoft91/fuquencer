@@ -123,13 +123,15 @@ export class KeyboardManager {
 		
 		if (this._isRecording.value) {
 			const seq = Sequencer.getInstance()
-			seq.writeCell({
-				row: seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
-				column: seq.currentStep,
-				velocity: velocity * 100,
-				note,
-				id: `${this._track?.name}-${seq.currentStep}`,
-			})
+			
+			seq.writeCell(Sequencer.cell(
+				seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
+				seq.currentStep,
+				{
+					velocity: velocity * 100,
+					note,
+				}
+			))
 		}
 	}
 	

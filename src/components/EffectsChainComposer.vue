@@ -50,7 +50,7 @@
     >
       <BaseEffectParam
           v-for="field in EFFECTS_OPTIONS[selectedEffectName]"
-          :key="selectedEffectName + '.'+field.name"
+          :key="selectedEffectName + '.' + field.name"
           :effect-name="selectedEffectName"
           :field-name="field.name"
           :track-name="selectedTrackName"
@@ -104,14 +104,6 @@ const effectsLibraryDraggableOptions: SortableJS.Options = {
     pull: "clone"
   }};
 
-const fieldValueMiddlewareOnDisplay = (value: number) => {
-  return value * 100
-}
-
-const fieldValueMiddlewareOnUpdate = (value: number) => {
-  return value / 100
-}
-
 const onClick = (effectName: string | null, shouldSetFocusOnActiveEffectsContainer: boolean) => {
   isFocusOnActiveEffectsContainer.value = shouldSetFocusOnActiveEffectsContainer
   selectedEffectName.value = effectName
@@ -126,13 +118,7 @@ const onChange = () => {
 const getClasses = (element: UniversalEffect, isActiveEffectsContainer: boolean) => {
   return {
     active: isFocusOnActiveEffectsContainer.value === isActiveEffectsContainer && element.name === selectedEffectName.value,
-    ignore: element.name === 'AutoDuck'
   }
-}
-
-const getFields = (effectName: string) => {
-  const effect = availableEffects.find(_ => _.name === effectName)
-  return effect ? effect.fields : []
 }
 </script>
 
@@ -210,9 +196,5 @@ const getFields = (effectName: string) => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-}
-
-.draggable.ignore {
-  opacity: 0.65;
 }
 </style>

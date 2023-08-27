@@ -7,6 +7,7 @@
           :rows="GRID_ROWS"
           :selected-row="selectedTrackIndex"
           :tracks="sequencer.soundEngine.tracks"
+          space="0"
           class="flex-auto"
           @select-row="onSelectTrack"
       />
@@ -19,8 +20,9 @@
             @wheel="onNoteWheel"
             @ctrl-wheel="onNoteWheel"
             @shift-wheel="onNoteWheel"
+            @alt-wheel="onNoteWheel"
         />
-        <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>
+        <!--        <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>-->
       </div>
     </div>
 
@@ -66,13 +68,12 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue'
+import {computed, h, onMounted, ref, resolveComponent} from 'vue'
 
 import type {GridCell} from '~/lib/Sequencer'
 import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
-import HorizontalIndicator from '@/components/DisplayGrid/HorizontalIndicator.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
@@ -83,6 +84,7 @@ import {jsonCopy} from "~/lib/utils/jsonCopy";
 import {NDrawer, NDrawerContent, NSwitch, useDialog} from "naive-ui";
 import * as Tone from "tone/Tone";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
+import InfoPage from "@/components/ui/InfoPage.vue";
 
 const sequencer = Sequencer.getInstance(16)
 
@@ -116,11 +118,18 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   if (event.shiftKey) {
     cell.velocity = cell.velocity + (event.deltaY < 0 ? 10 : -10)
     cell.velocity = Math.max(0, Math.min(100, cell.velocity))
+
   } else if (event.ctrlKey) {
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 12 : -12)
     cell.note =
       AVAILABLE_NOTES[newNoteIndex] ||
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
+
+  } else if (event.altKey) {
+    let newDuration = parseInt(cell.duration.split(/[nm]/)[0]) * (event.deltaY < 0 ? 2 : 1 / 2)
+
+    newDuration = Math.max(1, Math.min(64, newDuration))
+    cell.duration = `${newDuration}n`
   } else {
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 1 : -1)
     cell.note =
@@ -218,7 +227,7 @@ const dialog = useDialog()
 onMounted(() => {
   dialog.info({
     title: `fuquencer v${VERSION}`,
-    content: `Welcome to fuquencer! Click anywhere to start playing. Huge thanks to Tone.js.`,
+    content: () => h(resolveComponent('InfoPage')),
     closeOnEsc: false,
     onClose: async () => {
       await Tone.start()

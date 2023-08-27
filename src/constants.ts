@@ -1,12 +1,10 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 
-export const VERSION = '0.5.0'
+export const VERSION = '0.6.0'
 
 
 export const GRID_ROWS = 8;
-
-export const DEFAULT_SOOTHING = 0.002
 
 export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{

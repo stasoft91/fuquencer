@@ -11,12 +11,13 @@
           @wheel="onWheel(gridCell.row, gridCell.column, $event)"
           @keyup.prevent=""
       >
-          <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
-            <span class="display-grid__cell__content__note">
-              <span class="display-grid__cell__content__note__name">{{ gridCell.note }}</span>
-            </span>
-            <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
+        <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
+          <span class="display-grid__cell__content__note">
+            <span class="display-grid__cell__content__note__name">{{ gridCell.note }}</span>
           </span>
+          <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
+          <span class="display-grid__cell__content__velocity">{{ gridCell.duration }}</span>
+        </span><span :class="{active: currentStep === gridCell.column}" class="button-indicator"></span>
       </button>
     </div>
   </div>
@@ -45,10 +46,8 @@
   overflow: hidden;
 }
 
-.display-grid__row {
-}
-
-.display-grid__cell {
+button.display-grid__cell {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -61,6 +60,8 @@
   padding: 4px;
   height: 3rem;
   outline: none;
+
+  border-radius: 3px;
 }
 
 .display-grid__cell__content {
@@ -107,13 +108,31 @@ button.active {
 .first-in-quarter {
   border-left: 4px solid $color-grey-500;
 }
+
+.button-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background-color: $color-grey-500;
+
+  &.active {
+    border: none;
+    padding: 2px;
+    background-color: $color-orange-opaque;
+    box-shadow: inset 0 0 2px 2px $color-orange-opaque-lighter100;
+  }
+}
 </style>
 
 <script setup lang="ts">
 import {GRID_ROWS} from "@/constants";
 import type {GridCell} from "~/lib/Sequencer";
+import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
-import {toRef} from "vue";
+import {computed, toRef} from "vue";
 
 interface DisplayGridProps {
   rows: number,
@@ -132,7 +151,8 @@ const emit = defineEmits([
     'click',
     'wheel',
     'ctrl-wheel',
-    'shift-wheel'
+  'shift-wheel',
+  'alt-wheel'
 ])
 
 const getStyleForCell = (rowNumber: number, columnNumber: number) => {
@@ -154,6 +174,12 @@ const onClick = (rowNumber: number, columnNumber: number) => {
     emit('click', rowNumber, columnNumber)
 }
 
+const sequencer = Sequencer.getInstance()
+
+const currentStep = computed(() => {
+  return sequencer.currentStep
+})
+
 const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
@@ -165,6 +191,8 @@ const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => 
     }
     else if (event.ctrlKey) {
       emit('ctrl-wheel', cell, event)
+    } else if (event.altKey) {
+      emit('alt-wheel', cell, event)
     }
     else {
       emit('wheel', cell, event)

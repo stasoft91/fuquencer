@@ -105,7 +105,7 @@ function getFile() {
   cursor: pointer;
   outline: none;
   border: 1px solid var(--color-grey-600);
-  border-radius: 0.5rem;
+  border-radius: 3px;
   padding: 0.25rem;
   position: relative;
 
