@@ -6,10 +6,13 @@
           :key="gridCell.id"
           class="display-grid__cell"
           :class="getClassesForCell(gridCell)"
-          :style="getStyleForCell(gridCell.row, gridCell.column)"
+          :data-column="gridCell.column"
+          :data-row="gridCell.row"
+          :style="getStyleForCell(gridCell.row, gridCell.column, gridCell.duration)"
           @click="onClick(gridCell.row, gridCell.column)"
           @wheel="onWheel(gridCell.row, gridCell.column, $event)"
           @keyup.prevent=""
+          @contextmenu="handleContextMenu"
       >
         <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
           <span class="display-grid__cell__content__note">
@@ -17,10 +20,21 @@
           </span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.duration }}</span>
-        </span><span :class="{active: currentStep === gridCell.column}" class="button-indicator"></span>
+        </span>
+        <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
       </button>
     </div>
   </div>
+  <n-dropdown
+      :on-clickoutside="onClickoutside"
+      :options="options"
+      :show="showDropdown"
+      :x="x"
+      :y="y"
+      placement="bottom-start"
+      trigger="manual"
+      @select="handleSelect"
+  />
 </template>
 
 <style scoped lang="scss">
@@ -35,7 +49,7 @@
 }
 
 .display-grid {
-  flex: 1 0 720px;
+  max-width: fit-content;
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), 1fr);
   grid-template-rows: repeat(var(--grid-rows), 1fr);
@@ -55,10 +69,14 @@ button.display-grid__cell {
   align-items: stretch;
   align-content: stretch;
   background-color: $color-grey-800;
-  border: none;
+  border-left: none;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
   cursor: pointer;
   padding: 4px;
   height: 3rem;
+  width: 4rem;
   outline: none;
 
   border-radius: 3px;
@@ -76,13 +94,11 @@ button.display-grid__cell {
 
 button.active {
   background-color: $color-grey-300;
+  z-index: 3;
 }
 
-.indicator {
-  background-color: $color-grey-500;
-  border: none;
-  padding: 4px;
-  font-size: 0.25rem;
+button.inactive {
+  background-color: $color-grey-900;
 }
 
 .sequencer-grid__cell__content__note {
@@ -106,13 +122,13 @@ button.active {
 }
 
 .first-in-quarter {
-  border-left: 4px solid $color-grey-500;
+  border-left: 4px solid $color-grey-500 !important;
 }
 
 .button-indicator {
   position: absolute;
   top: 2px;
-  right: 2px;
+  left: 2px;
   width: 6px;
   height: 6px;
   border-radius: 2px;
@@ -122,7 +138,11 @@ button.active {
     border: none;
     padding: 2px;
     background-color: $color-orange-opaque;
-    box-shadow: inset 0 0 2px 2px $color-orange-opaque-lighter100;
+    box-shadow: inset 0 0 2px 2px $color-orange-opaque-lighter500;
+  }
+
+  &.disabled {
+    background-color: $color-grey-700;
   }
 }
 </style>
@@ -132,12 +152,56 @@ import {GRID_ROWS} from "@/constants";
 import type {GridCell} from "~/lib/Sequencer";
 import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
-import {computed, toRef} from "vue";
+import {nextTick, ref, toRef} from "vue";
+import {Track} from "~/lib/Track";
+import {NDropdown} from "naive-ui";
+
+const sequencer = Sequencer.getInstance()
 
 interface DisplayGridProps {
+  tracks: Track[],
   rows: number,
   columns: number,
   items: Ref<GridCell[]>
+}
+
+const showDropdown = ref(false)
+const x = ref(0)
+const y = ref(0)
+const options = [
+  {
+    label: 'Add Note',
+    key: 'add-note'
+  },
+  {
+    label: 'Add Chord',
+    key: 'add-chord'
+  },
+]
+
+const handleSelect = (key: string | number) => {
+  showDropdown.value = false
+  console.log(String(key), cellOfContextMenu.value)
+}
+
+const cellOfContextMenu = ref<GridCell | null>(null)
+const handleContextMenu = (e: MouseEvent) => {
+  e.preventDefault()
+  showDropdown.value = false
+
+  cellOfContextMenu.value = props.items.value.find(cell =>
+      cell.row === Number(e.currentTarget?.getAttribute('data-row')) &&
+      cell.column === Number(e.currentTarget?.getAttribute('data-column'))
+  ) ?? null
+
+  nextTick().then(() => {
+    showDropdown.value = true
+    x.value = e.clientX
+    y.value = e.clientY
+  })
+}
+const onClickoutside = () => {
+  showDropdown.value = false
 }
 
 const props = withDefaults(defineProps<DisplayGridProps>(), {
@@ -155,30 +219,61 @@ const emit = defineEmits([
   'alt-wheel'
 ])
 
-const getStyleForCell = (rowNumber: number, columnNumber: number) => {
+const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: string) => {
+  let noteSpan = 0
+  switch (noteLength) {
+    case '16n':
+      noteSpan = 1
+      break;
+    case '8n':
+      noteSpan = 2
+      break;
+    case '4n':
+      noteSpan = 4
+      break;
+    case '2n':
+      noteSpan = 8
+      break;
+    case '1n':
+      noteSpan = 16
+      break;
+    default:
+      noteSpan = 1
+      break;
+  }
+
+  const maximumSpan = sequencer.soundEngine.tracks[rowNumber - 1]?.length - columnNumber + 1;
+  let realSpan = noteSpan > sequencer.soundEngine.tracks[rowNumber - 1]?.length ? sequencer.soundEngine.tracks[rowNumber - 1].length : noteSpan
+  return realSpan > maximumSpan ? maximumSpan : realSpan
+}
+
+const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: string = '16n') => {
+  const hasSpan = calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
+    width: '100%',
+    backgroundColor: `hsl(${(columnNumber * 360 / 16) % 360}, 30%, 80%)`,
+    zIndex: 3,
+  } : {}
+
   return {
     gridRow: rowNumber,
-    gridColumn: columnNumber
+    gridColumn: columnNumber,
+    gridRowEnd: 'auto',
+    gridColumnEnd: 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength),
+    ...hasSpan
   }
 }
 
 const getClassesForCell = (gridCell: GridCell) => {
   return {
     active: gridCell.velocity > 0,
+    inactive: props.tracks[gridCell.row - 1] ? gridCell.column > props.tracks[gridCell.row - 1].length : false,
     'first-in-quarter': gridCell.column % 4 === 1,
-    'last-in-quarter': gridCell.column % 4 === 0,
   }
 }
 
 const onClick = (rowNumber: number, columnNumber: number) => {
     emit('click', rowNumber, columnNumber)
 }
-
-const sequencer = Sequencer.getInstance()
-
-const currentStep = computed(() => {
-  return sequencer.currentStep
-})
 
 const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => {
   event.preventDefault()
@@ -197,6 +292,38 @@ const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => 
     else {
       emit('wheel', cell, event)
     }
+  }
+}
+
+const getClassForIndicator = (gridCell: GridCell) => {
+  let length = 16
+
+  if (props.tracks[gridCell.row - 1]) {
+    length = props.tracks[gridCell.row - 1].length
+  }
+
+  let active: boolean = false
+
+  if (length % 2 === 0) {
+    active = gridCell.column === sequencer.currentStep
+
+    const realSpan = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
+
+    if (realSpan > 1) {
+      const activeFor: number[] = []
+      for (let i = 0; i < realSpan; i++) {
+        activeFor.push(gridCell.column + i)
+      }
+
+      active = activeFor.includes(sequencer.currentStep)
+    }
+  } else {
+    active = false
+  }
+
+  return {
+    active,
+    disabled: gridCell.column > length
   }
 }
 </script>

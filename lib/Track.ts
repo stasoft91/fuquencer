@@ -7,6 +7,7 @@ import * as Tone from "tone/Tone";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import type {LoopParams} from "~/lib/PolyrhythmLoop";
 import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
+import {Sequencer} from "~/lib/Sequencer";
 
 export class Track {
 	private _volume: Ref<number>;
@@ -14,6 +15,8 @@ export class Track {
 	private _envelope: Ref<ADSRType>;
 	private _filterEnvelopeFrequency: Ref<number> = ref(0);
 	private _name: Ref<string>;
+	
+	public channel: Tone.Channel = new Tone.Channel();
 	
 	public isSolo: Ref<boolean> = ref(true);
 	
@@ -23,8 +26,6 @@ export class Track {
 	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
 	private _middlewares = shallowReactive({value: [] as UniversalEffect[]});
 	
-	public isMuted: Ref<boolean> = ref(false);
-
 	constructor(params: { name: string, volume: number, source: AudioSource, type: TrackTypes }) {
 		const {name, volume, source, type} = params;
 		
@@ -38,7 +39,11 @@ export class Track {
 		if ("filterEnvelope" in sourceSettings) {
 			this._filterEnvelopeFrequency.value = sourceSettings.filterEnvelope.baseFrequency as number || 0;
 		}
+		
+		this.reconnectMiddlewares();
 	}
+
+	private _length: Ref<number> = ref(16);
 	
 	private _meta: Ref<Map<string, any>> = ref(new Map());
 	
@@ -142,6 +147,13 @@ export class Track {
 		this.reconnectMiddlewares();
 	}
 	
+	/*
+	 * Starts with 1
+	 */
+	public get length(): number {
+		return this._length.value;
+	}
+	
 	public reconnectMiddlewares(): void {
 		this._source.disconnect();
 		
@@ -153,8 +165,7 @@ export class Track {
 				middleware.effect = new Tone.Gain(1, "normalRange");
 				const scale = new Tone.Scale(1, 0);
 				scale.connect(middleware.effect.gain);
-				// this._sidechainSource.connect(scale);
-				console.log('middleware.options', middleware.options);
+				
 				this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
 				this._sidechainEnvelope?.connect(scale);
 				
@@ -170,16 +181,9 @@ export class Track {
 		
 		this._source.chain(
 			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],
+			this.channel,
 			Tone.Destination
 		);
-	}
-	
-	public toSidechainSource(): Tone.Envelope {
-		this._sidechainEnvelope = new Tone.Envelope(0, 0.2, 0, 0);
-		
-		this.reconnectMiddlewares()
-		
-		return this._sidechainEnvelope
 	}
 	
 	public setFilterCutoff(value: number): void {
@@ -206,6 +210,15 @@ export class Track {
 		this._loops.value = this._loops.value.filter((l) => l.name !== loop.name);
 	}
 	
+	public toSidechainSource(): Tone.Envelope {
+		this._sidechainEnvelope?.dispose();
+		this._sidechainEnvelope = new Tone.Envelope(0, 0.2, 0, 0);
+		
+		this.reconnectMiddlewares()
+		
+		return this._sidechainEnvelope
+	}
+	
 	public toggleSidechain(env: Tone.Envelope): void {
 		this._sidechainEnvelope = env;
 		
@@ -222,14 +235,14 @@ export class Track {
 			options: {
 				attack: 0,
 				decay: 0.1,
-				sustain: 0.9,
+				sustain: 0.42,
 				release: 0.5,
 			}
 		})
 		this.reconnectMiddlewares()
 	}
 	
-	public set(keyOrObject: string | Object, value?: any): void {
+	public setToSource(keyOrObject: string | Object, value?: any): void {
 		if (typeof keyOrObject === 'object') {
 			const entries = Object.entries(keyOrObject);
 			entries.forEach((key, i) => {
@@ -240,5 +253,19 @@ export class Track {
 			this._source.set({[keyOrObject]: value});
 			this._meta.value.set(keyOrObject, value);
 		}
+	}
+	
+	public setToChannel(key: string, value?: any): void {
+		this.channel.set({[key]: value});
+		
+		this._meta.value.set(key, value);
+	}
+	
+	public setLength(length: number): void {
+		this._length.value = length;
+		
+		const seq = Sequencer.getInstance();
+		const trackNumber = seq.soundEngine.tracks.findIndex((t) => t.name === this.name) + 1;
+		seq.updatePartLength(trackNumber, length);
 	}
 }

@@ -2,18 +2,21 @@
   <div class="sequencer-wrapper" :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': sequencer.sequenceLength }">
     <div class="flex-horizontal">
       <VerticalIndicator
+          :key="sequencer.isPlaying ? 'playing' : 'stopped'"
           :polyrythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)"
           :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
           :rows="GRID_ROWS"
           :selected-row="selectedTrackIndex"
           :tracks="sequencer.soundEngine.tracks"
           space="0"
-          class="flex-auto"
           @select-row="onSelectTrack"
       />
-      <div style="width:100%">
+      <div>
         <DisplayGrid
+            :key="sequencer.isPlaying ? 'playing' : 'stopped'"
+
             :columns="sequencer.sequenceLength"
+            :tracks="sequencer.soundEngine.tracks"
             :items="sequencer.sequenceGrid"
             :rows="GRID_ROWS"
             @click="changeCellState"
@@ -22,19 +25,19 @@
             @shift-wheel="onNoteWheel"
             @alt-wheel="onNoteWheel"
         />
-        <!--        <HorizontalIndicator :selected-column="sequencer.currentStep" :columns="sequencer.sequenceLength" class="remove-top-padding"/>-->
       </div>
     </div>
 
     <div class="sequence-control">
-      <SimpleButton @click="play">{{ isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
-      <SimpleButton @click="isSettingsOpen = !isSettingsOpen">SETTINGS</SimpleButton>
+      <SimpleButton @click="play">{{ sequencer.isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
     </div>
+
+    <MixerDisplay :key="sequencer.isPlaying ? 'playing' : 'stopped'"></MixerDisplay>
 
     <SubPanel
         v-if="sequencer.soundEngine.tracks[selectedTrackIndex]"
-        :track="selectedTrack"
-        :effects-chain="selectedTrack.middlewares"
+        :effects-chain="sequencer.soundEngine.tracks[selectedTrackIndex].middlewares"
+        :track="sequencer.soundEngine.tracks[selectedTrackIndex]"
         @update:envelope="onEnvelopeUpdate"
 
         @update:chain="onUpdateEffects"
@@ -42,33 +45,12 @@
         @update:filter="onFilterUpdate"
     ></SubPanel>
 
-    <n-drawer v-model:show="isSettingsOpen" placement="left">
-      <n-drawer-content cloasble title="Settings">
-        <n-switch v-model:value="sequencer.keyboardManager.isAudible" size="large"
-                  @update:value="onKeyboardSettingsUpdate">
-          <template #checked>
-            KB Sound On
-          </template>
-          <template #unchecked>
-            KB Sound Off
-          </template>
-        </n-switch>
-        <n-switch v-model:value="sequencer.keyboardManager.isRecording" size="large"
-                  @update:value="onKeyboardSettingsUpdate">
-          <template #checked>
-            KB Rec On
-          </template>
-          <template #unchecked>
-            KB Rec Off
-          </template>
-        </n-switch>
-      </n-drawer-content>
-    </n-drawer>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, h, onMounted, ref, resolveComponent} from 'vue'
+import {computed} from 'vue'
 
 import type {GridCell} from '~/lib/Sequencer'
 import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from '~/lib/Sequencer'
@@ -77,38 +59,29 @@ import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
-import {AVAILABLE_EFFECTS, GRID_ROWS, VERSION} from "@/constants";
+import {AVAILABLE_EFFECTS, GRID_ROWS} from "@/constants";
 import type {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
-import {NDrawer, NDrawerContent, NSwitch, useDialog} from "naive-ui";
-import * as Tone from "tone/Tone";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
-import InfoPage from "@/components/ui/InfoPage.vue";
+import MixerDisplay from "@/components/MixerDisplay.vue";
+import {useSelectedTrack} from "@/stores/trackParameters";
 
-const sequencer = Sequencer.getInstance(16)
+const sequencer = Sequencer.getInstance()
 
-// DEVELOPER TEMPORARY
-const selectedTrackIndex = ref<number>(0)
+const store = useSelectedTrack()
 
-const isPlaying = ref(false);
-
-const isSettingsOpen = ref(false);
-
-const onKeyboardSettingsUpdate = () => {
-  sequencer.keyboardManager.unregisterEvents()
-  sequencer.keyboardManager.registerEvents(selectedTrack.value)
-}
-
-const onSelectTrack = (trackIndex: number) => {
-  selectedTrackIndex.value = trackIndex
-  sequencer.keyboardManager.unregisterEvents()
-  sequencer.keyboardManager.registerEvents(selectedTrack.value)
-}
+const selectedTrackIndex = computed(() => store.selectedTrackIndex);
 
 const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks[selectedTrackIndex.value]
-})
+});
+
+const onSelectTrack = (trackIndex: number) => {
+  store.setTrackNumber(trackIndex);
+  sequencer.keyboardManager.unregisterEvents()
+  sequencer.keyboardManager.registerEvents(selectedTrack.value)
+}
 
 const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.preventDefault()
@@ -126,6 +99,10 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
 
   } else if (event.altKey) {
+    if (!cell.velocity) {
+      return
+    }
+
     let newDuration = parseInt(cell.duration.split(/[nm]/)[0]) * (event.deltaY < 0 ? 2 : 1 / 2)
 
     newDuration = Math.max(1, Math.min(64, newDuration))
@@ -151,21 +128,11 @@ const changeCellState = (row: number, column: number) => {
   )
 }
 
-const getStyleForCell = (rowNumber: number, columnNumber: number) => {
-  return {
-    gridRow: rowNumber,
-    gridColumn: columnNumber
-  }
-}
-
-const play = () => {
-  if (isPlaying.value) {
+const play = async () => {
+  if (sequencer.isPlaying) {
     sequencer.stop()
-    isPlaying.value = false
     return
   }
-
-  isPlaying.value = true
 
   if (sequencer.sequenceGrid.value.find(cell => cell.velocity > 0) === undefined) {
     sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
@@ -175,19 +142,13 @@ const play = () => {
     })
   }
 
-  sequencer.play()
+  await sequencer.play()
 }
 
 const onEnvelopeUpdate = (envelope: ADSRType) => {
   const track = sequencer.soundEngine.tracks[selectedTrackIndex.value]
 
   track.envelope = envelope
-}
-
-const onUpdateVolume = (volume: number) => {
-  const track = sequencer.soundEngine.tracks[selectedTrackIndex.value]
-
-  track.volume = volume
 }
 
 const onSidechain = () => {
@@ -221,19 +182,6 @@ const onUpdateEffects = (chain: string[]) => {
   sequencer.soundEngine.tracks[selectedTrackIndex.value].clearMiddlewares()
   sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effects)
 }
-
-const dialog = useDialog()
-
-onMounted(() => {
-  dialog.info({
-    title: `fuquencer v${VERSION}`,
-    content: () => h(resolveComponent('InfoPage')),
-    closeOnEsc: false,
-    onClose: async () => {
-      await Tone.start()
-    }
-  })
-})
 </script>
 
 <style scoped lang="scss">
@@ -257,34 +205,6 @@ onMounted(() => {
   background-color: $color-grey-600;
   border-radius: 4px;
   overflow: hidden;
-}
-
-.sequencer-grid__row {
-}
-
-.sequencer-grid__cell {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: stretch;
-  align-content: stretch;
-  background-color: $color-grey-800;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  height: 2rem;
-  outline: none;
-}
-
-.sequencer-grid__cell__content {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: stretch;
-  align-content: stretch;
-  width: 2rem;
 }
 
 button.active {

@@ -6,6 +6,7 @@ import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
+import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -60,6 +61,8 @@ export class Sequencer {
   private _mainLoop: Tone.Loop<any> | null = null;
   
   private _parts: Tone.Part<PartEvent>[] = []
+  
+  private _isPlaying: Ref<boolean> = ref(false)
 
   constructor(sequenceLength: number = 16) {
     this._sequenceGrid = ref(this.generateGrid())
@@ -109,6 +112,14 @@ export class Sequencer {
     }
     
     this._currentStep.value = newValue
+  }
+  
+  public get isPlaying(): boolean {
+    return this._isPlaying.value
+  }
+  
+  public set isPlaying(value: boolean) {
+    this._isPlaying.value = value
   }
 
   static cell(row: number, column: number, params?: Partial<GridCell>): GridCell {
@@ -182,6 +193,7 @@ export class Sequencer {
     this._mainLoop?.stop()
     
     this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
+    this._isPlaying.value = false;
   }
   
   // public playNotes(time: Tone.Unit.Time) {
@@ -203,13 +215,13 @@ export class Sequencer {
         ((time, value) => {
           const track = this.soundEngine.tracks[i]
           
-          // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
-          if (i === 0) {
-            track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
-          }
-          
           if (value.velocity === 0) {
             return
+          }
+          
+          // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
+          if (i === 0 && !track.meta.get('mute')) {
+            track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
           }
           
           track.source.releaseAll(time).triggerAttackRelease(value.note, value.duration, time, value.velocity);
@@ -226,7 +238,11 @@ export class Sequencer {
             }
           })
         ]
-      ).start(0).set({loop: true,})
+      ).start(0).set({
+        loop: true,
+        loopStart: 0,
+        loopEnd: stepsToLoopLength(this.soundEngine.tracks[i].length)
+      })
       
       this._parts.push(
         part
@@ -243,6 +259,8 @@ export class Sequencer {
     setTimeout(() => {
       Tone.Transport.start(undefined, '1:0:0')
     });
+    
+    this._isPlaying.value = true;
     
     //
     // this._mainLoop = Tone.Transport.scheduleRepeat((time) => {
@@ -320,6 +338,14 @@ export class Sequencer {
       
       this.writeCell(cell)
     })
+  }
+  
+  public updatePartLength(trackNumber: number, length: number): void {
+    if (!this._parts[trackNumber - 1]) {
+      return
+    }
+    
+    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(length)
   }
 }
 

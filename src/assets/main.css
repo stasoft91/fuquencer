@@ -1,9 +1,6 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
 
   font-weight: normal;
   width: 100%;
@@ -29,8 +26,6 @@ a,
   }
 
   #app {
-    /*display: grid;*/
-    /*grid-template-columns: 1fr;*/
     padding: 0 2rem;
   }
 }

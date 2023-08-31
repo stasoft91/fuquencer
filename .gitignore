@@ -28,3 +28,4 @@ fuquencer/.vscode/extensions.json
 *.sw?
 
 !public/*
+.vscode

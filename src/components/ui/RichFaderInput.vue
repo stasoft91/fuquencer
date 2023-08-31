@@ -81,4 +81,8 @@ const onLinkClick = () => {
   justify-content: center;
   gap: 0.5rem;
 }
+
+.input {
+  width: 100%;
+}
 </style>

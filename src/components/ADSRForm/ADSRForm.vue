@@ -88,10 +88,10 @@ const getEnvelopeWithChanges = (changes: Partial<ADSRType>) => {
 
 const onUpdateEnvelope = (envelope: ADSRType) => {
   if (props.track.meta.has('envelope')) {
-    props.track.set('envelope', envelope)
+    props.track.setToSource('envelope', envelope)
   } else {
-    props.track.set('attack', envelope.attack)
-    props.track.set('release', envelope.release)
+    props.track.setToSource('attack', envelope.attack)
+    props.track.setToSource('release', envelope.release)
   }
 }
 </script>

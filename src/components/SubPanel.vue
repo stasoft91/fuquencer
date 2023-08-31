@@ -1,44 +1,6 @@
 <template>
   <div class="wrapper">
     <n-card :title="props.track.name">
-      <div class="primary-faders">
-        <div class="grow">
-          <div id="analyzer"></div>
-        </div>
-      </div>
-      <div class="primary-faders">
-        <div class="columns grow">
-          <div class="column flex-start grow">
-            <div class="columns grow">
-              <SimpleButton v-for="i in [2,4,8,16]" :key="i" class="grow big" @click="onFillTrack(i)">Fill x{{ i }}
-              </SimpleButton>
-            </div>
-
-            <div class="columns grow">
-              <SimpleButton class="grow big" @click="onShiftTrackLeft">Shift Left</SimpleButton>
-              <SimpleButton class="grow big" @click="onShiftTrackRight">Shift Right</SimpleButton>
-            </div>
-
-            <div class="columns grow">
-              <SimpleButton class="grow big" @click="onFillTrack()">Clear</SimpleButton>
-              <SimpleButton class="grow long" @click="onHumanizeTrack">Humanize</SimpleButton>
-            </div>
-          </div>
-          <div v-if="track.type === TrackTypes.sample" class="column grow">
-            <SampleEditorButton
-                :sampleUrl="selectedSampleUrl"
-                :track="track"
-                color="rgba(26, 32, 44, 1)"
-                width="100%"
-            >
-              Change
-            </SampleEditorButton>
-          </div>
-          <div v-if="track.type === TrackTypes.synth" class="column grow">
-            <SimpleButton class="grow big long" @click="onGenerateBassline">Generate new bassline</SimpleButton>
-          </div>
-        </div>
-      </div>
       <n-tabs animated type="line">
         <n-tab-pane name="instrument" tab="INSTRUMENT">
           <div class="primary-faders">
@@ -183,7 +145,6 @@
 import {NCard, NSwitch, NTabPane, NTabs} from 'naive-ui';
 import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
 import BeatDisplay from '@/components/ui/BeatDisplay.vue'
-import {TrackTypes} from "~/lib/SoundEngine";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
@@ -194,7 +155,6 @@ import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
-import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 
 const props = defineProps<{
   track: Track,
@@ -227,11 +187,11 @@ const percentToHerz = (percent: number) => {
 }
 
 const onUpdateVolume = ( volume: number) => {
-  props.track.set('volume', volume)
+  props.track.setToSource('volume', volume)
 }
 
 const onUpdateFilter = (frequency: number) => {
-  props.track.set({
+  props.track.setToSource({
     filterEnvelope: {
       baseFrequency: frequency
     }
@@ -351,9 +311,13 @@ const onGenerateBassline = () => {
 }
 
 const selectedSampleUrl = computed(() => props.track.meta.get('urls')[DEFAULT_NOTE] || (props.track.source.get() as Tone.SamplerOptions).urls[DEFAULT_NOTE])
+
+const onPartLengthChange = (event: Event) => {
+  props.track.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
+}
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .primary-faders {
   display: flex;
   flex-direction: row;
@@ -434,38 +398,22 @@ const selectedSampleUrl = computed(() => props.track.meta.get('urls')[DEFAULT_NO
   flex-basis: 100px;
 }
 
-.columns {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
+.part-length {
+  height: 3rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-grey-600);
+  background: var(--color-grey-800);
+  color: var(--color-grey-300);
+  padding: 0.5rem;
+  outline: none;
+  font-family: 'Roboto Mono', monospace;
 
-.column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.flex-start {
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-.grow {
-  flex: 1 1 100%;
-}
-
-.big {
-  width: 5rem !important;
-  height: 3rem !important;
-}
-
-.long {
-  width: 8rem !important;
-  height: 3rem !important;
+  & option {
+    background: var(--color-grey-800);
+    color: var(--color-grey-300);
+    font-family: 'Roboto Mono', monospace;
+    padding: 1rem;
+    text-indent: 5px;
+  }
 }
 </style>

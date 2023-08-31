@@ -1,5 +1,5 @@
 <template>
-  <button :style="{'--bg-color': bgcolor ?? 'hsl(51, 60%, 69%)', width}" class="ghost-button" @click="onClick">
+  <button :style="{'--bg-color': bgcolor ?? 'hsl(81, 60%, 69%)', width}" class="ghost-button" @click="onClick">
     <DisplayWaveform
         id="sample-editor-button"
         :height="64"
@@ -10,9 +10,7 @@
         class="waveform"
     />
     <span class="hover-text">
-      <span class="text">
-        <slot></slot>
-      </span>
+      <slot></slot>
     </span>
     <input ref="file" style="display:none" type="file"/>
   </button>
@@ -78,7 +76,7 @@ function getFile() {
   -o-transition: 0.2s -o-filter ease-in-out;
   transition: 0.2s filter ease-in-out, 0.2s -webkit-filter ease-in-out;
 
-  background-color: hsl(51, 60%, 69%);
+  background-color: hsl(81, 60%, 69%);
   filter: hue-rotate(0deg) brightness(1) saturate(1);
   flex: 1 1 100%;
 }
@@ -91,12 +89,12 @@ function getFile() {
   left: 0.25rem;
   right: 0.25rem;
   font-size: 3rem;
-  transition: 0.2s opacity ease-in-out;
-  color: var(--color-grey-900);
-  text-shadow: -1px -1px 0 var(--color-grey-500),
-  1px -1px 0 var(--color-grey-500),
-  -1px 1px 0 var(--color-grey-500),
-  1px 1px 0 var(--color-grey-500);
+  transition: 0.2s all ease-in-out;
+  color: var(--color-grey-300);
+  text-shadow: -1px -1px 0 var(--color-grey-800),
+  1px -1px 0 var(--color-grey-800),
+  -1px 1px 0 var(--color-grey-800),
+  1px 1px 0 var(--color-grey-800);
 }
 
 .ghost-button {
@@ -105,13 +103,12 @@ function getFile() {
   cursor: pointer;
   outline: none;
   border: 1px solid var(--color-grey-600);
-  border-radius: 3px;
   padding: 0.25rem;
   position: relative;
 
-  &:hover .waveform {
+  &:hover {
     cursor: pointer;
-    filter: hue-rotate(10deg) brightness(0.3) saturate(1.2);
+    filter: hue-rotate(-10deg) brightness(1.1) saturate(1.1);
   }
 
   &:hover .hover-text {
