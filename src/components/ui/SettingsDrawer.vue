@@ -1,6 +1,6 @@
 <template>
-  <n-drawer :show="isSettingsOpen" placement="left" @on-update:show="onHide">
-    <n-drawer-content cloasble title="Settings">
+  <n-drawer :close-on-esc="false" :show="isSettingsOpen" placement="left" @update-show="onHide">
+    <n-drawer-content closable title="Settings">
       <n-switch v-model:value="sequencer.keyboardManager.isAudible" size="large"
                 @update:value="onKeyboardSettingsUpdate">
         <template #checked>
