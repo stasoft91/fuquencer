@@ -28,7 +28,7 @@
   <n-dropdown
       :on-clickoutside="onClickoutside"
       :options="options"
-      :show="showDropdown"
+      :show="isDropdownOpened"
       :x="x"
       :y="y"
       placement="bottom-start"
@@ -165,7 +165,7 @@ interface DisplayGridProps {
   items: Ref<GridCell[]>
 }
 
-const showDropdown = ref(false)
+const isDropdownOpened = ref(false)
 const x = ref(0)
 const y = ref(0)
 const options = [
@@ -180,14 +180,14 @@ const options = [
 ]
 
 const handleSelect = (key: string | number) => {
-  showDropdown.value = false
+  isDropdownOpened.value = false
   console.log(String(key), cellOfContextMenu.value)
 }
 
 const cellOfContextMenu = ref<GridCell | null>(null)
 const handleContextMenu = (e: MouseEvent) => {
   e.preventDefault()
-  showDropdown.value = false
+  isDropdownOpened.value = false
 
   cellOfContextMenu.value = props.items.value.find(cell =>
       cell.row === Number(e.currentTarget?.getAttribute('data-row')) &&
@@ -195,13 +195,13 @@ const handleContextMenu = (e: MouseEvent) => {
   ) ?? null
 
   nextTick().then(() => {
-    showDropdown.value = true
+    isDropdownOpened.value = true
     x.value = e.clientX
     y.value = e.clientY
   })
 }
 const onClickoutside = () => {
-  showDropdown.value = false
+  isDropdownOpened.value = false
 }
 
 const props = withDefaults(defineProps<DisplayGridProps>(), {
@@ -220,7 +220,8 @@ const emit = defineEmits([
 ])
 
 const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: string) => {
-  let noteSpan = 0
+  let noteSpan: number;
+
   switch (noteLength) {
     case '16n':
       noteSpan = 1
@@ -302,7 +303,7 @@ const getClassForIndicator = (gridCell: GridCell) => {
     length = props.tracks[gridCell.row - 1].length
   }
 
-  let active: boolean = false
+  let active: boolean
 
   if (length % 2 === 0) {
     active = gridCell.column === sequencer.currentStep

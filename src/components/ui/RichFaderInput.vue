@@ -47,7 +47,7 @@ type Props = {
   isLinkDisabled?: boolean,
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   min: 0,
   max: 100,
   id: 'fader-input',

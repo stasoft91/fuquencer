@@ -1,4 +1,4 @@
-import type {ADSRType, AudioSource} from "~/lib/SoundEngine";
+import type {ADSRType} from "~/lib/SoundEngine";
 import {TrackTypes} from "~/lib/SoundEngine";
 import type {Ref, ShallowRef} from "vue";
 import {ref, shallowReactive, shallowRef} from "vue";
@@ -8,58 +8,55 @@ import type {UniversalEffect} from "~/lib/Effects.types";
 import type {LoopParams} from "~/lib/PolyrhythmLoop";
 import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import {Sequencer} from "~/lib/Sequencer";
+import type AbstractSource from "~/lib/AbstractSource";
+
+export type TrackOptions = {
+	name: string,
+	volume: number,
+	source: AbstractSource,
+	type: TrackTypes
+}
 
 export class Track {
 	private _volume: Ref<number>;
 	private _type: Ref<string>;
 	private _envelope: Ref<ADSRType>;
-	private _filterEnvelopeFrequency: Ref<number> = ref(0);
 	private _name: Ref<string>;
-	
+
 	public channel: Tone.Channel = new Tone.Channel();
-	
+
 	public isSolo: Ref<boolean> = ref(true);
 	
-	private _source: AudioSource;
-	private _sidechainEnvelope: Tone.Envelope | undefined = undefined;
-	
-	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
-	private _middlewares = shallowReactive({value: [] as UniversalEffect[]});
-	
-	constructor(params: { name: string, volume: number, source: AudioSource, type: TrackTypes }) {
+	constructor(params: TrackOptions) {
 		const {name, volume, source, type} = params;
-		
+
 		this._name = ref(name);
 		this._volume = ref(volume);
 		this._source = source;
 		this._type = ref(type);
 		this._envelope = ref(getEnvelopeOfAudioSource(source));
 		
-		const sourceSettings = this._source.get();
-		if ("filterEnvelope" in sourceSettings) {
-			this._filterEnvelopeFrequency.value = sourceSettings.filterEnvelope.baseFrequency as number || 0;
-		}
-		
 		this.reconnectMiddlewares();
 	}
+	private _sidechainEnvelope: Tone.Envelope | undefined = undefined;
+
+	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
+	private _middlewares = shallowReactive({value: [] as UniversalEffect[]});
+	
+	private _source: AbstractSource;
 
 	private _length: Ref<number> = ref(16);
-	
+
 	private _meta: Ref<Map<string, any>> = ref(new Map());
-	
-	
-	public get filterEnvelopeFrequency(): number {
-		return this._filterEnvelopeFrequency.value;
-	}
-	
+
 	public get name(): string {
 		return this._name.value;
 	}
-	
+
 	public set name(value: string) {
 		this._name.value = value;
 	}
-	
+
 	public get volume(): number {
 		return this._volume.value;
 	}
@@ -89,24 +86,39 @@ export class Track {
 		return this._middlewares.value;
 	}
 	
-	public get source(): AudioSource {
+	public get source(): AbstractSource {
 		return this._source;
+	}
+	
+	public set source(newSource: AbstractSource) {
+		this._source = newSource;
 	}
 	
 	public get meta(): Map<string, any> {
 		if (this._meta.value.size === 0) {
-			const keys = Object.keys(this._source.get());
+			const keys = new Set([
+				...Object.keys(this._source.get()),
+				'filter',
+				'filterEnvelope',
+			]);
 			const meta = new Map<string, string>();
+			let originalOptions: unknown = this._source.get();
+			
 			keys.forEach((key) => {
-				meta.set(key, Object.entries(this._source.get()).find(([k]) => k === key)?.[1] as string);
+				if (key === 'filter') {
+					originalOptions = {filter: this._source.filter.get()};
+				}
+				if (key === 'filterEnvelope') {
+					originalOptions = {filterEnvelope: this._source.filterEnvelope.get()};
+				}
+				
+				
+				meta.set(key, Object.entries(originalOptions as Record<string, string>).find(([k]) => k === key)?.[1] as string);
 			});
+			
 			this._meta.value = meta;
 		}
 		return this._meta.value;
-	}
-	
-	public set source(newSource: AudioSource | Tone.Sampler) {
-		this._source = newSource;
 	}
 	
 	public addMiddleware(middleware: UniversalEffect | UniversalEffect[]): void {
@@ -155,8 +167,6 @@ export class Track {
 	}
 	
 	public reconnectMiddlewares(): void {
-		this._source.disconnect();
-		
 		this._middlewares.value.map((middleware) => {
 			if (middleware.effect && !middleware.effect.disposed) {
 				if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
@@ -190,16 +200,13 @@ export class Track {
 		
 		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect.disconnect())
 		
+		this._source.disconnect();
+		
 		this._source.chain(
 			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],
 			this.channel,
 			Tone.Destination
 		);
-	}
-	
-	public setFilterCutoff(value: number): void {
-		this._filterEnvelopeFrequency.value = value;
-		this._source.set({filterEnvelope: {baseFrequency: value}});
 	}
 	
 	public getLoops() {
@@ -256,7 +263,7 @@ export class Track {
 	public setToSource(keyOrObject: string | Object, value?: any): void {
 		if (typeof keyOrObject === 'object') {
 			const entries = Object.entries(keyOrObject);
-			entries.forEach((key, i) => {
+			entries.forEach((key) => {
 				this._source.set({[key[0]]: key[1]});
 				this._meta.value.set(key[0], key[1]);
 			});

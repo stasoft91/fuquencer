@@ -42,7 +42,6 @@
 
         @update:chain="onUpdateEffects"
         @update:sidechain="onSidechain"
-        @update:filter="onFilterUpdate"
     ></SubPanel>
 
 
@@ -134,7 +133,7 @@ const play = async () => {
     return
   }
 
-  if (sequencer.sequenceGrid.value.find(cell => cell.velocity > 0) === undefined) {
+  if (!sequencer.sequenceGrid.value.find(cell => cell.velocity > 0)) {
     sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
 
     sequencer.sequenceGrid.value.filter(cell => cell.row === 1 && cell.column % 4 === 1).forEach(cell => {
@@ -155,12 +154,6 @@ const onSidechain = () => {
   const tracks = sequencer.soundEngine.tracks;
 
   sequencer.soundEngine.toggleSidechain(tracks[0], tracks[selectedTrackIndex.value])
-}
-
-const onFilterUpdate = (frequency: number) => {
-  const track = sequencer.soundEngine.tracks[selectedTrackIndex.value]
-
-  track.setFilterCutoff(frequency)
 }
 
 const onUpdateEffects = (chain: string[]) => {

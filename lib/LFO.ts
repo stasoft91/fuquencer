@@ -4,7 +4,7 @@ import * as Tone from "tone/Tone";
 
 export type LFOType = Tone.ToneOscillatorType | 'random' | 'oneshot'
 
-export type AutomatableParam = Tone.Signal | Tone.Param<any>;
+export type AutomatableParam = Tone.Signal<any> | Tone.Param<any>;
 
 export interface LFOOptions {
 	type: LFOType,
@@ -36,7 +36,7 @@ export class LFO {
 		this.setLfo();
 	}
 	
-	private _id: string
+	private readonly _id: string
 	
 	public get id(): string {
 		return this._id
@@ -116,6 +116,10 @@ export class LFO {
 		this._min.value = options.min ?? this._min.value
 		this._max.value = options.max ?? this._max.value
 		
+		if (this._type.value === 'oneshot') {
+			this.isRunning = false;
+		}
+		
 		if (
 			this._lfo instanceof Tone.LFO &&
 			this._type.value !== 'random' &&
@@ -144,15 +148,15 @@ export class LFO {
 	}
 	
 	public start(atTime: Tone.Unit.Time): void {
-		new Tone.ToneEvent((_time) => {
-			this.isRunning = true
+		new Tone.ToneEvent(() => {
+			this._type.value !== "oneshot" && (this.isRunning = true)
 		}).start(atTime)
 		
 		this._lfo.start(atTime)
 	}
 	
 	public stop(atTime: Tone.Unit.Time): void {
-		new Tone.ToneEvent((_time) => {
+		new Tone.ToneEvent(() => {
 			this.isRunning = false
 		}).start(atTime)
 		
@@ -182,6 +186,8 @@ export class LFO {
 				this._destination.cancelScheduledValues(time - 0.01)
 				this._destination.rampTo(this._min.value, 0.001, time - 0.001)
 				this._destination.rampTo(this._max.value, Tone.Time(this._frequency.value, 'hz') as Tone.Unit.Time, time)
+				
+				this._lfo.stop(time + Tone.Time(this._frequency.value, 'hz').toSeconds())
 			});
 			
 			this._lfo.iterations = 1;

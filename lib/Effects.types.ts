@@ -1,25 +1,5 @@
 import * as Tone from "tone/Tone";
 
-export type AvailableEffectsInTone =
-	Tone.AutoFilter |
-	Tone.AutoPanner |
-	Tone.AutoWah |
-	Tone.BitCrusher |
-	Tone.Chebyshev |
-	Tone.Chorus |
-	Tone.Distortion |
-	Tone.FeedbackDelay |
-	Tone.Freeverb |
-	Tone.FrequencyShifter |
-	Tone.JCReverb |
-	Tone.Phaser |
-	Tone.PingPongDelay |
-	Tone.PitchShift |
-	Tone.Reverb |
-	Tone.StereoWidener |
-	Tone.Tremolo |
-	Tone.Vibrato;
-
 export type AvailableEffectNames =
 	'AutoFilter' |
 	'AutoPanner' |
@@ -194,9 +174,6 @@ export type GetOptionsType<T extends AvailableEffectNames> =
 																			T extends 'Compressor' ? Tone.CompressorOptions :
 																				T extends 'AutoDuck' ? Tone.EnvelopeOptions : never;
 
-export type UnionAllEffectParameters = {
-	[T in AvailableEffectNames]: GetOptionsType<T>
-}
 
 export type EffectParametersDescriptor<T extends AvailableEffectNames> = {
 	name: keyof GetOptionsType<T>;

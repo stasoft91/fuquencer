@@ -66,7 +66,7 @@ const initLoop = () => {
     interval = '16n'
   }
 
-  loop = new Tone.Loop((time) => {
+  loop = new Tone.Loop(() => {
     if (!props.isPlaying) {
       return
     }

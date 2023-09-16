@@ -17,7 +17,7 @@ export class PolyrhythmLoop {
 	public name!: string;
 	private _loop: Tone.Loop = new Tone.Loop();
 	private _callback: (time: number) => void;
-	private _track!: Track;
+	private readonly _track!: Track;
 	private _note!: Ref<Tone.Unit.Frequency>;
 	private _duration!: Ref<Tone.Unit.Time>;
 	private _interval!: Ref<Tone.Unit.Time>;
@@ -126,7 +126,7 @@ export class PolyrhythmLoop {
 			return;
 		}
 		
-		this._track.source.releaseAll().triggerAttackRelease(this._note.value, this._duration.value, time);
+		this._track.source.releaseAll()?.triggerAttackRelease(this._note.value, this._duration.value, time);
 	}
 }
 

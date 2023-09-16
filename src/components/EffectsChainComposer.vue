@@ -74,7 +74,7 @@ let availableEffects: UniversalEffect[] = AVAILABLE_EFFECTS
 
 const chainEffectsContainer = ref<{ sortable: SortableJS }>()
 
-const props = defineProps<{
+defineProps<{
   effectsChain: UniversalEffect[],
   selectedTrackName: string
 }>()

@@ -76,7 +76,7 @@ type Props = {
   value?: boolean | null
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   value: null,
 });
 

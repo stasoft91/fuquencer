@@ -1,27 +1,22 @@
 <template>
   <button :style="{'--bg-color': bgcolor ?? 'hsl(81, 60%, 69%)', width}" class="ghost-button" @click="onClick">
-    <DisplayWaveform
-        id="sample-editor-button"
-        :height="64"
-        :normalize="false"
-        :sample-name="track.name"
-        :url="props.sampleUrl ?? track.meta.get('urls')[DEFAULT_NOTE] ?? ''"
-        :wave-color="color"
-        class="waveform"
-    />
-    <span class="hover-text">
-      <slot></slot>
-    </span>
+    <!--    <DisplayWaveform-->
+    <!--        id="sample-editor-button"-->
+    <!--        :height="64"-->
+    <!--        :normalize="false"-->
+    <!--        :sample-name="track.name"-->
+    <!--        :url="props.sampleUrl ?? track.meta.get('urls')[DEFAULT_NOTE] ?? ''"-->
+    <!--        :wave-color="color"-->
+    <!--        class="waveform"-->
+    <!--    />-->
+    <slot></slot>
     <input ref="file" style="display:none" type="file"/>
   </button>
 </template>
 
 <script lang="ts" setup>
-import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
 import type {Track} from "~/lib/Track";
 import {ref} from "vue";
-import {DEFAULT_NOTE} from "~/lib/Sequencer";
-import {SoundEngine} from "~/lib/SoundEngine";
 
 const props = defineProps<{
   track: Track
@@ -31,13 +26,8 @@ const props = defineProps<{
   sampleUrl?: string
 }>()
 
-const emit = defineEmits<{
-  (event: 'click', payload: MouseEvent): void
-}>()
-
-const onClick = async (event: MouseEvent) => {
+const onClick = async () => {
   getFile()
-  // emit('click', event)
 }
 
 const file = ref<HTMLInputElement | null>(null)
@@ -49,17 +39,19 @@ function getFile() {
 
   file.value.onchange = () => {
     if (file.value?.files !== null && file.value?.files.length && file.value?.files.length > 0) {
-      const url = URL.createObjectURL(file.value.files[0])
+      throw new Error('Not implemented');
 
-      SoundEngine.createSampler(url, '').then((sampler) => {
-        props.track.source.dispose();
-        // eslint-disable-next-line vue/no-mutating-props
-        props.track.source = sampler;
+      // const url = URL.createObjectURL(file.value.files[0])
 
-        props.track.meta.set('urls', {[DEFAULT_NOTE]: url})
-      }).catch((e) => {
-        console.error(e)
-      })
+      // SoundEngine.createSampler(url, '').then((sampler) => {
+      //   props.track.source.dispose();
+      //   // eslint-disable-next-line vue/no-mutating-props
+      //   props.track.source = sampler;
+      //
+      //   props.track.meta.set('urls', {[DEFAULT_NOTE]: url})
+      // }).catch((e) => {
+      //   console.error(e)
+      // })
     }
   };
 

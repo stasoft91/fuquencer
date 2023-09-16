@@ -16,13 +16,12 @@
             />
 
             <RichFaderInput
-                v-if="hasCutoff"
-                :default-value="50"
+                :default-value="100"
                 :max="100"
-                :min="0"
-                :model-value="herzToPercent(track.meta.get('filterEnvelope')?.baseFrequency)"
+                :min="1"
+                :model-value="herzToPercent(track.meta.get('filterEnvelope')?.baseFrequency) || herzToPercent(20434)"
                 class="constrained-width"
-                label="Cut-off"
+                label="Filter"
                 @update:model-value="onUpdateFilter(percentToHerz($event as number))"
                 @click:link="onLinkFilter"
             />
@@ -198,18 +197,18 @@ const onUpdateVolume = ( volume: number) => {
 const onUpdateFilter = (frequency: number) => {
   props.track.setToSource({
     filterEnvelope: {
+      ...props.track.meta.get('filterEnvelope'),
       baseFrequency: frequency
     }
   })
+
+  // eslint-disable-next-line vue/no-mutating-props
+  props.track.source.filter.frequency.value = frequency
 }
 
 const onUpdateEffectsChain = (chain: string[]) => {
   emit('update:chain', chain)
 }
-
-const hasCutoff = computed<boolean>(() => {
-  return 'filterEnvelope' in props.track.source.get()
-})
 
 const onToggleSidechain = () => {
   emit('update:sidechain', undefined)

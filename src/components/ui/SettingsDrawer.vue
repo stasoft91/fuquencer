@@ -37,7 +37,7 @@ const onKeyboardSettingsUpdate = () => {
   sequencer.keyboardManager.registerEvents(selectedTrack)
 }
 
-const props = defineProps({
+defineProps({
   isSettingsOpen: Boolean,
   selectedTrackIndex: Number,
 })

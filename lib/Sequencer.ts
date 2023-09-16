@@ -1,13 +1,13 @@
 import type {Ref, ShallowRef} from 'vue'
 import {ref, shallowRef, triggerRef} from 'vue'
 import * as Tone from 'tone/Tone'
-import type {AudioSource} from '~/lib/SoundEngine'
 import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 import type {LFO} from "~/lib/LFO";
+import AbstractSource from "~/lib/AbstractSource";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -76,22 +76,59 @@ export class Sequencer {
     this.soundEngine.clearTracks()
     
     for (let i = 0; i < SAMPLES.length; i++) {
+      const abstractSourceSampler = new AbstractSource({
+        sampler: {
+          volume: -6,
+          urls: {
+            [DEFAULT_NOTE]: SAMPLES[i]
+          },
+          release: 1,
+          baseUrl: '/samples/',
+        }
+      })
+      
+      console.log('abstractSourceSampler', SAMPLES[i])
+      
+      await abstractSourceSampler.init();
+
       this.soundEngine.addTrack(
         new Track({
           name: SAMPLES[i],
           volume: -6,
-          source: (await SoundEngine.createSampler(SAMPLES[i])) as unknown as AudioSource,
+          source: abstractSourceSampler,
           type: TrackTypes.sample
         })
       ).meta.set('urls', {
         [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
       })
     }
+    
+    const abstractSourceSynth = new AbstractSource({
+      synth: {
+        oscillator: {
+          type: 'pulse'
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.42,
+          sustain: 0.01,
+          release: 0.25
+        },
+        filterEnvelope: {
+          attack: 0.001,
+          decay: 0.1,
+          sustain: 0.5,
+        },
+        volume: -6
+      }
+    })
+    
+    await abstractSourceSynth.init();
 
     this.soundEngine.addTrack(new Track({
       volume: -6,
       name: 'Bass',
-      source: SoundEngine.createInstrument() as unknown as AudioSource,
+      source: abstractSourceSynth,
       type: TrackTypes.synth
     }))
   }
