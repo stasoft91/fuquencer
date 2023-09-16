@@ -149,7 +149,15 @@ export class LFO {
 	
 	public start(atTime: Tone.Unit.Time): void {
 		new Tone.ToneEvent(() => {
-			this._type.value !== "oneshot" && (this.isRunning = true)
+			this.isRunning = true
+			
+			if (this._type.value === 'oneshot') {
+				const endTime = Tone.Time(atTime).toSeconds() + Tone.Time(this._frequency.value, 'hz').toSeconds()
+				
+				new Tone.ToneEvent(() => {
+					this.isRunning = false
+				}).start(endTime)
+			}
 		}).start(atTime)
 		
 		this._lfo.start(atTime)
