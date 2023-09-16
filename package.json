@@ -13,13 +13,15 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
+    "@vicons/ionicons5": "^0.12.0",
+    "@webaudiomodules/api": "^2.0.0-alpha.6",
+    "@webaudiomodules/sdk": "^0.0.11",
     "pinia": "^2.1.6",
     "sortablejs": "^1.15.0",
     "sortablejs-vue3": "^1.2.9",
     "tone": "github:stasoft91/Tone.js#dev",
     "vue": "^3.3.4",
-    "wavesurfer.js": "^7.2.0",
-    "@vicons/ionicons5": "^0.12.0"
+    "wavesurfer.js": "^7.2.0"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.3.3",

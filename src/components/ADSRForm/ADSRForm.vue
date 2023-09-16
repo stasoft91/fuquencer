@@ -8,6 +8,7 @@
           :default-value="1"
           :model-value="envelope.attack * 100"
           @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ attack: $event / 100 }))"
+          @click:link="onLinkClick('attack')"
       />
 
 
@@ -19,6 +20,7 @@
           :default-value="25"
           :model-value="envelope.decay * 100"
           @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ decay: $event/ 100 }))"
+          @click:link="onLinkClick('decay')"
       />
 
 
@@ -30,6 +32,7 @@
           :default-value="0"
           :model-value="envelope.sustain * 100"
           @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ sustain: $event / 100 }))"
+          @click:link="onLinkClick('sustain')"
       />
 
 
@@ -40,6 +43,7 @@
           :default-value="100"
           :model-value="envelope.release * 100"
           @update:model-value="onUpdateEnvelope(getEnvelopeWithChanges({ release: $event / 100 }))"
+          @click:link="onLinkClick('release')"
       />
 
       <div v-if="track.type === TrackTypes.synth" class="envelope-display" style="width: 200px;">
@@ -93,6 +97,10 @@ const onUpdateEnvelope = (envelope: ADSRType) => {
     props.track.setToSource('attack', envelope.attack)
     props.track.setToSource('release', envelope.release)
   }
+}
+
+const onLinkClick = (param: string) => {
+  alert('TODO: link ' + param)
 }
 </script>
 

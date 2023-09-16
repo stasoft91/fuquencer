@@ -39,6 +39,7 @@ import {EFFECTS_OPTIONS} from "@/constants";
 import type {SelectMixedOption} from "naive-ui/es/select/src/interface";
 import * as Tone from "tone/Tone";
 import {Sequencer} from "~/lib/Sequencer";
+import {LFO} from "~/lib/LFO";
 
 const emit = defineEmits<{
   (event: `update:value`, payload: UniversalEffect): void
@@ -165,17 +166,15 @@ const onLinkClick = () => {
   }
 
   const prop = effect[props.fieldName] as Tone.Param
-  const startTimeRaw: number = Tone.Time(Tone.Time('@1m').quantize('1m')).toSeconds();
 
-  const afterEnd: number = (Tone.Time('1m').toSeconds() * 1) + Tone.Time(startTimeRaw).toSeconds()
-
-  Tone.Transport.scheduleOnce((time) => {
-    prop.linearRampTo(1, '1m', time)
-  }, startTimeRaw)
-
-  Tone.Transport.scheduleOnce((time) => {
-    prop.setValueAtTime(0, time)
-    prop.setValueAtTime(0, time + 0.01)
-  }, afterEnd)
+  const lfo = new LFO({
+    frequency: Tone.Time('16n').toFrequency(),
+    type: 'random',
+    max: prop.maxValue,
+    min: prop.minValue,
+    destination: prop,
+    title: `${track.name} / ${props.effectName} / ${props.fieldName}`,
+  })
+  sequencer.addLFO(lfo)
 }
 </script>

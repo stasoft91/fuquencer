@@ -45,7 +45,7 @@
   background-color: $color-grey-800;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 0 1rem 0 0.5rem;
   outline: none;
 
   border-radius: 3px;

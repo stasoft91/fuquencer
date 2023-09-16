@@ -66,12 +66,12 @@ import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
 import {TrackTypes} from "~/lib/SoundEngine";
 import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
-import {useSelectedTrack} from "@/stores/trackParameters";
+import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import {computed} from "vue";
 import * as Tone from "tone/Tone";
 import {NCard} from "naive-ui";
 
-const store = useSelectedTrack()
+const store = useSelectedTrackNumber()
 const sequencer = Sequencer.getInstance()
 
 const selectedTrack = computed(() => {

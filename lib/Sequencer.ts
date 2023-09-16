@@ -1,5 +1,5 @@
-import type {Ref} from 'vue'
-import {ref} from 'vue'
+import type {Ref, ShallowRef} from 'vue'
+import {ref, shallowRef, triggerRef} from 'vue'
 import * as Tone from 'tone/Tone'
 import type {AudioSource} from '~/lib/SoundEngine'
 import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
@@ -7,6 +7,7 @@ import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
+import type {LFO} from "~/lib/LFO";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -63,6 +64,8 @@ export class Sequencer {
   private _parts: Tone.Part<PartEvent>[] = []
   
   private _isPlaying: Ref<boolean> = ref(false)
+  
+  private _lfos: ShallowRef<LFO[]> = shallowRef([]);
 
   constructor(sequenceLength: number = 16) {
     this._sequenceGrid = ref(this.generateGrid())
@@ -200,6 +203,52 @@ export class Sequencer {
   //   this.soundEngine.playStepData(time, this.readStep())
   // }
   
+  public get LFOs(): ShallowRef<LFO[]> {
+    return this._lfos
+  }
+  
+  public get bpm(): Ref<number> {
+    return this._bpm
+  }
+  
+  public set bpm(value: number) {
+    this._bpm.value = value
+    Tone.Transport.bpm.value = value
+  }
+  
+  public regenerateSequence(trackNumber: number, notesInKey: string[]): void {
+    this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
+      cell.velocity = cell.column % 2 === 1 ? 100 : 0;
+      
+      if (cell.column % 3 === 0 && Math.random() > 0.75) {
+        cell.velocity = 100;
+        this.writeCell(cell)
+        
+        return
+      }
+      
+      if (cell.velocity === 100 && Math.random() > 0.65) {
+        cell.velocity = 0;
+        this.writeCell(cell)
+        
+        return
+      }
+      
+      
+      cell.note = notesInKey.sort(() => Math.random() - 0.5)[Math.floor(Math.random() * notesInKey.length)]
+      
+      this.writeCell(cell)
+    })
+  }
+  
+  public updatePartLength(trackNumber: number, length: number): void {
+    if (!this._parts[trackNumber - 1]) {
+      return
+    }
+    
+    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(length)
+  }
+  
   public async play() {
     // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
     if (this.soundEngine.tracks.length === 0) {
@@ -224,7 +273,11 @@ export class Sequencer {
             track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
           }
           
-          track.source.releaseAll(time).triggerAttackRelease(value.note, value.duration, time, value.velocity);
+          console.log('PART', i, value.note, value.velocity, value.duration, time, Tone.Time(time).toBarsBeatsSixteenths())
+          
+          track.source
+            // .releaseAll(time)
+            .triggerAttackRelease(value.note, value.duration, time, value.velocity);
         }),
         [
           ...this._sequenceGrid.value.filter(_ => ((_.row === i + 1) && (_.velocity > 0))).map(_ => {
@@ -241,7 +294,7 @@ export class Sequencer {
       ).start(0).set({
         loop: true,
         loopStart: 0,
-        loopEnd: stepsToLoopLength(this.soundEngine.tracks[i].length)
+        loopEnd: stepsToLoopLength(this.soundEngine.tracks[i].length),
       })
       
       this._parts.push(
@@ -256,9 +309,7 @@ export class Sequencer {
       }, time);
     }, "16n").start(0);
     
-    setTimeout(() => {
-      Tone.Transport.start(undefined, '1:0:0')
-    });
+    Tone.Transport.start()
     
     this._isPlaying.value = true;
     
@@ -306,46 +357,20 @@ export class Sequencer {
     // }, ["C3", ["E3", "D3"], "G3", ["A3", "G3"], ["G3", "E3"]]).start(0);
   }
   
-  public get bpm(): Ref<number> {
-    return this._bpm
+  public addLFO(lfo: LFO): void {
+    this._lfos.value.push(lfo)
+    triggerRef(this._lfos)
   }
   
-  public set bpm(value: number) {
-    this._bpm.value = value
-    Tone.Transport.bpm.value = value
-  }
-  
-  public regenerateSequence(trackNumber: number, notesInKey: string[]): void {
-    this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
-      cell.velocity = cell.column % 2 === 1 ? 100 : 0;
-      
-      if (cell.column % 3 === 0 && Math.random() > 0.75) {
-        cell.velocity = 100;
-        this.writeCell(cell)
-        
-        return
-      }
-      
-      if (cell.velocity === 100 && Math.random() > 0.65) {
-        cell.velocity = 0;
-        this.writeCell(cell)
-        
-        return
-      }
-      
-      
-      cell.note = notesInKey.sort(() => Math.random() - 0.5)[Math.floor(Math.random() * notesInKey.length)]
-      
-      this.writeCell(cell)
-    })
-  }
-  
-  public updatePartLength(trackNumber: number, length: number): void {
-    if (!this._parts[trackNumber - 1]) {
+  public removeLFO(lfo: LFO): void {
+    const index = this._lfos.value.findIndex(_lfo => _lfo === lfo)
+    
+    if (index === -1) {
       return
     }
     
-    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(length)
+    this._lfos.value.splice(index, 1)
+    triggerRef(this._lfos)
   }
 }
 

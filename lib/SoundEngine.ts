@@ -12,7 +12,7 @@ export type ADSRType = {
   release: number
 }
 
-export type AudioSource = Tone.PolySynth<Tone.MonoSynth> & {
+export type AudioSource = Tone.MonoSynth & {
   attack: Tone.Unit.Time | number
   release: Tone.Unit.Time | number
   envelope: Tone.EnvelopeOptions
@@ -64,9 +64,10 @@ export class SoundEngine {
     
     this.tracksCount.value = this.tracks.length;
   }
-
-  public static createInstrument(): Tone.PolySynth<any> {
-    const synth = new Tone.PolySynth(Tone.MonoSynth, {
+	
+	public static createInstrument(): Tone.MonoSynth {
+		// const synth = new Tone.PolySynth(Tone.MonoSynth, {
+		const synth = new Tone.MonoSynth({
       oscillator: {
         type: 'pwm'
       },
@@ -83,8 +84,8 @@ export class SoundEngine {
       },
       volume: -6
     }).toDestination()
-    
-    synth.maxPolyphony = 8
+		
+		// synth.maxPolyphony = 8
     
     return synth
   }

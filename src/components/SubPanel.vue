@@ -12,6 +12,7 @@
                 class="constrained-width"
                 label="Volume"
                 @update:model-value="onUpdateVolume(volumePercentToLog($event))"
+                @click:link="onLinkVolume"
             />
 
             <RichFaderInput
@@ -23,6 +24,7 @@
                 class="constrained-width"
                 label="Cut-off"
                 @update:model-value="onUpdateFilter(percentToHerz($event as number))"
+                @click:link="onLinkFilter"
             />
 
             <ADSRForm :track="track"/>
@@ -150,11 +152,12 @@ import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
-import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
+import {AVAILABLE_NOTES, Sequencer} from "~/lib/Sequencer";
 import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
+import {LFO} from "~/lib/LFO";
 
 const props = defineProps<{
   track: Track,
@@ -165,6 +168,8 @@ const emit = defineEmits<{
 
   (event: 'update:chain', payload: string[]): void
 }>()
+
+const sequencer = Sequencer.getInstance()
 
 const volumePercentToLog = (volumePercent: number) => {
   return Math.log10(volumePercent / 100) * 48
@@ -240,80 +245,30 @@ const onStopLoop = (loop: PolyrhythmLoop) => {
   loop.stop(quantizedTime)
 }
 
-const onFillTrack = (repeats?: number) => {
-  const sequencer = Sequencer.getInstance()
-  const trackNumber = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
-
-  for (let i = 1; i <= 16; i++) {
-    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
-      velocity: 0,
-      note: DEFAULT_NOTE,
-    }))
-  }
-
-  if (!repeats) {
-    return
-  }
-
-  const step = 16 / repeats;
-
-  for (let i = 1; i <= 16; i += step) {
-    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
-      velocity: 100,
-      note: DEFAULT_NOTE,
-    }))
-  }
-}
-
-const onShiftTrackLeft = () => {
-  const sequencer = Sequencer.getInstance()
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
-
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
-    const nextCellPosition = cellPosition.column === 1 ? 16 : cellPosition.column - 1
-    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
-    sequencer.writeCell(newCell)
+const onLinkVolume = () => {
+  const lfo = new LFO({
+    frequency: Tone.Time('16n').toFrequency(),
+    type: 'random',
+    max: 0,
+    min: -20,
+    destination: props.track.source.volume,
+    title: `${props.track.name} / Volume`,
   })
-}
-const onShiftTrackRight = () => {
-  const sequencer = Sequencer.getInstance()
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
 
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
-    const nextCellPosition = cellPosition.column === 16 ? 1 : cellPosition.column + 1
-    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
-    sequencer.writeCell(newCell)
+  sequencer.addLFO(lfo)
+}
+
+const onLinkFilter = () => {
+  const lfo = new LFO({
+    frequency: Tone.Time('16n').toFrequency(),
+    type: 'random',
+    max: Tone.Frequency(20000).toFrequency(),
+    min: 0,
+    destination: props.track.source.filter.frequency,
+    title: `${props.track.name} / Frequency`,
   })
-}
 
-const onHumanizeTrack = () => {
-  const sequencer = Sequencer.getInstance()
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
-
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
-    let newVelocity = Math.ceil(Math.random() * 25) + 75
-    newVelocity = newVelocity < 0 ? 0 : newVelocity
-    newVelocity = newVelocity > 100 ? 100 : newVelocity
-
-    const newCell = Sequencer.cell(trackIndex, cellPosition.column, {
-      ...cellPosition,
-      velocity: cellPosition.velocity > 0 ? newVelocity : 0,
-    })
-    sequencer.writeCell(newCell)
-  })
-}
-
-const onGenerateBassline = () => {
-  const sequencer = Sequencer.getInstance()
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track === props.track) + 1
-  //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
-  sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
-}
-
-const selectedSampleUrl = computed(() => props.track.meta.get('urls')[DEFAULT_NOTE] || (props.track.source.get() as Tone.SamplerOptions).urls[DEFAULT_NOTE])
-
-const onPartLengthChange = (event: Event) => {
-  props.track.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
+  sequencer.addLFO(lfo)
 }
 </script>
 

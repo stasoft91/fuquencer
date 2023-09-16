@@ -25,11 +25,11 @@
 <script lang="ts" setup>
 import {NDrawer, NDrawerContent, NSwitch} from "naive-ui";
 import {Sequencer} from "~/lib/Sequencer";
-import {useSelectedTrack} from "@/stores/trackParameters";
+import {useSelectedTrackNumber} from "@/stores/trackParameters";
 
 const sequencer = Sequencer.getInstance()
 
-const store = useSelectedTrack()
+const store = useSelectedTrackNumber()
 
 const onKeyboardSettingsUpdate = () => {
   const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]

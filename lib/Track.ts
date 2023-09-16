@@ -158,10 +158,18 @@ export class Track {
 		this._source.disconnect();
 		
 		this._middlewares.value.map((middleware) => {
-			middleware.effect?.dispose();
-			middleware.effect = undefined;
+			if (middleware.effect && !middleware.effect.disposed) {
+				if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
+					this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
+				} else {
+					middleware.effect.set(middleware.options);
+				}
+				
+				return;
+			}
 			
 			if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
+				// EFFECT IS AUTODUCK
 				middleware.effect = new Tone.Gain(1, "normalRange");
 				const scale = new Tone.Scale(1, 0);
 				scale.connect(middleware.effect.gain);
@@ -170,6 +178,7 @@ export class Track {
 				this._sidechainEnvelope?.connect(scale);
 				
 			} else if (middleware.name !== 'AutoDuck') {
+				// EFFECT IS ANY OTHER EFFECT
 				// @ts-ignore
 				middleware.effect = new Tone[middleware.name](middleware.options);
 				
@@ -178,6 +187,8 @@ export class Track {
 				return undefined;
 			}
 		});
+		
+		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect.disconnect())
 		
 		this._source.chain(
 			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],

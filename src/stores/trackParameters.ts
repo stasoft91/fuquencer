@@ -1,12 +1,12 @@
 import {defineStore} from 'pinia'
 import {ref} from "vue";
 
-export const useSelectedTrack = defineStore('selectedTrack', () => {
+export const useSelectedTrackNumber = defineStore('selectedTrack', () => {
 	const selectedTrackIndex = ref(0)
 	
-	function setTrackNumber(newVal: number) {
+	function setTrackIndex(newVal: number) {
 		selectedTrackIndex.value = newVal
 	}
 	
-	return {setTrackNumber, selectedTrackIndex}
+	return {setTrackIndex, selectedTrackIndex}
 })

@@ -49,7 +49,6 @@
 }
 
 .display-grid {
-  max-width: fit-content;
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), 1fr);
   grid-template-rows: repeat(var(--grid-rows), 1fr);
@@ -76,10 +75,11 @@ button.display-grid__cell {
   cursor: pointer;
   padding: 4px;
   height: 3rem;
-  width: 4rem;
+  min-width: 1.25rem;
   outline: none;
 
   border-radius: 3px;
+  overflow: hidden;
 }
 
 .display-grid__cell__content {

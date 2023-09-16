@@ -11,7 +11,7 @@
           space="0"
           @select-row="onSelectTrack"
       />
-      <div>
+      <div class="flex-auto">
         <DisplayGrid
             :key="sequencer.isPlaying ? 'playing' : 'stopped'"
 
@@ -65,11 +65,11 @@ import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import MixerDisplay from "@/components/MixerDisplay.vue";
-import {useSelectedTrack} from "@/stores/trackParameters";
+import {useSelectedTrackNumber} from "@/stores/trackParameters";
 
 const sequencer = Sequencer.getInstance()
 
-const store = useSelectedTrack()
+const store = useSelectedTrackNumber()
 
 const selectedTrackIndex = computed(() => store.selectedTrackIndex);
 
@@ -78,7 +78,7 @@ const selectedTrack = computed<Track>(() => {
 });
 
 const onSelectTrack = (trackIndex: number) => {
-  store.setTrackNumber(trackIndex);
+  store.setTrackIndex(trackIndex);
   sequencer.keyboardManager.unregisterEvents()
   sequencer.keyboardManager.registerEvents(selectedTrack.value)
 }
@@ -263,7 +263,7 @@ button.active {
 }
 
 .flex-auto {
-  flex: 1 0 auto;
+  flex: 1 0 0;
 }
 
 .remove-top-padding {
