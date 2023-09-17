@@ -77,15 +77,15 @@ const setDrawMode = (mode: GridEditorToolsEnum) => {
           Info
         </SimpleButton>
 
-        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DRAW}" class="big"
-                      @click="setDrawMode(GridEditorToolsEnum.DRAW)">
-          DRAW
-        </SimpleButton>
+        <!--        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DRAW}" class="big"-->
+        <!--                      @click="setDrawMode(GridEditorToolsEnum.DRAW)">-->
+        <!--          DRAW-->
+        <!--        </SimpleButton>-->
 
-        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DETAILS}" class="big"
-                      @click="setDrawMode(GridEditorToolsEnum.DETAILS)">
-          DETAILS
-        </SimpleButton>
+        <!--        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DETAILS}" class="big"-->
+        <!--                      @click="setDrawMode(GridEditorToolsEnum.DETAILS)">-->
+        <!--          DETAILS-->
+        <!--        </SimpleButton>-->
       </menu>
     </div>
   </header>

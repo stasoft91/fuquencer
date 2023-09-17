@@ -57,31 +57,6 @@ export class SoundEngine {
     
     this.tracksCount.value = this.tracks.length;
   }
-  
-  // public static createInstrument(): Tone.MonoSynth {
-  // 	// const synth = new Tone.PolySynth(Tone.MonoSynth, {
-  // 	const synth = new Tone.MonoSynth({
-  //     oscillator: {
-  //       type: 'pwm'
-  //     },
-  //     envelope: {
-  //       attack: 0.01,
-  //       decay: 0.42,
-  //       sustain: 0.01,
-  //       release: 0.25
-  //     },
-  //     filterEnvelope: {
-  //       attack: 0.001,
-  //       decay: 0.1,
-  //       sustain: 0.5,
-  //     },
-  //     volume: -6
-  //   }).toDestination()
-  //
-  // 	// synth.maxPolyphony = 8
-  //
-  //   return synth
-  // }
 
   public clearTracks(): void {
     this.tracks = []
@@ -93,38 +68,4 @@ export class SoundEngine {
     
     trackTo.toggleSidechain(this.sidechainEnvelopeSource)
   }
-  
-  // public static createSampler(samplePath: string, baseUrl: string = ''): Promise<Tone.Sampler> {
-  //   return new Promise((resolve, reject) => {
-  //     const _sampler = new Tone.Sampler({
-  //       volume: -6,
-  //       urls: {
-  //         [DEFAULT_NOTE]: samplePath
-  //       },
-  //       release: 1,
-  //       baseUrl: '/samples/',
-  //       onload: () => {
-  //         _sampler.toDestination()
-  //         resolve(_sampler)
-  //       },
-  //       onerror: (err) => {
-  //         reject(err)
-  //       }
-  //     })
-  //   })
-  // }
-  
-  // public playStepData(time: Tone.Unit.Time, stepData: GridCell[]): void {
-  //   this.tracks.forEach((track, trackIndex) => {
-  //     if (!track.isSolo.value || track.isMuted.value) {
-  //       return
-  //     }
-  //
-  //     if (stepData[trackIndex] === undefined || stepData[trackIndex].velocity === 0) {
-  //       return
-  //     }
-  //
-  //     track.source.releaseAll(time).triggerAttackRelease(stepData[trackIndex].note, '16n', time, stepData[trackIndex].velocity / 100)
-  //   })
-  // }
 }

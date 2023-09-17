@@ -18,7 +18,7 @@
 import type {Track} from "~/lib/Track";
 import {ref} from "vue";
 
-const props = defineProps<{
+defineProps<{
   track: Track
   color: string,
   bgcolor?: string,

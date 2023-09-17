@@ -1,4 +1,4 @@
-import {Sequencer} from "~/lib/Sequencer";
+import {GridCell, Sequencer} from "~/lib/Sequencer";
 import type {Track} from "~/lib/Track";
 import {ref} from "vue";
 
@@ -124,14 +124,12 @@ export class KeyboardManager {
 		if (this._isRecording.value) {
 			const seq = Sequencer.getInstance()
 			
-			seq.writeCell(Sequencer.cell(
-				seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
-				seq.currentStep,
-				{
-					velocity: velocity * 100,
-					note,
-				}
-			))
+			seq.writeCell(new GridCell({
+				column: seq.currentStep,
+				row: seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
+				velocity: velocity * 100,
+				note,
+			}))
 		}
 	}
 	

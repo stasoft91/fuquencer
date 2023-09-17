@@ -94,6 +94,10 @@ export class Track {
 		this._source = newSource;
 	}
 	
+	/**
+	 * Map of all the properties of the track (reactive)
+	 * @returns {Map<string, any>}
+	 */
 	public get meta(): Map<string, any> {
 		if (this._meta.value.size === 0) {
 			const keys = new Set([
@@ -111,7 +115,6 @@ export class Track {
 				if (key === 'filterEnvelope') {
 					originalOptions = {filterEnvelope: this._source.filterEnvelope.get()};
 				}
-				
 				
 				meta.set(key, Object.entries(originalOptions as Record<string, string>).find(([k]) => k === key)?.[1] as string);
 			});

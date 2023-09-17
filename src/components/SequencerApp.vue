@@ -51,8 +51,7 @@
 <script setup lang="ts">
 import {computed} from 'vue'
 
-import type {GridCell} from '~/lib/Sequencer'
-import {AVAILABLE_NOTES, DEFAULT_NOTE, Sequencer} from '~/lib/Sequencer'
+import {AVAILABLE_NOTES, DEFAULT_NOTE, GridCell, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
@@ -113,17 +112,25 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
   }
 
-  sequencer.writeCell(Sequencer.cell(cell.row, cell.column, cell))
+  sequencer.writeCell(cell)
 }
 
 const changeCellState = (row: number, column: number) => {
   sequencer.writeCell(
-    Sequencer.cell(row, column, {
-      velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
-      note: sequencer.readCell(row, column).note
-        ? sequencer.readCell(row, column).note
-        : DEFAULT_NOTE
-    })
+      new GridCell({
+        row,
+        column,
+        velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
+        note: sequencer.readCell(row, column).note
+            ? sequencer.readCell(row, column).note
+            : DEFAULT_NOTE
+      })
+      // Sequencer.cell(row, column, {
+      //   velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
+      //   note: sequencer.readCell(row, column).note
+      //     ? sequencer.readCell(row, column).note
+      //     : DEFAULT_NOTE
+      // })
   )
 }
 

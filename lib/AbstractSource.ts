@@ -76,6 +76,10 @@ export default class AbstractSource {
 		return this._filter;
 	}
 	
+	public get portamento(): Tone.Unit.Time | undefined {
+		return this.isSampler ? undefined : this._synth!.portamento
+	}
+	
 	private get isSampler(): boolean {
 		if (!this._isInitialized) {
 			throw new Error('AbstractSource is not initialized, call init() before using it')

@@ -1,7 +1,7 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 
-export const VERSION = '0.7.0'
+export const VERSION = '0.7.1'
 
 
 export const GRID_ROWS = 8;

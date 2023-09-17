@@ -19,15 +19,37 @@
             <span class="display-grid__cell__content__note__name">{{ gridCell.note }}</span>
           </span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
-          <span class="display-grid__cell__content__velocity">{{ gridCell.duration }}</span>
+          <span class="display-grid__cell__content__duration">{{ gridCell.duration }}</span>
         </span>
         <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
+
+        <span class="right-side">
+          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.probability)" class="fx-indicator">
+            <span>rnd</span>
+          </span>
+
+          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.skip)" class="fx-indicator">
+            <span>{{ getSkipCellText(gridCell) }}</span>
+          </span>
+
+          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.swing)" class="fx-indicator">
+            <span>swg</span>
+          </span>
+
+          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.flam)" class="fx-indicator">
+            <span>flm</span>
+          </span>
+
+          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.slide)" class="fx-indicator">
+            <span>sld</span>
+          </span>
+        </span>
       </button>
     </div>
   </div>
   <n-dropdown
       :on-clickoutside="onClickoutside"
-      :options="options"
+      :options="dropdownOptions"
       :show="isDropdownOpened"
       :x="x"
       :y="y"
@@ -62,7 +84,7 @@
 button.display-grid__cell {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: stretch;
@@ -73,7 +95,6 @@ button.display-grid__cell {
   border-right: none;
   border-bottom: none;
   cursor: pointer;
-  padding: 4px;
   height: 3rem;
   min-width: 1.25rem;
   outline: none;
@@ -90,6 +111,7 @@ button.display-grid__cell {
   align-items: stretch;
   align-content: stretch;
   width: 2rem;
+  font-size: 0.75rem;
 }
 
 button.active {
@@ -129,8 +151,8 @@ button.inactive {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 6px;
-  height: 6px;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 2px;
   background-color: $color-grey-500;
 
@@ -145,12 +167,49 @@ button.inactive {
     background-color: $color-grey-700;
   }
 }
+
+.right-side {
+  overflow: hidden;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 0.5rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.fx-indicator {
+
+  height: 0.5rem;
+  color: lighten($color-green, 95%);
+  background-color: darken($color-green, 5%);
+  border-radius: 2px;
+
+  text-transform: capitalize;
+
+  font-size: 0.5rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.1rem;
+
+  &.active {
+    display: flex;
+  }
+
+  &.disabled {
+    color: $color-grey-700;
+    display: none;
+  }
+}
 </style>
 
 <script setup lang="ts">
 import {GRID_ROWS} from "@/constants";
-import type {GridCell} from "~/lib/Sequencer";
-import {Sequencer} from "~/lib/Sequencer";
+import type {SkipParams} from "~/lib/Sequencer";
+import {GridCell, GridCellModifierTypes, Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
 import {nextTick, ref, toRef} from "vue";
 import {Track} from "~/lib/Track";
@@ -168,30 +227,80 @@ interface DisplayGridProps {
 const isDropdownOpened = ref(false)
 const x = ref(0)
 const y = ref(0)
-const options = [
+
+
+const dropdownOptions = [
   {
-    label: 'Add Note',
-    key: 'add-note'
+    label: 'Probability',
+    key: 'add-random'
   },
   {
-    label: 'Add Chord',
-    key: 'add-chord'
+    label: 'Slide',
+    key: 'add-slide'
+  },
+  {
+    label: 'Flam',
+    key: 'add-flam'
+  },
+  {
+    label: 'Skip',
+    key: 'add-skip'
   },
 ]
 
-const handleSelect = (key: string | number) => {
+const handleSelect = (key: string) => {
   isDropdownOpened.value = false
-  console.log(String(key), cellOfContextMenu.value)
+
+  if (!cellOfContextMenu.value) return;
+
+  if (key === 'add-flam') {
+    // TODO: prompt :(
+    const flam: number = parseInt(prompt('How many times to repeat? [0-99]', '4') || '1') || 1
+
+    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.flam, {
+      type: GridCellModifierTypes.flam,
+      roll: flam,
+      velocity: 1,
+      increaseVelocityFrom: 0.25
+    })
+    sequencer.writeCell(cellOfContextMenu.value)
+  }
+
+  if (key === 'add-skip') {
+    // TODO: prompt :(
+    const skip: number = parseInt(prompt('How many times to skip? [0-99]', '4') || '1') || 1
+
+    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.skip, {
+      type: GridCellModifierTypes.skip,
+      skip: skip,
+    })
+    sequencer.writeCell(cellOfContextMenu.value)
+  }
+
+  if (key === 'add-slide') {
+    // TODO: prompt :(
+    const slide: number = parseInt(prompt('Portamento (milliseconds)', '100') || '100') || 100
+
+    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.slide, {
+      type: GridCellModifierTypes.slide,
+      slide: slide,
+    })
+    sequencer.writeCell(cellOfContextMenu.value)
+  }
 }
 
-const cellOfContextMenu = ref<GridCell | null>(null)
+const cellOfContextMenu: Ref<GridCell | null> = ref<GridCell | null>(null)
+
 const handleContextMenu = (e: MouseEvent) => {
   e.preventDefault()
   isDropdownOpened.value = false
 
+  const dataRow = (e.currentTarget as HTMLElement).getAttribute('data-row')
+  const dataColumn = (e.currentTarget as HTMLElement).getAttribute('data-column')
+
   cellOfContextMenu.value = props.items.value.find(cell =>
-      cell.row === Number(e.currentTarget?.getAttribute('data-row')) &&
-      cell.column === Number(e.currentTarget?.getAttribute('data-column'))
+      cell.row === Number(dataRow) &&
+      cell.column === Number(dataColumn)
   ) ?? null
 
   nextTick().then(() => {
@@ -296,6 +405,19 @@ const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => 
   }
 }
 
+const getClassForFxIndicator = (gridCell: GridCell, effect: GridCellModifierTypes) => {
+  let length = 16
+
+  if (props.tracks[gridCell.row - 1]) {
+    length = props.tracks[gridCell.row - 1].length
+  }
+
+  return {
+    active: gridCell.velocity > 0 && gridCell.modifiers.has(effect),
+    disabled: gridCell.column > length
+  }
+}
+
 const getClassForIndicator = (gridCell: GridCell) => {
   let length = 16
 
@@ -326,5 +448,17 @@ const getClassForIndicator = (gridCell: GridCell) => {
     active,
     disabled: gridCell.column > length
   }
+}
+
+const getSkipCellText = (gridCell: GridCell): string => {
+  if (gridCell.modifiers.size === 0 || gridCell.modifiers.get(GridCellModifierTypes.skip) === undefined) {
+    return ''
+  }
+
+  const skipParams = (gridCell.modifiers.get(GridCellModifierTypes.skip) as SkipParams)
+  const skip = skipParams.skip
+  const currentlySkipped = skipParams.timesTriggered ?? 0
+
+  return `${currentlySkipped}/${skip}`
 }
 </script>

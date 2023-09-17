@@ -43,6 +43,13 @@
         <SimpleButton class="big" @click="onHumanizeTrack">Humanize</SimpleButton>
       </div>
 
+      <div class="row full-size">
+        <SimpleButton class="big" @click="onSwingTrack(0)">Swing 0%</SimpleButton>
+        <SimpleButton class="big" @click="onSwingTrack(25)">Swing 25%</SimpleButton>
+        <SimpleButton class="big" @click="onSwingTrack(50)">Swing 50%</SimpleButton>
+        <SimpleButton class="big" @click="onSwingTrack(75)">Swing 75%</SimpleButton>
+      </div>
+
       <div v-if="selectedTrack?.type === TrackTypes.sample" class="full-size">
         <SampleEditorButton
             :sampleUrl="selectedSampleUrl"
@@ -62,7 +69,7 @@
 </template>
 
 <script lang="ts" setup>
-import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
+import {DEFAULT_NOTE, GridCell, GridCellModifierTypes, Sequencer} from "~/lib/Sequencer";
 import {TrackTypes} from "~/lib/SoundEngine";
 import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
@@ -84,7 +91,9 @@ const onFillTrack = (repeats?: number) => {
   const trackNumber = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
 
   for (let i = 1; i <= 16; i++) {
-    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
+    sequencer.writeCell(new GridCell({
+      row: trackNumber,
+      column: i,
       velocity: 0,
       note: DEFAULT_NOTE,
     }))
@@ -97,7 +106,9 @@ const onFillTrack = (repeats?: number) => {
   const step = 16 / repeats;
 
   for (let i = 1; i <= 16; i += step) {
-    sequencer.writeCell(Sequencer.cell(trackNumber, i, {
+    sequencer.writeCell(new GridCell({
+      row: trackNumber,
+      column: i,
       velocity: 100,
       note: DEFAULT_NOTE,
     }))
@@ -129,7 +140,10 @@ const onShiftTrackLeft = () => {
 
   sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === 1 ? 16 : cellPosition.column - 1
-    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
+    const newCell = new GridCell({
+      ...cellPosition,
+      column: nextCellPosition,
+    })
     sequencer.writeCell(newCell)
   })
 }
@@ -140,7 +154,10 @@ const onShiftTrackRight = () => {
 
   sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === 16 ? 1 : cellPosition.column + 1
-    const newCell = Sequencer.cell(trackIndex, nextCellPosition, cellPosition)
+    const newCell = new GridCell({
+      ...cellPosition,
+      column: nextCellPosition,
+    })
     sequencer.writeCell(newCell)
   })
 }
@@ -155,10 +172,11 @@ const onHumanizeTrack = () => {
     newVelocity = newVelocity < 0 ? 0 : newVelocity
     newVelocity = newVelocity > 100 ? 100 : newVelocity
 
-    const newCell = Sequencer.cell(trackIndex, cellPosition.column, {
+    const newCell = new GridCell({
       ...cellPosition,
       velocity: cellPosition.velocity > 0 ? newVelocity : 0,
     })
+
     sequencer.writeCell(newCell)
   })
 }
@@ -167,5 +185,21 @@ const onPartLengthChange = (event: Event) => {
   const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
 
   selectedTrack.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
+}
+
+const onSwingTrack = (swingPercentage: number) => {
+  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const trackRow = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+
+  if (swingPercentage === 0) {
+    sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
+      cell.modifiers.delete(GridCellModifierTypes.swing)
+    })
+    return
+  }
+
+  sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
+    cell.modifiers.set(GridCellModifierTypes.swing, {type: GridCellModifierTypes.swing, swing: swingPercentage})
+  })
 }
 </script>

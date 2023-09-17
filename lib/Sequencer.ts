@@ -31,7 +31,10 @@ export type PartEvent = {
   time: any
   note: string,
   velocity: number,
-  duration: string
+  duration: string,
+  modifiers: Map<GridCellModifierTypes, GridCellModifier>
+  column: number
+  row: number
 }
 
 export const AVAILABLE_NOTES = generateListOfAvailableNotes()
@@ -162,20 +165,6 @@ export class Sequencer {
     this._isPlaying.value = value
   }
 
-  static cell(row: number, column: number, params?: Partial<GridCell>): GridCell {
-    return {
-      note: '',
-      velocity: 0,
-      duration: '16n',
-
-      ...params,
-
-      id: `${row}-${column}`,
-      row: row,
-      column: column,
-    }
-  }
-
   public generateGrid(): GridCell[] {
     this.initGrid()
     return this._sequenceGrid.value
@@ -183,10 +172,6 @@ export class Sequencer {
 
   public advanceStep(): void {
     this.currentStep = this.currentStep === this._sequenceLength ? 1 : this.currentStep + 1
-  }
-
-  public readStep(): GridCell[] {
-    return this._sequenceGrid.value.filter((cell) => cell.column === this.currentStep)
   }
 
   public getCellIndex(row: number, column: number): number {
@@ -201,27 +186,30 @@ export class Sequencer {
   public initGrid(): void {
     for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
       for (let j = 1; j <=  this._sequenceLength; j++) {
-        this._sequenceGrid.value.push({
-          id: `${i}-${j}`,
-          velocity: 0,
+        this._sequenceGrid.value.push(new GridCell({
           row: i,
           column: j,
           note: DEFAULT_NOTE,
-          duration: '16n'
-        })
+          velocity: 0,
+          duration: '16n',
+          modifiers: new Map()
+        }))
       }
     }
   }
 
   public writeCell(cell: GridCell): void {
     const cellIndex = this.getCellIndex(cell.row, cell.column)
-    this._sequenceGrid.value[cellIndex] = Sequencer.cell(cell.row, cell.column, cell)
+    this._sequenceGrid.value[cellIndex] = cell
     
     if (this._parts[cell.row - 1]) {
       this._parts[cell.row - 1].at(getBarsBeatsSixteensFromStep(cell.column - 1), {
         note: cell.note,
-        velocity: cell.velocity / 100,
-        duration: cell.duration
+        velocity: (cell.velocity ?? 0) / 100,
+        duration: cell.duration,
+        modifiers: cell.modifiers,
+        column: cell.column,
+        row: cell.row
       } as PartEvent)
     }
   }
@@ -256,6 +244,26 @@ export class Sequencer {
   public regenerateSequence(trackNumber: number, notesInKey: string[]): void {
     this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
       cell.velocity = cell.column % 2 === 1 ? 100 : 0;
+      
+      // Math.random() > 0.65 ?
+      //   cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 75}) :
+      //   cell.modifiers.delete(GridCellModifierTypes.probability)
+      
+      // Math.random() > 0.85 ?
+      //   cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
+      //   cell.modifiers.delete(GridCellModifierTypes.skip)
+      
+      // Math.random() > 0.65 ?
+      //   cell.modifiers.set(GridCellModifierTypes.swing, {type: GridCellModifierTypes.swing, swing: 25}) :
+      //   cell.modifiers.delete(GridCellModifierTypes.swing)
+      
+      // Math.random() > 0.65 ?
+      //   cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
+      //   cell.modifiers.delete(GridCellModifierTypes.flam)
+      
+      Math.random() > 0.65 ?
+        cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 120}) :
+        cell.modifiers.delete(GridCellModifierTypes.slide)
       
       if (cell.column % 3 === 0 && Math.random() > 0.75) {
         cell.velocity = 100;
@@ -298,7 +306,7 @@ export class Sequencer {
     
     for (let i = 0; i < this.soundEngine.tracks.length; i++) {
       const part = new Tone.Part(
-        ((time, value) => {
+        ((time, value: PartEvent) => {
           const track = this.soundEngine.tracks[i]
           
           if (value.velocity === 0) {
@@ -310,7 +318,85 @@ export class Sequencer {
             track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
           }
           
-          console.log('PART', i, value.note, value.velocity, value.duration, time, Tone.Time(time).toBarsBeatsSixteenths())
+          new Promise(() => console.log('PART', i, value.note, value.velocity, value.duration, time, Tone.Time(time).toBarsBeatsSixteenths(), value.modifiers))
+          
+          if (value.modifiers.has(GridCellModifierTypes.probability)) {
+            const probabilityParams = value.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
+            
+            if (Math.random() * 100 > probabilityParams.probability) {
+              return
+            }
+          }
+          
+          if (value.modifiers.has(GridCellModifierTypes.skip)) {
+            const skipParams = value.modifiers.get(GridCellModifierTypes.skip) as SkipParams
+            
+            this.readCell(value.row, value.column).modifiers.set(GridCellModifierTypes.skip, {
+              type: GridCellModifierTypes.skip,
+              skip: skipParams.skip,
+              timesTriggered: skipParams.timesTriggered ? skipParams.timesTriggered + 1 : 1,
+            })
+            
+            const skipParamsForCell = this.readCell(value.row, value.column).modifiers.get(GridCellModifierTypes.skip) as SkipParams
+            
+            if (skipParamsForCell.timesTriggered && skipParamsForCell.timesTriggered % skipParams.skip !== 0) {
+              return
+            } else {
+              value.modifiers.set(GridCellModifierTypes.skip, {
+                type: GridCellModifierTypes.skip,
+                skip: skipParams.skip,
+                timesTriggered: 0,
+              })
+            }
+          }
+          
+          if (value.modifiers.has(GridCellModifierTypes.swing)) {
+            const swingParams = value.modifiers.get(GridCellModifierTypes.swing) as SwingParams
+            
+            time = Tone.Time(time).quantize("8n", swingParams.swing / 100)
+          }
+          
+          if (value.modifiers.has(GridCellModifierTypes.slide)) {
+            const slideParams = value.modifiers.get(GridCellModifierTypes.slide) as SlideParams
+            
+            if ('portamento' in track.source) {
+              if (slideParams.slide) {
+                track.source.set({portamento: slideParams.slide / 1000})
+              } else {
+                track.source.set({portamento: 0})
+              }
+            }
+          }
+          
+          if (value.modifiers.has(GridCellModifierTypes.flam)) {
+            const flamParams = value.modifiers.get(GridCellModifierTypes.flam) as FlamParams
+            
+            const timeOfOneFullNote = Tone.Time(value.duration).toSeconds()
+            const timeOfOneFlamNote = timeOfOneFullNote / flamParams.roll
+            
+            for (let i = 0; i < flamParams.roll; i++) {
+              if (track.source.releaseAll) {
+                track.source.releaseAll(time)
+              }
+              
+              let velocity = flamParams.velocity ?? (value.velocity)
+              
+              if (flamParams.increaseVelocityFrom) {
+                velocity = flamParams.increaseVelocityFrom + (velocity - flamParams.increaseVelocityFrom) * (i / flamParams.roll)
+              }
+              
+              track.source.triggerAttackRelease(
+                value.note,
+                value.duration,
+                time,
+                velocity
+              )
+              time += timeOfOneFlamNote
+              
+            }
+            
+            return
+          }
           
           track.source
             // .releaseAll(time)
@@ -324,8 +410,11 @@ export class Sequencer {
               time: getBarsBeatsSixteensFromStep(step),
               note: _.note,
               velocity: _.velocity / 100,
-              duration: _.duration
-            }
+              duration: _.duration,
+              modifiers: _.modifiers,
+              column: _.column,
+              row: _.row
+            } as PartEvent
           })
         ]
       ).start(0).set({
@@ -411,11 +500,128 @@ export class Sequencer {
   }
 }
 
-export interface GridCell {
+export interface GridCellOptions {
   id: string
   note: string
   velocity: number
   row: number
   column: number
   duration: string
+  modifiers: Map<GridCellModifierTypes, GridCellModifier>
+}
+
+export enum GridCellModifierTypes {
+  swing = 'swing',
+  flam = 'flam', // number of times the note is repeated
+  probability = 'probability', // probability of the note being played
+  skip = 'skip',
+  slide = 'slide', // portamento of monophonic
+  
+  // reverse = 'reverse', // TODO: research if possible
+  // arpeggiator = 'arpeggiator', // TODO: research if possible
+  // instrumentSpecific = 'instrumentSpecific' //TODO: research if possible
+}
+
+export type GridCellModifier = SwingParams | FlamParams | ProbabilityParams | SkipParams | SlideParams
+
+export type SwingParams = {
+  type: GridCellModifierTypes.swing
+  
+  /**
+   * Amount of swing (0-100)
+   */
+  swing: number
+}
+
+export type FlamParams = {
+  type: GridCellModifierTypes.flam
+  
+  /**
+   * Number of times the note is repeated (1-8)
+   */
+  roll: number
+  
+  /**
+   * Velocity of the repeated notes (0-1)
+   */
+  velocity?: number
+  
+  /**
+   * will make flam increase velocity of repeated notes from increaseVelocityFrom to velocity
+   * (0-1)
+   */
+  increaseVelocityFrom?: number
+}
+
+export type ProbabilityParams = {
+  type: GridCellModifierTypes.probability
+  
+  /**
+   * Probability of the note being played (0-100)
+   */
+  probability: number
+}
+
+export type SkipParams = {
+  type: GridCellModifierTypes.skip
+  
+  /**
+   * How often the step is actually triggered
+   * - 1 = every time
+   * - 2 = every other time
+   * - 3 = every third time
+   * - etc.
+   *
+   * (1-16)
+   */
+  skip: number
+  
+  /**
+   * Times the step was poked since the last actual trigger
+   */
+  timesTriggered?: number
+}
+
+export type SlideParams = {
+  type: GridCellModifierTypes.slide
+  
+  /**
+   * Portamento (in milliseconds)
+   */
+  slide: number
+}
+
+export class GridCell implements GridCellOptions {
+  public note: string = ''
+  public velocity: number = 0
+  public row: number = 0
+  public column: number = 0
+  public duration: string = '16n'
+  public modifiers: Map<GridCellModifierTypes, GridCellModifier> = new Map()
+  
+  constructor(params: Partial<GridCell>) {
+    const {note, velocity, row, column, duration} = params
+    
+    if (!row || !column) {
+      throw new Error('GridCell: row and column are required')
+    }
+    
+    this.note = note ?? ''
+    this.velocity = velocity ?? 0
+    this.row = row
+    this.column = column
+    this.duration = duration ?? '16n'
+    this.modifiers = params.modifiers ?? new Map()
+  }
+  
+  public get id(): string {
+    return `${this.row}-${this.column}`
+  }
+  
+  public set id(id: string) {
+    const [row, column] = id.split('-')
+    
+    this.row = parseInt(row)
+    this.column = parseInt(column)
+  }
 }
