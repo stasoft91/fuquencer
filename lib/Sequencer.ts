@@ -359,12 +359,8 @@ export class Sequencer {
           if (value.modifiers.has(GridCellModifierTypes.slide)) {
             const slideParams = value.modifiers.get(GridCellModifierTypes.slide) as SlideParams
             
-            if ('portamento' in track.source) {
-              if (slideParams.slide) {
-                track.source.set({portamento: slideParams.slide / 1000})
-              } else {
-                track.source.set({portamento: 0})
-              }
+            if (slideParams.slide) {
+              track.source.set({portamento: slideParams.slide / 1000})
             } else {
               track.source.set({portamento: 0})
             }
