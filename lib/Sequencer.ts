@@ -245,21 +245,21 @@ export class Sequencer {
     this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
       cell.velocity = cell.column % 2 === 1 ? 100 : 0;
       
-      // Math.random() > 0.65 ?
-      //   cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 75}) :
-      //   cell.modifiers.delete(GridCellModifierTypes.probability)
+      Math.random() > 0.65 ?
+        cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 50}) :
+        cell.modifiers.delete(GridCellModifierTypes.probability)
       
-      // Math.random() > 0.85 ?
-      //   cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
-      //   cell.modifiers.delete(GridCellModifierTypes.skip)
+      Math.random() > 0.65 ?
+        cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
+        cell.modifiers.delete(GridCellModifierTypes.skip)
       
-      // Math.random() > 0.65 ?
-      //   cell.modifiers.set(GridCellModifierTypes.swing, {type: GridCellModifierTypes.swing, swing: 25}) :
-      //   cell.modifiers.delete(GridCellModifierTypes.swing)
+      Math.random() > 0.65 ?
+        cell.modifiers.set(GridCellModifierTypes.swing, {type: GridCellModifierTypes.swing, swing: 50}) :
+        cell.modifiers.delete(GridCellModifierTypes.swing)
       
-      // Math.random() > 0.65 ?
-      //   cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
-      //   cell.modifiers.delete(GridCellModifierTypes.flam)
+      Math.random() > 0.85 ?
+        cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
+        cell.modifiers.delete(GridCellModifierTypes.flam)
       
       Math.random() > 0.65 ?
         cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 120}) :
@@ -365,6 +365,8 @@ export class Sequencer {
               } else {
                 track.source.set({portamento: 0})
               }
+            } else {
+              track.source.set({portamento: 0})
             }
           }
           

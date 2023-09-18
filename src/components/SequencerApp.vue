@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import {computed} from 'vue'
 
-import {AVAILABLE_NOTES, DEFAULT_NOTE, GridCell, Sequencer} from '~/lib/Sequencer'
+import {AVAILABLE_NOTES, GridCell, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
@@ -116,14 +116,12 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
 }
 
 const changeCellState = (row: number, column: number) => {
+  const cell = sequencer.readCell(row, column)
+
   sequencer.writeCell(
       new GridCell({
-        row,
-        column,
-        velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
-        note: sequencer.readCell(row, column).note
-            ? sequencer.readCell(row, column).note
-            : DEFAULT_NOTE
+        ...cell,
+        velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100
       })
       // Sequencer.cell(row, column, {
       //   velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,

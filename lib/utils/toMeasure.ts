@@ -12,5 +12,5 @@ export const toMeasure = (measure: Tone.Unit.Time | Tone.TimeClass<any>): string
 	}
 	
 	const note = Tone.Time(measure).toNotation().replace('n', '').replace('t', ' trip').replace('.', ' dot');
-	return `1 / ${note}`;
+	return `1/${note}`;
 }

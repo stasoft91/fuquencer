@@ -19,7 +19,7 @@
             <span class="display-grid__cell__content__note__name">{{ gridCell.note }}</span>
           </span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
-          <span class="display-grid__cell__content__duration">{{ gridCell.duration }}</span>
+          <span class="display-grid__cell__content__duration">{{ toMeasure(gridCell.duration) }}</span>
         </span>
         <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
 
@@ -86,7 +86,7 @@ button.display-grid__cell {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: start;
   align-items: stretch;
   align-content: stretch;
   background-color: $color-grey-800;
@@ -101,6 +101,8 @@ button.display-grid__cell {
 
   border-radius: 3px;
   overflow: hidden;
+
+  padding: 0px 0 0 12px;
 }
 
 .display-grid__cell__content {
@@ -111,7 +113,20 @@ button.display-grid__cell {
   align-items: stretch;
   align-content: stretch;
   width: 2rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+
+  text-align: start;
+}
+
+.display-grid__cell__content__duration {
+  font-size: 85%;
+}
+
+.display-grid__cell__content__note__name {
+}
+
+.display-grid__cell__content__velocity {
+  font-size: 85%;
 }
 
 button.active {
@@ -214,6 +229,7 @@ import type {Ref} from "vue";
 import {nextTick, ref, toRef} from "vue";
 import {Track} from "~/lib/Track";
 import {NDropdown} from "naive-ui";
+import {toMeasure} from "../../../lib/utils/toMeasure";
 
 const sequencer = Sequencer.getInstance()
 
@@ -232,7 +248,7 @@ const y = ref(0)
 const dropdownOptions = [
   {
     label: 'Probability',
-    key: 'add-random'
+    key: 'add-probability'
   },
   {
     label: 'Slide',
@@ -246,6 +262,10 @@ const dropdownOptions = [
     label: 'Skip',
     key: 'add-skip'
   },
+  {
+    label: 'Clear',
+    key: 'clear'
+  },
 ]
 
 const handleSelect = (key: string) => {
@@ -253,9 +273,24 @@ const handleSelect = (key: string) => {
 
   if (!cellOfContextMenu.value) return;
 
+  if (key === 'add-probability') {
+    const probability: number = parseInt(prompt('Probability [0-100]', '50') || '50') || 50
+
+    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.probability, {
+      type: GridCellModifierTypes.probability,
+      probability: probability,
+    })
+  }
+
   if (key === 'add-flam') {
     // TODO: prompt :(
     const flam: number = parseInt(prompt('How many times to repeat? [0-99]', '4') || '1') || 1
+
+    if (!flam) {
+      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.flam)
+      sequencer.writeCell(cellOfContextMenu.value)
+      return
+    }
 
     cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.flam, {
       type: GridCellModifierTypes.flam,
@@ -268,7 +303,13 @@ const handleSelect = (key: string) => {
 
   if (key === 'add-skip') {
     // TODO: prompt :(
-    const skip: number = parseInt(prompt('How many times to skip? [0-99]', '4') || '1') || 1
+    const skip: number = parseInt(prompt('How many skips to accumulate before triggering? [0-99]', '4') || '1') || 1
+
+    if (skip === 0 || skip === 1) {
+      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.skip)
+      sequencer.writeCell(cellOfContextMenu.value)
+      return
+    }
 
     cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.skip, {
       type: GridCellModifierTypes.skip,
@@ -279,12 +320,17 @@ const handleSelect = (key: string) => {
 
   if (key === 'add-slide') {
     // TODO: prompt :(
-    const slide: number = parseInt(prompt('Portamento (milliseconds)', '100') || '100') || 100
+    const slide: number = parseInt(prompt('Portamento (milliseconds) [0-9999]', '100') || '0') || 0
 
     cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.slide, {
       type: GridCellModifierTypes.slide,
       slide: slide,
     })
+    sequencer.writeCell(cellOfContextMenu.value)
+  }
+
+  if (key === 'clear') {
+    cellOfContextMenu.value.modifiers.clear()
     sequencer.writeCell(cellOfContextMenu.value)
   }
 }
