@@ -12,35 +12,51 @@
           @click="onClick(gridCell.row, gridCell.column)"
           @wheel="onWheel(gridCell.row, gridCell.column, $event)"
           @keyup.prevent=""
+          @mouseleave="handleMouseLeave"
+          @mousemove="handleMouseEnter"
           @contextmenu="handleContextMenu"
       >
+        <span class="left-side">
+          <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
+        </span>
+
         <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
           <span class="display-grid__cell__content__note">
-            <span class="display-grid__cell__content__note__name">{{ gridCell.note }}</span>
+            <span class="display-grid__cell__content__note__name">{{
+                Array.isArray(gridCell.note) ? 'arp' : gridCell.note
+              }}</span>
           </span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
           <span class="display-grid__cell__content__duration">{{ toMeasure(gridCell.duration) }}</span>
         </span>
-        <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
 
         <span class="right-side">
-          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.probability)" class="fx-indicator">
+          <span v-if="gridCell.hasModifier(GridCellModifierTypes.probability)"
+                :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.probability)" class="fx-indicator">
             <span>rnd</span>
           </span>
 
-          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.skip)" class="fx-indicator">
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.skip)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.skip)" class="fx-indicator">
             <span>{{ getSkipCellText(gridCell) }}</span>
           </span>
 
-          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.swing)" class="fx-indicator">
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.swing)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.swing)" class="fx-indicator">
             <span>swg</span>
           </span>
 
-          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.flam)" class="fx-indicator">
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.flam)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.flam)" class="fx-indicator">
             <span>flm</span>
           </span>
 
-          <span :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.slide)" class="fx-indicator">
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.slide)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.slide)" class="fx-indicator">
             <span>sld</span>
           </span>
         </span>
@@ -102,7 +118,19 @@ button.display-grid__cell {
   border-radius: 3px;
   overflow: hidden;
 
-  padding: 0px 0 0 12px;
+  padding: 0.1rem 0 0 0.1rem;
+
+  gap: 0.1rem;
+
+  transition: opacity 0.1s ease-in-out;
+}
+
+button.display-grid__cell.row-with-opacity {
+  opacity: 0.33;
+}
+
+button.display-grid__cell.row-with-opacity.is-hovered {
+  opacity: 1;
 }
 
 .display-grid__cell__content {
@@ -112,7 +140,6 @@ button.display-grid__cell {
   justify-content: center;
   align-items: stretch;
   align-content: stretch;
-  width: 2rem;
   font-size: 0.8rem;
 
   text-align: start;
@@ -163,9 +190,9 @@ button.inactive {
 }
 
 .button-indicator {
-  position: absolute;
-  top: 2px;
-  left: 2px;
+  //position: absolute;
+  //top: 2px;
+  //left: 2px;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 2px;
@@ -183,16 +210,18 @@ button.inactive {
   }
 }
 
-.right-side {
+.right-side, .left-side {
   overflow: hidden;
-  position: absolute;
-  top: 2px;
-  right: 2px;
   min-width: 0.5rem;
 
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+}
+
+.right-side {
+  position: absolute;
+  right: 0;
 }
 
 .fx-indicator {
@@ -223,13 +252,16 @@ button.inactive {
 
 <script setup lang="ts">
 import {GRID_ROWS} from "@/constants";
-import type {SkipParams} from "~/lib/Sequencer";
-import {GridCell, GridCellModifierTypes, Sequencer} from "~/lib/Sequencer";
+import type {SkipParams} from "~/lib/GridCell";
+import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
 import {nextTick, ref, toRef} from "vue";
 import {Track} from "~/lib/Track";
 import {NDropdown} from "naive-ui";
-import {toMeasure} from "../../../lib/utils/toMeasure";
+import {toMeasure} from "~/lib/utils/toMeasure";
+import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
+import * as Tone from "tone/Tone";
 
 const sequencer = Sequencer.getInstance()
 
@@ -244,6 +276,7 @@ const isDropdownOpened = ref(false)
 const x = ref(0)
 const y = ref(0)
 
+const hoveredCell = ref<GridCell | null>(null)
 
 const dropdownOptions = [
   {
@@ -263,6 +296,10 @@ const dropdownOptions = [
     key: 'add-skip'
   },
   {
+    label: 'Arp',
+    key: 'add-arp'
+  },
+  {
     label: 'Clear',
     key: 'clear'
   },
@@ -271,7 +308,9 @@ const dropdownOptions = [
 const handleSelect = (key: string) => {
   isDropdownOpened.value = false
 
-  if (!cellOfContextMenu.value) return;
+  if (!cellOfContextMenu.value) {
+    return;
+  }
 
   if (key === 'add-probability') {
     const probability: number = parseInt(prompt('Probability [0-100]', '50') || '50') || 50
@@ -329,6 +368,11 @@ const handleSelect = (key: string) => {
     sequencer.writeCell(cellOfContextMenu.value)
   }
 
+  if (key === 'add-arp') {
+    cellOfContextMenu.value.note = ["C2", "E2", "B2", "F2"]
+    sequencer.writeCell(cellOfContextMenu.value)
+  }
+
   if (key === 'clear') {
     cellOfContextMenu.value.modifiers.clear()
     sequencer.writeCell(cellOfContextMenu.value)
@@ -374,56 +418,56 @@ const emit = defineEmits([
   'alt-wheel'
 ])
 
-const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: string) => {
+const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: Tone.Unit.Time) => {
   let noteSpan: number;
 
-  switch (noteLength) {
-    case '16n':
-      noteSpan = 1
-      break;
-    case '8n':
-      noteSpan = 2
-      break;
-    case '4n':
-      noteSpan = 4
-      break;
-    case '2n':
-      noteSpan = 8
-      break;
-    case '1n':
-      noteSpan = 16
-      break;
-    default:
-      noteSpan = 1
-      break;
-  }
+  noteSpan = getStepFromBarsBeatsSixteens(Tone.Time(noteLength).toBarsBeatsSixteenths()) - 1
 
   const maximumSpan = sequencer.soundEngine.tracks[rowNumber - 1]?.length - columnNumber + 1;
-  let realSpan = noteSpan > sequencer.soundEngine.tracks[rowNumber - 1]?.length ? sequencer.soundEngine.tracks[rowNumber - 1].length : noteSpan
-  return realSpan > maximumSpan ? maximumSpan : realSpan
+
+  return columnNumber + noteSpan > sequencer.soundEngine.tracks[rowNumber - 1]?.length ? maximumSpan : noteSpan
 }
 
-const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: string = '16n') => {
+const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: Tone.Unit.Time) => {
   const hasSpan = calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
     width: '100%',
     backgroundColor: `hsl(${(columnNumber * 360 / 16) % 360}, 30%, 80%)`,
     zIndex: 3,
   } : {}
 
+  const doesCellHaveVelocity = props.items.value.filter(_ =>
+      // we look for an intersection in the row currently hovered
+      _.row === rowNumber &&
+      // look for cells after the hovered in same row
+      _.column === columnNumber &&
+      // filter out cells that are not active
+      _.velocity > 0
+  ).length > 0
+
   return {
     gridRow: rowNumber,
     gridColumn: columnNumber,
     gridRowEnd: 'auto',
-    gridColumnEnd: 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength),
-    ...hasSpan
+    gridColumnEnd: doesCellHaveVelocity ? 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength) : 'auto',
+    ...(doesCellHaveVelocity ? hasSpan : {})
   }
 }
 
 const getClassesForCell = (gridCell: GridCell) => {
   return {
     active: gridCell.velocity > 0,
-    inactive: props.tracks[gridCell.row - 1] ? gridCell.column > props.tracks[gridCell.row - 1].length : false,
+    inactive:
+        props.tracks[gridCell.row - 1] ?
+            gridCell.column > props.tracks[gridCell.row - 1].length :
+            false,
     'first-in-quarter': gridCell.column % 4 === 1,
+    'row-with-opacity':
+        hoveredCell.value !== null &&
+        hoveredCell.value.row === gridCell.row &&
+        stepOfHoveredCellFinish.value !== null,
+    // gridCell.column > hoveredCell.value.column &&
+    // gridCell.column < stepOfHoveredCellFinish.value,
+    'is-hovered': hoveredCell.value?.id === gridCell.id
   }
 }
 
@@ -444,6 +488,8 @@ const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => 
       emit('ctrl-wheel', cell, event)
     } else if (event.altKey) {
       emit('alt-wheel', cell, event)
+      // check if there is an intersection now, after we just changed the duration
+      handleMouseEnter(event)
     }
     else {
       emit('wheel', cell, event)
@@ -473,21 +519,19 @@ const getClassForIndicator = (gridCell: GridCell) => {
 
   let active: boolean
 
-  if (length % 2 === 0) {
-    active = gridCell.column === sequencer.currentStep
+  // todo fix step indication for polymeter tracks, for now it will indicate step right only on 16 steps part (or twice on 8 steps part)
 
-    const realSpan = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
+  active = gridCell.column === sequencer.currentStep
 
-    if (realSpan > 1) {
-      const activeFor: number[] = []
-      for (let i = 0; i < realSpan; i++) {
-        activeFor.push(gridCell.column + i)
-      }
+  const realSpan = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
 
-      active = activeFor.includes(sequencer.currentStep)
+  if (gridCell.velocity > 0 && realSpan > 1) {
+    const activeFor: number[] = []
+    for (let i = 0; i < realSpan; i++) {
+      activeFor.push(gridCell.column + i)
     }
-  } else {
-    active = false
+
+    active = activeFor.includes(sequencer.currentStep)
   }
 
   return {
@@ -506,5 +550,63 @@ const getSkipCellText = (gridCell: GridCell): string => {
   const currentlySkipped = skipParams.timesTriggered ?? 0
 
   return `${currentlySkipped}/${skip}`
+}
+
+const stepOfHoveredCellFinish = ref<number | null>(1)
+
+// convert cell column and duration to stepfinish
+const stepOfCellFinish = (cell: GridCell, duration: Tone.Unit.Time): number => {
+  return cell.column + getStepFromBarsBeatsSixteens(Tone.Time(duration).toBarsBeatsSixteenths()) - 1
+}
+
+const handleMouseEnter = (e: MouseEvent) => {
+  const dataRow = (e.currentTarget as HTMLElement).getAttribute('data-row')
+  const dataColumn = (e.currentTarget as HTMLElement).getAttribute('data-column')
+
+  const cell = props.items.value.find(cell =>
+      cell.row === Number(dataRow) &&
+      cell.column === Number(dataColumn)
+  )
+
+  if (!cell || !cell.velocity) {
+    return
+  }
+
+  const durationOf16n = Tone.Time('16n')
+
+  // First of all all of this can happen only if cell is longer than 1/16
+  if (Tone.Time(cell.duration).toSeconds() > durationOf16n.toSeconds()) {
+
+    let hasIntersection = props.items.value.filter(_ =>
+            // we look for an intersection in the row currently hovered
+            _.row === cell.row &&
+            // look for cells after the hovered in same row
+            _.column > cell.column &&
+            // filter out cells that are not active
+            _.velocity > 0
+        // check if any of the cells is in the range of the hovered cell
+    ).some(_ => _.column < stepOfCellFinish(cell, cell.duration))
+
+    hasIntersection = hasIntersection || props.items.value.filter(_ =>
+            // we look for an intersection in the row currently hovered
+            _.row === cell.row &&
+            // look for cells before the hovered in same row
+            _.column < cell.column &&
+            // filter out cells that are not active
+            _.velocity > 0
+        // check if any of the cells is in the range of the hovered cell
+    ).some(_ => stepOfCellFinish(_, _.duration) > cell.column)
+
+    if (hasIntersection) {
+      hoveredCell.value = cell
+      stepOfHoveredCellFinish.value = stepOfCellFinish(cell, cell.duration)
+    } else {
+      hoveredCell.value = null
+    }
+  }
+}
+
+const handleMouseLeave = () => {
+  hoveredCell.value = null
 }
 </script>

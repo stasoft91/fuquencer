@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import {computed} from 'vue'
 
-import {AVAILABLE_NOTES, GridCell, Sequencer} from '~/lib/Sequencer'
+import {AVAILABLE_NOTES, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
@@ -64,6 +64,8 @@ import {jsonCopy} from "~/lib/utils/jsonCopy";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
+import * as Tone from "tone/Tone";
+import {GridCell} from "~/lib/GridCell";
 
 const sequencer = Sequencer.getInstance()
 
@@ -84,6 +86,7 @@ const onSelectTrack = (trackIndex: number) => {
 const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
+
   const noteIndex = AVAILABLE_NOTES.indexOf(cell.note)
 
   if (event.shiftKey) {
@@ -101,10 +104,36 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
       return
     }
 
-    let newDuration = parseInt(cell.duration.split(/[nm]/)[0]) * (event.deltaY < 0 ? 2 : 1 / 2)
+    let add = Tone.Time('16n')
 
-    newDuration = Math.max(1, Math.min(64, newDuration))
-    cell.duration = `${newDuration}n`
+    if (event.deltaY > 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
+      add = Tone.Time('64n')
+    }
+
+    if (event.deltaY > 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('16n').toSeconds()) {
+      add = Tone.Time('32n')
+    }
+
+    if (event.deltaY < 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('64n').toSeconds()) {
+      add = Tone.Time('32n')
+    }
+
+    if (event.deltaY < 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
+      add = Tone.Time('16n')
+    }
+
+    let newDuration = Tone.Time(cell.duration).toSeconds() + (event.deltaY < 0 ? 1 : -1) * add.toSeconds()
+
+    newDuration = Math.max(
+        Tone.Time('64n').toSeconds(),
+        Math.min(
+            Tone.Time('1m').toSeconds(),
+            newDuration
+        )
+    )
+
+    cell.duration = Tone.Time(newDuration) as Tone.Unit.Time
+
   } else {
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 1 : -1)
     cell.note =

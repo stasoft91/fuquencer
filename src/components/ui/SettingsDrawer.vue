@@ -10,6 +10,7 @@
           KB Sound Off
         </template>
       </n-switch>
+
       <n-switch v-model:value="sequencer.keyboardManager.isRecording" size="large"
                 @update:value="onKeyboardSettingsUpdate">
         <template #checked>
@@ -19,11 +20,17 @@
           KB Rec Off
         </template>
       </n-switch>
+
+      <n-input-number v-model:value="sequencer.bpm" :max="300" :min="1" :step="1" size="large">
+        <template #suffix>
+          BPM
+        </template>
+      </n-input-number>
     </n-drawer-content>
   </n-drawer>
 </template>
 <script lang="ts" setup>
-import {NDrawer, NDrawerContent, NSwitch} from "naive-ui";
+import {NDrawer, NDrawerContent, NInputNumber, NSwitch} from "naive-ui";
 import {Sequencer} from "~/lib/Sequencer";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 
@@ -49,3 +56,12 @@ const onHide = () => {
   emit('update:isSettingsOpen', false)
 }
 </script>
+
+<style lang="scss">
+.n-drawer-body-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+</style>

@@ -1,6 +1,7 @@
-import {GridCell, Sequencer} from "~/lib/Sequencer";
+import {Sequencer} from "~/lib/Sequencer";
 import type {Track} from "~/lib/Track";
 import {ref} from "vue";
+import {GridCell} from "~/lib/GridCell";
 
 export const keyboardMapNotes: Record<string, string> = {
 	'z': 'C4',

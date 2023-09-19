@@ -72,7 +72,7 @@
                     class="select"
                     @change="onLoopUpdate(loop, 'duration', $event)"
                 >
-                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ time }}</option>
+                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ toMeasure(time) }}</option>
                 </select>
               </div>
             </div>
@@ -91,7 +91,7 @@
             </div>
 
             <div class="polyrhythm-card-row">
-              <div>Humanize</div>
+              <div>Humanize rhythm</div>
               <div class="width100px">
                 <div class="width100px">
                   <select
@@ -157,6 +157,7 @@ import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 import {LFO} from "~/lib/LFO";
+import {toMeasure} from "../../lib/utils/toMeasure";
 
 const props = defineProps<{
   track: Track,

@@ -43,7 +43,20 @@
         <SimpleButton class="big" @click="onHumanizeTrack">Humanize</SimpleButton>
       </div>
 
+      <div v-if="selectedTrack?.type === TrackTypes.synth" class="">
+        <SimpleButton class="big" @click="onGenerateBassline">Improvise</SimpleButton>
+      </div>
+
       <div class="row full-size">
+        <label for="swing-subdivision">Swing Subdivision</label>
+
+        <select id="swing-subdivision" v-model="swingSubdivision" class="full-size big">
+          <option
+              v-for="subdivision in DELAY_OPTIONS"
+              :key="subdivision"
+              :value="subdivision">{{ toMeasure(Tone.Time(subdivision)) }}
+          </option>
+        </select>
         <SimpleButton class="big" @click="onSwingTrack(0)">Swing 0%</SimpleButton>
         <SimpleButton class="big" @click="onSwingTrack(25)">Swing 25%</SimpleButton>
         <SimpleButton class="big" @click="onSwingTrack(50)">Swing 50%</SimpleButton>
@@ -60,26 +73,27 @@
           Change
         </SampleEditorButton>
       </div>
-
-      <div v-if="selectedTrack?.type === TrackTypes.synth" class="">
-        <SimpleButton class="big" @click="onGenerateBassline">Improvise</SimpleButton>
-      </div>
     </div>
   </n-card>
 </template>
 
 <script lang="ts" setup>
-import {DEFAULT_NOTE, GridCell, GridCellModifierTypes, Sequencer} from "~/lib/Sequencer";
+import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
 import {TrackTypes} from "~/lib/SoundEngine";
 import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import * as Tone from "tone/Tone";
 import {NCard} from "naive-ui";
+import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import {DELAY_OPTIONS} from "@/constants";
+import {toMeasure} from "../../../lib/utils/toMeasure";
 
 const store = useSelectedTrackNumber()
 const sequencer = Sequencer.getInstance()
+
+const swingSubdivision = ref('8n')
 
 const selectedTrack = computed(() => {
   return sequencer.soundEngine.tracks[store.selectedTrackIndex]
@@ -199,7 +213,11 @@ const onSwingTrack = (swingPercentage: number) => {
   }
 
   sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
-    cell.modifiers.set(GridCellModifierTypes.swing, {type: GridCellModifierTypes.swing, swing: swingPercentage})
+    cell.modifiers.set(GridCellModifierTypes.swing, {
+      type: GridCellModifierTypes.swing,
+      swing: swingPercentage,
+      subdivision: Tone.Time(swingSubdivision.value) as Tone.Unit.Time
+    })
   })
 }
 </script>
