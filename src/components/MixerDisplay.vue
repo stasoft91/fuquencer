@@ -71,6 +71,7 @@
   width: 6rem;
 }
 </style>
+
 <script lang="ts" setup>
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {Sequencer} from "~/lib/Sequencer";

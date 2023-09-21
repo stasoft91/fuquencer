@@ -137,7 +137,8 @@ const onMaxChange = (lfo: LFO, $ev: Event) => {
 }
 
 const onBtnDeleteClick = (lfo: LFO) => {
-  if (!prompt('Are you sure?')) {
+  // TODO confirm :(
+  if (!confirm('Are you sure?')) {
     return
   }
 

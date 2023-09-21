@@ -192,8 +192,8 @@ export class LFO {
 		} else if (this._type.value === 'oneshot') {
 			this._lfo = new Tone.Loop((time) => {
 				this._destination.cancelScheduledValues(time - 0.01)
-				this._destination.rampTo(this._min.value, 0.001, time - 0.001)
-				this._destination.rampTo(this._max.value, Tone.Time(this._frequency.value, 'hz') as Tone.Unit.Time, time)
+				this._destination.exponentialRampTo(this._min.value, 0.001, time - 0.001)
+				this._destination.exponentialRampTo(this._max.value, Tone.Time(this._frequency.value, 'hz') as Tone.Unit.Time, time)
 				
 				this._lfo.stop(time + Tone.Time(this._frequency.value, 'hz').toSeconds())
 			});
