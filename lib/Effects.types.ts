@@ -147,7 +147,6 @@ export type AutoDuck = {
 
 export type UniversalEffect = (AutoFilter | AutoPanner | AutoWah | BitCrusher | Chebyshev | Chorus | Distortion | FeedbackDelay | Freeverb | FrequencyShifter | JCReverb | Phaser | PingPongDelay | PitchShift | Reverb | StereoWidener | Tremolo | Vibrato | Compressor | AutoDuck)
 	& {
-		isHidden?: boolean,
 	[other: string]: any
 	};
 

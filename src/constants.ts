@@ -185,7 +185,6 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			sustain: 0,
 			delay: 0,
 		},
-		// isHidden: true
 	} as UniversalEffect
 ]
 
