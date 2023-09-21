@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
 import type {Ref} from "vue"
 import {ref} from "vue";
+import type {GridCell} from "~/lib/GridCell";
 
 export enum GridEditorToolsEnum {
 	DRAW = 'DRAW',
@@ -9,10 +10,20 @@ export enum GridEditorToolsEnum {
 
 export const useGridEditor = defineStore('gridEditor', () => {
 	const selectedGridEditorTool: Ref<GridEditorToolsEnum> = ref(GridEditorToolsEnum.DRAW)
+	const selectedGridCell: Ref<GridCell | null> = ref(null)
 	
 	function setGridEditorTool(newVal: GridEditorToolsEnum) {
 		selectedGridEditorTool.value = newVal
 	}
 	
-	return {setGridEditorTool, selectedGridEditorTool}
+	function setSelectedGridCell(newVal: GridCell | null) {
+		selectedGridCell.value = newVal
+	}
+	
+	return {
+		setGridEditorTool,
+		selectedGridEditorTool,
+		setSelectedGridCell,
+		selectedGridCell
+	}
 })

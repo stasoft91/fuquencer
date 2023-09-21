@@ -1,13 +1,24 @@
 import * as Tone from "tone/Tone";
+import type {PatternName} from "~/lib/PatternGenerator";
+import {DEFAULT_NOTE} from "~/lib/Sequencer";
+
+export interface GridCellArpeggiator {
+	pulses: number,
+	parts: number,
+	shift: number,
+	type: PatternName,
+	gate: Tone.Unit.Time,
+}
 
 export interface GridCellOptions {
 	id: string
-	note: string | string []
+	notes: string[]
 	velocity: number
 	row: number
 	column: number
 	duration: Tone.Unit.Time
 	modifiers: Map<GridCellModifierTypes, GridCellModifier>
+	arpeggiator?: GridCellArpeggiator
 }
 
 export enum GridCellModifierTypes {
@@ -97,26 +108,28 @@ export type SlideParams = {
 }
 
 export class GridCell implements GridCellOptions {
-	public note: string | string[] = ''
+	public notes: string[] = [DEFAULT_NOTE]
 	public velocity: number = 0
 	public row: number = 0
 	public column: number = 0
 	public duration: Tone.Unit.Time = Tone.Time('16n') as Tone.Unit.Time
 	public modifiers: Map<GridCellModifierTypes, GridCellModifier> = new Map()
+	public arpeggiator?: GridCellArpeggiator
 	
 	constructor(params: Partial<GridCell>) {
-		const {note, velocity, row, column, duration} = params
+		const {notes, velocity, row, column, duration, arpeggiator} = params
 		
 		if (!row || !column) {
 			throw new Error('GridCell: row and column are required')
 		}
 		
-		this.note = note ?? ''
+		this.notes = notes ?? [DEFAULT_NOTE]
 		this.velocity = velocity ?? 0
 		this.row = row
 		this.column = column
 		this.duration = duration ?? Tone.Time('16n') as Tone.Unit.Time
 		this.modifiers = params.modifiers ?? new Map()
+		this.arpeggiator = arpeggiator ?? undefined
 	}
 	
 	public get id(): string {

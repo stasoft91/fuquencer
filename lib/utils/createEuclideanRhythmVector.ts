@@ -1,4 +1,4 @@
-export function euclideanRhythm(pulses: number, parts: number): (0 | 1)[] {
+export function createEuclideanRhythmVector(pulses: number, parts: number): (0 | 1)[] {
 	if (parts < 1) {
 		return [];
 	}
@@ -20,4 +20,8 @@ export function euclideanRhythm(pulses: number, parts: number): (0 | 1)[] {
 	}
 	
 	return pattern;
+}
+
+export const shiftVector = (vector: (0 | 1)[], shift: number) => {
+	return vector.slice(shift).concat(vector.slice(0, shift))
 }

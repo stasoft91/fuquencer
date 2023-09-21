@@ -126,7 +126,8 @@ export class PolyrhythmLoop {
 			return;
 		}
 		
-		this._track.source.releaseAll()?.triggerAttackRelease(this._note.value, this._duration.value, time);
+		this._track.source.releaseAll(time)
+		this._track.source.triggerAttackRelease(this.note, this.duration, time)
 	}
 }
 

@@ -77,6 +77,12 @@
           >
             <NIcon :component="StopIcon"></NIcon>
           </button>
+          <button
+              class="btn-delete"
+              @click="onBtnDeleteClick(lfo)"
+          >
+            <NIcon :component="DeleteIcon"></NIcon>
+          </button>
         </div>
       </div>
     </div>
@@ -86,7 +92,7 @@
 <script lang="ts" setup>
 import {triggerRef} from 'vue'
 import {NIcon} from "naive-ui";
-import {Play as PlayIcon, Stop as StopIcon} from "@vicons/ionicons5";
+import {Play as PlayIcon, Stop as StopIcon, Trash as DeleteIcon} from "@vicons/ionicons5";
 import type {LFOType} from "~/lib/LFO";
 import {LFO} from "~/lib/LFO";
 import {Sequencer} from "~/lib/Sequencer";
@@ -127,6 +133,15 @@ const onMinChange = (lfo: LFO, $ev: Event) => {
 
 const onMaxChange = (lfo: LFO, $ev: Event) => {
   lfo.max = Number(($ev.target as HTMLInputElement).value)
+  triggerRef(sequencer.LFOs)
+}
+
+const onBtnDeleteClick = (lfo: LFO) => {
+  if (!prompt('Are you sure?')) {
+    return
+  }
+
+  sequencer.removeLFO(lfo)
   triggerRef(sequencer.LFOs)
 }
 </script>

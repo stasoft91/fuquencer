@@ -58,9 +58,9 @@
           </option>
         </select>
         <SimpleButton class="big" @click="onSwingTrack(0)">Swing 0%</SimpleButton>
+        <SimpleButton class="big" @click="onSwingTrack(12.5)">Swing 12.5%</SimpleButton>
         <SimpleButton class="big" @click="onSwingTrack(25)">Swing 25%</SimpleButton>
         <SimpleButton class="big" @click="onSwingTrack(50)">Swing 50%</SimpleButton>
-        <SimpleButton class="big" @click="onSwingTrack(75)">Swing 75%</SimpleButton>
       </div>
 
       <div v-if="selectedTrack?.type === TrackTypes.sample" class="full-size">
@@ -88,7 +88,7 @@ import * as Tone from "tone/Tone";
 import {NCard} from "naive-ui";
 import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
 import {DELAY_OPTIONS} from "@/constants";
-import {toMeasure} from "../../../lib/utils/toMeasure";
+import {toMeasure} from "~/lib/utils/toMeasure";
 
 const store = useSelectedTrackNumber()
 const sequencer = Sequencer.getInstance()
@@ -109,7 +109,7 @@ const onFillTrack = (repeats?: number) => {
       row: trackNumber,
       column: i,
       velocity: 0,
-      note: DEFAULT_NOTE,
+      notes: [DEFAULT_NOTE],
     }))
   }
 
@@ -124,7 +124,7 @@ const onFillTrack = (repeats?: number) => {
       row: trackNumber,
       column: i,
       velocity: 100,
-      note: DEFAULT_NOTE,
+      notes: [DEFAULT_NOTE],
     }))
   }
 }

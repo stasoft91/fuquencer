@@ -13,10 +13,12 @@ import {
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {Sequencer} from "~/lib/Sequencer";
 import SettingsDrawer from "@/components/ui/SettingsDrawer.vue";
-import {h, onMounted, ref, resolveComponent} from "vue";
+import {computed, h, onMounted, ref, resolveComponent} from "vue";
 import {VERSION} from "@/constants";
 import * as Tone from "tone/Tone";
-import {GridEditorToolsEnum, useGridEditor} from "@/stores/gridEditor";
+import {useGridEditor} from "@/stores/gridEditor";
+import StepJobs from "@/components/AvailableSides/StepJobs.vue";
+import type {GridCell} from "~/lib/GridCell";
 
 const dialog = useDialog()
 
@@ -25,8 +27,8 @@ onMounted(() => {
 })
 
 const sequencer = Sequencer.getInstance(16) // the creation is supposed to be done only once - here
-const gridEditor = useGridEditor()
 
+const gridEditor = useGridEditor()
 
 const isSettingsOpen = ref(false);
 
@@ -45,9 +47,13 @@ const showInfo = (() => {
   })
 })
 
-const setDrawMode = (mode: GridEditorToolsEnum) => {
-  gridEditor.setGridEditorTool(mode)
-}
+const hasCellInEdit = computed(() => {
+  return gridEditor.selectedGridCell !== null
+})
+
+const selectedCell = computed(() => {
+  return gridEditor.selectedGridCell as GridCell | null
+})
 
 </script>
 
@@ -92,7 +98,17 @@ const setDrawMode = (mode: GridEditorToolsEnum) => {
 
   <div class="grid">
     <aside>
-      <TrackJobs :key="sequencer.isPlaying.toString()"></TrackJobs>
+      <TrackJobs v-if="!hasCellInEdit" :key="selectedCell?.id"></TrackJobs>
+      <StepJobs v-if="selectedCell !== null && hasCellInEdit"
+                :key="selectedCell.id"
+                :duration="Tone.Time(selectedCell.duration).toSeconds()"
+                :gate="selectedCell.arpeggiator?.gate"
+                :notes="selectedCell.notes"
+                :parts="selectedCell.arpeggiator?.parts"
+                :pulses="selectedCell.arpeggiator?.pulses"
+                :shift="selectedCell.arpeggiator?.shift"
+                :type="selectedCell.arpeggiator?.type"
+      ></StepJobs>
     </aside>
 
     <main>
@@ -100,7 +116,7 @@ const setDrawMode = (mode: GridEditorToolsEnum) => {
     </main>
 
     <aside>
-      <LFOJobs :key="sequencer.isPlaying.toString()"></LFOJobs>
+      <LFOJobs v-if="sequencer.LFOs.value.length" :key="sequencer.LFOs.value.length"></LFOJobs>
     </aside>
   </div>
 

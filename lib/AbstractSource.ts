@@ -191,7 +191,7 @@ export default class AbstractSource {
 		}
 	}
 	
-	public triggerAttackRelease(note: string | Tone.Unit.Frequency, duration: Tone.Unit.Time, time?: Tone.Unit.Time, velocity?: number): Tone.Sampler | Tone.MonoSynth {
+	public triggerAttackRelease(note: Tone.Unit.Frequency, duration: Tone.Unit.Time, time?: Tone.Unit.Time, velocity?: number): Tone.Sampler | Tone.MonoSynth {
 		if (this.isSampler) {
 			this._filterEnvelope.triggerAttackRelease(duration, time, velocity)
 			

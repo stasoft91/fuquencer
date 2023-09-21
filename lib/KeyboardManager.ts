@@ -52,6 +52,7 @@ export class KeyboardManager {
 	}
 
 	private _isAudible = ref(false);
+	private _isRecording = ref(false);
 
 	public get isAudible(): boolean {
 		return this._isAudible.value;
@@ -61,7 +62,6 @@ export class KeyboardManager {
 		this._isAudible.value = value;
 	}
 
-	private _isRecording = ref(false);
 	
 	public get isRecording(): boolean {
 		return this._isRecording.value;
@@ -105,6 +105,10 @@ export class KeyboardManager {
 	}
 	
 	private sourceTriggerAttack(e: KeyboardEvent) {
+		if (!this.isAudible) {
+			return;
+		}
+		
 		const note = keyboardMapNotes[e.key.toLowerCase()];
 		
 		if (!note) {
@@ -129,12 +133,16 @@ export class KeyboardManager {
 				column: seq.currentStep,
 				row: seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
 				velocity: velocity * 100,
-				note,
+				notes: [note],
 			}))
 		}
 	}
 	
 	private sourceTriggerRelease(e: KeyboardEvent) {
+		if (!this.isAudible) {
+			return;
+		}
+		
 		const note = keyboardMapNotes[e.key];
 		
 		if (!note) {

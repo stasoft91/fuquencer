@@ -85,7 +85,7 @@
                     class="select"
                     @change="onLoopUpdate(loop, 'interval', $event)"
                 >
-                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ time }}</option>
+                  <option v-for="time in DELAY_OPTIONS" :key="time" :value="time">{{ toMeasure(time) }}</option>
                 </select>
               </div>
             </div>
@@ -99,7 +99,10 @@
                       class="select"
                       @change="onLoopUpdate(loop, 'humanize', $event)"
                   >
-                    <option v-for="time in DELAY_OPTIONS_WITH_ZERO" :key="time" :value="time">{{ time }}</option>
+                    <option v-for="time in DELAY_OPTIONS_WITH_ZERO" :key="time" :value="time">{{
+                        toMeasure(time)
+                      }}
+                    </option>
                   </select>
                 </div>
               </div>

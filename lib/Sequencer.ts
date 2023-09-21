@@ -10,6 +10,7 @@ import type {LFO} from "~/lib/LFO";
 import AbstractSource from "~/lib/AbstractSource";
 import type {
   FlamParams,
+  GridCellArpeggiator,
   GridCellModifier,
   ProbabilityParams,
   SkipParams,
@@ -17,6 +18,9 @@ import type {
   SwingParams
 } from "~/lib/GridCell";
 import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import {createEuclideanRhythmVector, shiftVector} from "~/lib/utils/createEuclideanRhythmVector";
+import {PatternGenerator} from "~/lib/PatternGenerator";
+import {useGridEditor} from "@/stores/gridEditor";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -38,12 +42,13 @@ export function generateListOfAvailableNotes(): string[] {
 
 export type PartEvent = {
   time: any
-  note: string[] | string,
+  notes: string[],
   velocity: number,
   duration: string,
   modifiers: Map<GridCellModifierTypes, GridCellModifier>
   column: number
   row: number
+  arpeggiator?: GridCellArpeggiator
 }
 
 export const AVAILABLE_NOTES = generateListOfAvailableNotes()
@@ -201,14 +206,21 @@ export class Sequencer {
     const cellIndex = this.getCellIndex(cell.row, cell.column)
     this._sequenceGrid.value[cellIndex] = cell
     
+    const gridEditor = useGridEditor()
+    
+    if (gridEditor.selectedGridCell?.id === cell.id) {
+      useGridEditor().setSelectedGridCell(cell)
+    }
+    
     if (this._parts[cell.row - 1]) {
       this._parts[cell.row - 1].at(getBarsBeatsSixteensFromStep(cell.column - 1), {
-        note: cell.note,
+        notes: cell.notes,
         velocity: (cell.velocity ?? 0) / 100,
         duration: cell.duration,
         modifiers: cell.modifiers,
         column: cell.column,
-        row: cell.row
+        row: cell.row,
+        arpeggiator: cell.arpeggiator
       } as PartEvent)
     }
   }
@@ -233,7 +245,7 @@ export class Sequencer {
         this._sequenceGrid.value.push(new GridCell({
           row: i,
           column: j,
-          note: DEFAULT_NOTE,
+          notes: [DEFAULT_NOTE],
           velocity: 0,
           duration: Tone.Time('16n') as Tone.Unit.Time,
           modifiers: new Map()
@@ -281,7 +293,10 @@ export class Sequencer {
         return
       }
       
-      cell.note = notesInKey.sort(() => Math.random() - 0.5)[Math.floor(Math.random() * notesInKey.length)]
+      cell.notes = [
+        // get random note from notesInKey
+        notesInKey.sort(() => Math.random() - 0.5) [Math.floor(Math.random() * notesInKey.length)]
+      ]
       
       this.writeCell(cell)
     })
@@ -305,43 +320,43 @@ export class Sequencer {
     
     for (let i = 0; i < this.soundEngine.tracks.length; i++) {
       const part = new Tone.Part(
-        ((time, value: PartEvent) => {
+        ((time, partEvent: PartEvent) => {
           const track = this.soundEngine.tracks[i]
           
-          if (value.velocity === 0) {
+          if (partEvent.velocity === 0) {
             return
           }
           
           // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
           if (i === 0 && !track.meta.get('mute')) {
-            track.sidechainEnvelope?.triggerAttackRelease(value.duration, time)
+            track.sidechainEnvelope?.triggerAttackRelease(partEvent.duration, time)
           }
           
-          new Promise(() => console.log('PART', i, value.note, value.velocity, value.duration, time, Tone.Time(time).toBarsBeatsSixteenths(), value.modifiers))
+          new Promise(() => console.log('PART', i, partEvent.notes, partEvent.velocity, partEvent.duration, Tone.Time(time).toBarsBeatsSixteenths(), partEvent.modifiers, partEvent.arpeggiator))
           
-          if (value.modifiers.has(GridCellModifierTypes.probability)) {
-            const probabilityParams = value.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
+          if (partEvent.modifiers.has(GridCellModifierTypes.probability)) {
+            const probabilityParams = partEvent.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
             
             if (Math.random() * 100 > probabilityParams.probability) {
               return
             }
           }
           
-          if (value.modifiers.has(GridCellModifierTypes.skip)) {
-            const skipParams = value.modifiers.get(GridCellModifierTypes.skip) as SkipParams
+          if (partEvent.modifiers.has(GridCellModifierTypes.skip)) {
+            const skipParams = partEvent.modifiers.get(GridCellModifierTypes.skip) as SkipParams
             
-            this.readCell(value.row, value.column).modifiers.set(GridCellModifierTypes.skip, {
+            this.readCell(partEvent.row, partEvent.column).modifiers.set(GridCellModifierTypes.skip, {
               type: GridCellModifierTypes.skip,
               skip: skipParams.skip,
               timesTriggered: skipParams.timesTriggered ? skipParams.timesTriggered + 1 : 1,
             })
             
-            const skipParamsForCell = this.readCell(value.row, value.column).modifiers.get(GridCellModifierTypes.skip) as SkipParams
+            const skipParamsForCell = this.readCell(partEvent.row, partEvent.column).modifiers.get(GridCellModifierTypes.skip) as SkipParams
             
             if (skipParamsForCell.timesTriggered && skipParamsForCell.timesTriggered % skipParams.skip !== 0) {
               return
             } else {
-              value.modifiers.set(GridCellModifierTypes.skip, {
+              partEvent.modifiers.set(GridCellModifierTypes.skip, {
                 type: GridCellModifierTypes.skip,
                 skip: skipParams.skip,
                 timesTriggered: 0,
@@ -349,8 +364,8 @@ export class Sequencer {
             }
           }
           
-          if (value.modifiers.has(GridCellModifierTypes.swing)) {
-            const swingParams = value.modifiers.get(GridCellModifierTypes.swing) as SwingParams
+          if (partEvent.modifiers.has(GridCellModifierTypes.swing)) {
+            const swingParams = partEvent.modifiers.get(GridCellModifierTypes.swing) as SwingParams
             
             time = Tone.Time(time).quantize(swingParams.subdivision, swingParams.swing / 100)
           }
@@ -358,8 +373,8 @@ export class Sequencer {
           // Reset portamento
           track.source.set({portamento: 0})
           
-          if (value.modifiers.has(GridCellModifierTypes.slide)) {
-            const slideParams = value.modifiers.get(GridCellModifierTypes.slide) as SlideParams
+          if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
+            const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
             
             if (slideParams.slide) {
               track.source.set({portamento: slideParams.slide / 1000})
@@ -368,33 +383,33 @@ export class Sequencer {
             }
           }
           
-          if (value.modifiers.has(GridCellModifierTypes.flam)) {
-            const flamParams = value.modifiers.get(GridCellModifierTypes.flam) as FlamParams
+          if (partEvent.modifiers.has(GridCellModifierTypes.flam)) {
+            const flamParams = partEvent.modifiers.get(GridCellModifierTypes.flam) as FlamParams
             
-            const timeOfOneFullNote = Tone.Time(value.duration).toSeconds()
+            const timeOfOneFullNote = Tone.Time(partEvent.duration).toSeconds()
             const timeOfOneFlamNote = timeOfOneFullNote / flamParams.roll
             
             for (let i = 0; i < flamParams.roll; i++) {
               track.source.releaseAll(time)
               
-              let velocity = flamParams.velocity ?? (value.velocity)
+              let velocity = flamParams.velocity ?? (partEvent.velocity)
               
               if (flamParams.increaseVelocityFrom) {
                 velocity = flamParams.increaseVelocityFrom + (velocity - flamParams.increaseVelocityFrom) * (i / flamParams.roll)
               }
               
               let note: string;
-              if (value.note instanceof Array) {
+              if (partEvent.notes.length > 1) {
                 // map roll count to note of pattern
-                const noteIndex = Math.floor(i / flamParams.roll * value.note.length)
-                note = value.note[noteIndex]
+                const noteIndex = Math.floor(i / flamParams.roll * partEvent.notes.length)
+                note = partEvent.notes[noteIndex]
               } else {
-                note = value.note
+                note = partEvent.notes[0]
               }
               
               track.source.triggerAttackRelease(
                 note,
-                value.duration,
+                partEvent.duration,
                 time,
                 velocity
               )
@@ -405,22 +420,62 @@ export class Sequencer {
             return
           }
           
-          if (value.note instanceof Array) {
-            const timeOfOneArpNote = Tone.Time(value.duration).toSeconds() / value.note.length
+          // TODO should we decide part is an Arpeggiator only based on the Array passed in?
+          if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
+            const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
             
-            value.note.forEach((note) => {
-              track.source.releaseAll(time)
+            const euclideanRhythmVector = createEuclideanRhythmVector(pulses, parts)
+            
+            const shiftedEuclideanRhythmVector = shiftVector(euclideanRhythmVector, shift)
+            
+            console.log(shift, euclideanRhythmVector, shiftedEuclideanRhythmVector)
+            
+            const timeOfOneRhythmPart = Tone.Time(partEvent.duration).toSeconds() / shiftedEuclideanRhythmVector.length
+            
+            let arpMicroTime = -timeOfOneRhythmPart
+            
+            const patternNoteIndex = PatternGenerator(partEvent.notes.length, type)
+            
+            shiftedEuclideanRhythmVector.forEach((hasPulse) => {
+              arpMicroTime += timeOfOneRhythmPart
+              
+              if (!hasPulse) {
+                return
+              }
+              
+              //todo: check arp note lengths, seems wrong to use
+              
+              track.source.releaseAll(time + arpMicroTime) ||
+              track.source.triggerRelease(undefined, time + arpMicroTime)
+              
               track.source.triggerAttackRelease(
-                note,
-                value.duration,
-                time,
-                value.velocity
+                partEvent.notes[patternNoteIndex.next().value],
+                gate,
+                time + arpMicroTime,
+                partEvent.velocity
               )
-              time += timeOfOneArpNote
             })
+            
+            // const timeOfOneArpNote = Tone.Time(value.duration).toSeconds() / value.note.length
+            // value.note.forEach((note) => {
+            //   track.source.releaseAll(time)
+            //   track.source.triggerAttackRelease(
+            //     note,
+            //     value.duration,
+            //     time,
+            //     value.velocity
+            //   )
+            //   time += timeOfOneArpNote
+            // })
           } else {
+            // if there is 1 note, just play it
+            
+            if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
+              console.error('Arpeggiator is not defined, yet multiple notes came in')
+            }
+            
             track.source
-              .triggerAttackRelease(value.note, value.duration, time, value.velocity);
+              .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
           }
         }),
         [
@@ -429,12 +484,13 @@ export class Sequencer {
             
             return {
               time: getBarsBeatsSixteensFromStep(step),
-              note: _.note,
+              notes: _.notes,
               velocity: _.velocity / 100,
               duration: _.duration,
               modifiers: _.modifiers,
               column: _.column,
-              row: _.row
+              row: _.row,
+              arpeggiator: _.arpeggiator
             } as PartEvent
           })
         ]

@@ -87,17 +87,23 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
-  const noteIndex = AVAILABLE_NOTES.indexOf(cell.note)
+  const noteIndex = AVAILABLE_NOTES.indexOf(cell.notes[0])
 
   if (event.shiftKey) {
     cell.velocity = cell.velocity + (event.deltaY < 0 ? 10 : -10)
     cell.velocity = Math.max(0, Math.min(100, cell.velocity))
 
   } else if (event.ctrlKey) {
+    // don't allow to change note if there are multiple notes
+    if (cell.notes.length > 1) {
+      return
+    }
+
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 12 : -12)
-    cell.note =
+    cell.notes = [
       AVAILABLE_NOTES[newNoteIndex] ||
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
+    ]
 
   } else if (event.altKey) {
     if (!cell.velocity) {
@@ -135,10 +141,16 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
     cell.duration = Tone.Time(newDuration) as Tone.Unit.Time
 
   } else {
+    // don't allow to change note if there are multiple notes
+    if (cell.notes.length > 1) {
+      return
+    }
+
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 1 : -1)
-    cell.note =
+    cell.notes = [
       AVAILABLE_NOTES[newNoteIndex] ||
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
+    ]
   }
 
   sequencer.writeCell(cell)

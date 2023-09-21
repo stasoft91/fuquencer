@@ -1,7 +1,8 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
+import type {PatternName} from "~/lib/PatternGenerator";
 
-export const VERSION = '0.7.2'
+export const VERSION = '0.8.0'
 
 
 export const GRID_ROWS = 8;
@@ -192,7 +193,6 @@ export const AVAILABLE_OSCILLATOR_TYPES: Tone.ToneOscillatorType[] = ["sawtooth"
 export const DELAY_OPTIONS: string[] = ['1m', '2n', '2n.', '4n', '4n.', '8n', '8n.', '16n', '16n.'];
 export const DELAY_OPTIONS_ADDITIONAL: string[] = ['32n', '32n.', '64n', '128n', '256n', '256t'];
 export const DELAY_OPTIONS_WITH_ZERO: string[] = ['0', ...DELAY_OPTIONS_ADDITIONAL];
-
 export const DELAY_OPTIONS_LONG: string[] = [
 	(1.5 * Tone.Time('1n').toSeconds()).toString(),
 	(2 * Tone.Time('1n').toSeconds()).toString(),
@@ -201,6 +201,8 @@ export const DELAY_OPTIONS_LONG: string[] = [
 	(3.5 * Tone.Time('1n').toSeconds()).toString(),
 	(4 * Tone.Time('1n').toSeconds()).toString(),
 ].reverse()
+
+export const AVAILABLE_ARPEGGIATOR_TYPES: PatternName[] = ["up", "down", "upDown", "downUp", "alternateUp", "alternateDown", "random", "randomOnce", "randomWalk"];
 
 // below is two-dimensional array of options names per each effect
 export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParametersDescriptor<any>[]> = {

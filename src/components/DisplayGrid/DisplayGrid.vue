@@ -22,9 +22,7 @@
 
         <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
           <span class="display-grid__cell__content__note">
-            <span class="display-grid__cell__content__note__name">{{
-                Array.isArray(gridCell.note) ? 'arp' : gridCell.note
-              }}</span>
+            <span class="display-grid__cell__content__note__name">{{ getNoteText(gridCell) }}</span>
           </span>
           <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
           <span class="display-grid__cell__content__duration">{{ toMeasure(gridCell.duration) }}</span>
@@ -131,6 +129,11 @@ button.display-grid__cell.row-with-opacity {
 
 button.display-grid__cell.row-with-opacity.is-hovered {
   opacity: 1;
+}
+
+button.display-grid__cell.is-editing {
+  box-shadow: inset 0 0 2px 2px $color-orange-opaque,
+  inset 0 0 3px 3px $color-orange-opaque-lighter500;
 }
 
 .display-grid__cell__content {
@@ -262,8 +265,11 @@ import {NDropdown} from "naive-ui";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
 import * as Tone from "tone/Tone";
+import {useGridEditor} from "@/stores/gridEditor";
 
 const sequencer = Sequencer.getInstance()
+
+const gridEditor = useGridEditor()
 
 interface DisplayGridProps {
   tracks: Track[],
@@ -277,6 +283,8 @@ const x = ref(0)
 const y = ref(0)
 
 const hoveredCell = ref<GridCell | null>(null)
+
+const gridEditorStore = useGridEditor()
 
 const dropdownOptions = [
   {
@@ -296,8 +304,8 @@ const dropdownOptions = [
     key: 'add-skip'
   },
   {
-    label: 'Arp',
-    key: 'add-arp'
+    label: 'Edit Step',
+    key: 'edit-step'
   },
   {
     label: 'Clear',
@@ -308,12 +316,18 @@ const dropdownOptions = [
 const handleSelect = (key: string) => {
   isDropdownOpened.value = false
 
-  if (!cellOfContextMenu.value) {
+  if (!cellOfContextMenu.value || !cellOfContextMenu.value?.velocity) {
     return;
   }
 
   if (key === 'add-probability') {
     const probability: number = parseInt(prompt('Probability [0-100]', '50') || '50') || 50
+
+    if (probability === 100) {
+      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.probability)
+      sequencer.writeCell(cellOfContextMenu.value)
+      return
+    }
 
     cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.probability, {
       type: GridCellModifierTypes.probability,
@@ -325,7 +339,7 @@ const handleSelect = (key: string) => {
     // TODO: prompt :(
     const flam: number = parseInt(prompt('How many times to repeat? [0-99]', '4') || '1') || 1
 
-    if (!flam) {
+    if (flam === 0 || flam === 1) {
       cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.flam)
       sequencer.writeCell(cellOfContextMenu.value)
       return
@@ -361,6 +375,12 @@ const handleSelect = (key: string) => {
     // TODO: prompt :(
     const slide: number = parseInt(prompt('Portamento (milliseconds) [0-9999]', '100') || '0') || 0
 
+    if (slide === 0) {
+      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.slide)
+      sequencer.writeCell(cellOfContextMenu.value)
+      return
+    }
+
     cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.slide, {
       type: GridCellModifierTypes.slide,
       slide: slide,
@@ -368,9 +388,8 @@ const handleSelect = (key: string) => {
     sequencer.writeCell(cellOfContextMenu.value)
   }
 
-  if (key === 'add-arp') {
-    cellOfContextMenu.value.note = ["C2", "E2", "B2", "F2"]
-    sequencer.writeCell(cellOfContextMenu.value)
+  if (key === 'edit-step') {
+    gridEditor.setSelectedGridCell(cellOfContextMenu.value)
   }
 
   if (key === 'clear') {
@@ -393,6 +412,10 @@ const handleContextMenu = (e: MouseEvent) => {
       cell.column === Number(dataColumn)
   ) ?? null
 
+  if (!cellOfContextMenu.value?.velocity) {
+    return
+  }
+
   nextTick().then(() => {
     isDropdownOpened.value = true
     x.value = e.clientX
@@ -410,10 +433,10 @@ const props = withDefaults(defineProps<DisplayGridProps>(), {
 });
 
 const emit = defineEmits([
-    'change',
-    'click',
-    'wheel',
-    'ctrl-wheel',
+  'change',
+  'click',
+  'wheel',
+  'ctrl-wheel',
   'shift-wheel',
   'alt-wheel'
 ])
@@ -465,9 +488,8 @@ const getClassesForCell = (gridCell: GridCell) => {
         hoveredCell.value !== null &&
         hoveredCell.value.row === gridCell.row &&
         stepOfHoveredCellFinish.value !== null,
-    // gridCell.column > hoveredCell.value.column &&
-    // gridCell.column < stepOfHoveredCellFinish.value,
-    'is-hovered': hoveredCell.value?.id === gridCell.id
+    'is-hovered': hoveredCell.value?.id === gridCell.id,
+    'is-editing': gridEditorStore.selectedGridCell?.id === gridCell.id,
   }
 }
 
@@ -519,7 +541,7 @@ const getClassForIndicator = (gridCell: GridCell) => {
 
   let active: boolean
 
-  // todo fix step indication for polymeter tracks, for now it will indicate step right only on 16 steps part (or twice on 8 steps part)
+  // todo fix step indication for polyrhythm tracks, for now it will indicate step right only on 16 steps part (or twice on 8 steps part)
 
   active = gridCell.column === sequencer.currentStep
 
@@ -541,7 +563,7 @@ const getClassForIndicator = (gridCell: GridCell) => {
 }
 
 const getSkipCellText = (gridCell: GridCell): string => {
-  if (gridCell.modifiers.size === 0 || gridCell.modifiers.get(GridCellModifierTypes.skip) === undefined) {
+  if (gridCell.modifiers.size === 0 || !gridCell.modifiers.get(GridCellModifierTypes.skip)) {
     return ''
   }
 
@@ -554,7 +576,11 @@ const getSkipCellText = (gridCell: GridCell): string => {
 
 const stepOfHoveredCellFinish = ref<number | null>(1)
 
-// convert cell column and duration to stepfinish
+/**
+ * Returns the step of the cell finish, based on the cell duration
+ * @param cell
+ * @param duration
+ */
 const stepOfCellFinish = (cell: GridCell, duration: Tone.Unit.Time): number => {
   return cell.column + getStepFromBarsBeatsSixteens(Tone.Time(duration).toBarsBeatsSixteenths()) - 1
 }
@@ -574,7 +600,7 @@ const handleMouseEnter = (e: MouseEvent) => {
 
   const durationOf16n = Tone.Time('16n')
 
-  // First of all all of this can happen only if cell is longer than 1/16
+  // all of this can happen only if cell is longer than 1/16
   if (Tone.Time(cell.duration).toSeconds() > durationOf16n.toSeconds()) {
 
     let hasIntersection = props.items.value.filter(_ =>
@@ -608,5 +634,12 @@ const handleMouseEnter = (e: MouseEvent) => {
 
 const handleMouseLeave = () => {
   hoveredCell.value = null
+}
+
+const getNoteText = (gridCell: GridCell) => {
+  return gridCell.notes.length > 1 ? 'Arp' :
+      gridCell.notes.length === 1 ? gridCell.notes[0] :
+          'Rst'
+
 }
 </script>

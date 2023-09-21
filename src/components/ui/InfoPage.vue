@@ -6,6 +6,7 @@
     <p>Shift + wheel: velocity</p>
     <p>Ctrl + wheel: octave</p>
     <p>Wheel: note</p>
+    <p><a href="https://github.com/stasoft91/fuquencer">Github</a></p>
   </div>
 </template>
 
