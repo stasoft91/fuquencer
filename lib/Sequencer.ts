@@ -16,8 +16,9 @@ import type {
   SkipParams,
   SlideParams,
   SwingParams
-} from "~/lib/GridCell";
-import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+} from "~/lib/GridCell.types";
+import {GridCellModifierTypes} from "~/lib/GridCell.types";
+import {GridCell} from "~/lib/GridCell";
 import {createEuclideanRhythmVector, shiftVector} from "~/lib/utils/createEuclideanRhythmVector";
 import {PatternGenerator} from "~/lib/PatternGenerator";
 import {useGridEditorStore} from "@/stores/gridEditor";
@@ -100,8 +101,6 @@ export class Sequencer {
         }
       })
       
-      console.log('abstractSourceSampler', SAMPLES[i])
-      
       await abstractSourceSampler.init();
 
       this.soundEngine.addTrack(
@@ -178,10 +177,6 @@ export class Sequencer {
   public generateGrid(): GridCell[] {
     this.initGrid()
     return this._sequenceGrid.value
-  }
-
-  public advanceStep(): void {
-    this.currentStep = this.currentStep === this._sequenceLength ? 1 : this.currentStep + 1
   }
 
   public getCellIndex(row: number, column: number): number {
@@ -264,7 +259,7 @@ export class Sequencer {
     this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
       cell.velocity = cell.column % 2 === 1 ? 100 : 0;
       
-      Math.random() > 0.65 ?
+      Math.random() > 0.75 ?
         cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 50}) :
         cell.modifiers.delete(GridCellModifierTypes.probability)
       
@@ -276,7 +271,7 @@ export class Sequencer {
         cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
         cell.modifiers.delete(GridCellModifierTypes.flam)
       
-      Math.random() > 0.65 ?
+      Math.random() > 0.75 ?
         cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 120}) :
         cell.modifiers.delete(GridCellModifierTypes.slide)
       
@@ -303,12 +298,12 @@ export class Sequencer {
     })
   }
   
-  public updatePartLength(trackNumber: number, length: number): void {
+  public updatePartDuration(trackNumber: number, numOfParts: number): void {
     if (!this._parts[trackNumber - 1]) {
       return
     }
     
-    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(length)
+    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(numOfParts)
   }
   
   public async play() {

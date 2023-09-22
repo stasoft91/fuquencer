@@ -287,6 +287,6 @@ export class Track {
 		
 		const seq = Sequencer.getInstance();
 		const trackNumber = seq.soundEngine.tracks.findIndex((t) => t.name === this.name) + 1;
-		seq.updatePartLength(trackNumber, length);
+		seq.updatePartDuration(trackNumber, length);
 	}
 }
