@@ -66,7 +66,6 @@ import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import * as Tone from "tone/Tone";
 import {GridCell} from "~/lib/GridCell";
-import {useGridEditorStore} from "@/stores/gridEditor";
 
 const sequencer = Sequencer.getInstance()
 
