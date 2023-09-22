@@ -66,6 +66,7 @@ import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import * as Tone from "tone/Tone";
 import {GridCell} from "~/lib/GridCell";
+import {useGridEditorStore} from "@/stores/gridEditor";
 
 const sequencer = Sequencer.getInstance()
 
@@ -159,17 +160,13 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
 const changeCellState = (row: number, column: number) => {
   const cell = sequencer.readCell(row, column)
 
+  const newVelocity = sequencer.readCell(row, column).velocity > 0 ? 0 : 100;
+
   sequencer.writeCell(
       new GridCell({
         ...cell,
-        velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100
+        velocity: newVelocity
       })
-      // Sequencer.cell(row, column, {
-      //   velocity: sequencer.readCell(row, column).velocity > 0 ? 0 : 100,
-      //   note: sequencer.readCell(row, column).note
-      //     ? sequencer.readCell(row, column).note
-      //     : DEFAULT_NOTE
-      // })
   )
 }
 

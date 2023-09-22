@@ -2,12 +2,12 @@
   <n-card :title="getTitleForCard()" class="step-jobs-wrapper" closable @close="handleClose">
     <div class="row">
 
-      <div v-if="isArpeggio" class="row">
+      <div v-if="isArpeggio && _internalState.cell.arpeggiator" class="row">
         <div class="row">
           <label for="">Arpeggiator type</label>
           <select
               id="arpeggiator-type"
-              v-model="_internalState.type"
+              v-model="_internalState.cell.arpeggiator.type"
               class="full-size big"
           >
             <option v-for="arpType in AVAILABLE_ARPEGGIATOR_TYPES" :key="arpType" :value="arpType">
@@ -16,16 +16,20 @@
           </select>
 
           <label for="">Pulses</label>
-          <input v-model="_internalState.pulses" :max="_internalState.parts" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.pulses" class="full-size big" type="number">
 
           <label for="">Parts</label>
-          <input v-model="_internalState.parts" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.parts" class="full-size big" type="number">
 
           <label for="">Shift</label>
-          <input v-model="_internalState.shift" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.shift" class="full-size big" type="number">
 
           <label for="">Gate</label>
-          <select id="gate" v-model="_internalState.gate" class="full-size big">
+          <select
+              id="gate"
+              :value="Tone.Time(_internalState.cell.arpeggiator.gate).toSeconds()"
+              class="full-size big"
+              @change="onGateChange">
             <option v-for="measure in ['1m', '2n', '4n', '8n', '16n', '16n.', '32n', '32n.', '64n']" :key="measure"
                     :value="Tone.Time(measure).toSeconds()">{{ toMeasure(measure) }}
             </option>
@@ -35,12 +39,13 @@
 
       <div class="row">
         <label for="">Notes</label>
-        <chord-editor :value="_internalState.notes" @update:value="onUpdateNotes"></chord-editor>
+        <chord-editor :value="_internalState.cell.notes" @update:value="onUpdateNotes"></chord-editor>
 
         <label for="">Duration</label>
-        <select id="gate" :value="Tone.Time(_internalState.duration).toSeconds()"
+        <select id="gate"
+                :value="Tone.Time(_internalState.cell.duration).toSeconds()"
                 class="full-size big"
-                @change="_internalState.duration = $event.target?.value"
+                @change="onDurationChange"
         >
           <option
               v-for="measure in durationOptions.filter(_ => Tone.Time(_).toSeconds() !== selectedCellDurationSec)"
@@ -51,56 +56,149 @@
           <option :value="selectedCellDurationSec">{{ toMeasure(selectedCellDurationSec) }}</option>
         </select>
 
-        <SimpleButton class="full-size big" @click="handleArpeggiate">Apply</SimpleButton>
+        <label for="">Velocity</label>
+        <input :value="cell.velocity" class="full-size big" type="number" @change="onVelocityChange">
+
+        <label for="">Mods</label>
+
+        <div v-for="key in AVAILABLE_CELL_MODIFIERS" :key="key" class="row full-size">
+          <label for="">
+            <n-switch :value="cell.modifiers.has(key)" @update:value="setModifier(key)"/>
+            {{ key.toLocaleUpperCase() }}
+          </label>
+
+          <template v-if="cell.modifiers.has(key)">
+
+            <label v-if="key === GridCellModifierTypes.probability" for="">
+              Probability
+              <input
+                  :value="cell.modifiers.get(key)!['probability']"
+                  class="big full-size"
+                  max="100"
+                  min="0"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'probability', $event)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.flam" for="">
+              Roll
+              <input
+                  :value="cell.modifiers.get(key)!['roll']"
+                  class="full-size big"
+                  max="100"
+                  min="1"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'roll', $event)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.flam" for="">
+              Velocity [0.0 - 1.0]
+              <input
+                  v-if="key === GridCellModifierTypes.flam"
+                  :value="cell.modifiers.get(key)!['velocity']"
+                  class="full-size big"
+                  max="1"
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'velocity', $event, parseFloat)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.flam" for="">
+              Velocity start [0.0 - 1.0]
+              <input
+                  v-if="key === GridCellModifierTypes.flam"
+                  :value="cell.modifiers.get(key)!['increaseVelocityFrom']"
+                  class="full-size big"
+                  max="1"
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'increaseVelocityFrom', $event, parseFloat)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.swing" for="">
+              Swing [0-100]
+              <input
+                  :value="cell.modifiers.get(key)!['swing']"
+                  class="full-size big"
+                  max="100"
+                  min="0"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'swing', $event)">
+            </label>
+            <label v-if="key === GridCellModifierTypes.swing" for="">
+              Subdivision
+              <select
+                  v-if="key === GridCellModifierTypes.swing"
+                  :value="Tone.Time(cell.modifiers.get(key)!['subdivision']).toSeconds()"
+                  class="full-size big"
+                  @change="onCellModifierUpdate(key, 'subdivision', $event)">
+                <option v-for="measure in ['1m', '2n', '4n', '8n', '16n', '16n.', '32n', '32n.', '64n']" :key="measure"
+                        :value="Tone.Time(measure).toSeconds()">{{ toMeasure(measure) }}
+                </option>
+              </select>
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.skip" for="">
+              Skip
+              <input
+                  v-if="key === GridCellModifierTypes.skip"
+                  :value="cell.modifiers.get(key)!['skip']"
+                  class="full-size big"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'skip', $event)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.slide" for="">
+              Portamento (ms)
+              <input
+                  v-if="key === GridCellModifierTypes.slide"
+                  :value="cell.modifiers.get(key)!['slide']"
+                  class="full-size big"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'slide', $event)">
+            </label>
+
+
+          </template>
+
+
+        </div>
+
       </div>
     </div>
   </n-card>
 </template>
 
 <script lang="ts" setup>
-import {NCard} from "naive-ui";
-import {computed, onMounted, onUnmounted, onUpdated, reactive, watch} from "vue";
-import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
-import SimpleButton from "@/components/ui/SimpleButton.vue";
-import {AVAILABLE_ARPEGGIATOR_TYPES} from "@/constants";
-import {useGridEditor} from "@/stores/gridEditor";
-import type {GridCellArpeggiator} from "~/lib/GridCell";
-import {GridCell} from "~/lib/GridCell";
+import {NCard, NSwitch} from "naive-ui";
+import {computed, reactive} from "vue";
+import {Sequencer} from "~/lib/Sequencer";
+import {AVAILABLE_ARPEGGIATOR_TYPES, AVAILABLE_CELL_MODIFIERS} from "@/constants";
+import {useGridEditorStore} from "@/stores/gridEditor";
+import type {GridCellModifier} from "~/lib/GridCell";
+import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
 import ChordEditor from "@/components/ui/ChordEditor.vue";
 import * as Tone from "tone/Tone";
 import {toMeasure} from "~/lib/utils/toMeasure";
 
-const gridEditorStore = useGridEditor()
+const gridEditorStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()
 const durationOptions = ['1m', '2n', '4n', '8n', '16n']
 
-type Props = Omit<GridCellArpeggiator, 'notes'> & {
-  notes: string[],
-  duration: number,
+type Props = {
+  cell: GridCell
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  notes: () => [DEFAULT_NOTE],
-  type: 'upDown',
-  pulses: 4,
-  parts: 16,
-  shift: 0,
-  gate: Tone.Time('16n').toSeconds(),
-  duration: Tone.Time('16n').toSeconds(),
-});
+const props = defineProps<Props>();
 
 const _internalState = reactive({
-  notes: props.notes,
-  type: props.type,
-  pulses: props.pulses,
-  parts: props.parts,
-  shift: props.shift,
-  gate: props.gate,
-  duration: props.duration,
+  cell: props.cell,
 } as Props)
 
 const selectedCell = computed(() => {
-  return gridEditorStore.selectedGridCell
+  return gridEditorStore.selectedGridCell as GridCell
 })
 
 const trackOfSelectedCell = computed(() => {
@@ -112,66 +210,26 @@ const isArpeggio = computed(() => {
 })
 
 const selectedCellDurationSec = computed(() => {
-  return Tone.Time(selectedCell.value?.duration ?? '16n').toSeconds()
+  return Tone.Time(_internalState.cell.duration).toSeconds()
 })
 
-let unwatch: Function | undefined = undefined
-
-const appendWatcher = () => {
-  unwatch && unwatch();
-
-  unwatch = watch(gridEditorStore.selectedGridCell as GridCell, (newGridCell) => {
-    if (newGridCell) {
-      refreshInternalState(newGridCell)
-    }
-  }, {
-    deep: true,
-    immediate: true,
-  })
-}
-
-onUnmounted(() => {
-  unwatch && unwatch();
-  unwatch = undefined;
-})
-
-onUpdated(() => {
-  appendWatcher()
-})
-
-onMounted(() => {
-  appendWatcher()
-})
-
-const handleArpeggiate = () => {
+const handleUpdateCell = () => {
   if (selectedCell.value === null) {
     return
   }
 
   const newGridCell = new GridCell({
     ...selectedCell.value,
-    notes: _internalState.notes,
-    duration: _internalState.duration,
-    arpeggiator: {
-      parts: _internalState.parts,
-      pulses: _internalState.pulses,
-      shift: _internalState.shift,
-      type: _internalState.type,
-      gate: Tone.Time(_internalState.gate).toSeconds(),
-    }
+    ..._internalState.cell,
   })
+
   sequencer.writeCell(newGridCell)
   refreshInternalState(newGridCell)
 }
 
 const refreshInternalState = (newGridCell: GridCell) => {
-  _internalState.notes = newGridCell.notes
-  _internalState.duration = Tone.Time(newGridCell.duration).toSeconds()
-  _internalState.type = newGridCell.arpeggiator?.type ?? 'upDown'
-  _internalState.pulses = newGridCell.arpeggiator?.pulses ?? 4
-  _internalState.parts = newGridCell.arpeggiator?.parts ?? 16
-  _internalState.shift = newGridCell.arpeggiator?.shift ?? 0
-  _internalState.gate = newGridCell.arpeggiator?.gate ?? Tone.Time('16n').toSeconds()
+  _internalState.cell = newGridCell
+  gridEditorStore.setSelectedGridCell(newGridCell)
 }
 
 const handleClose = () => {
@@ -180,16 +238,98 @@ const handleClose = () => {
 
 const getTitleForCard = () => {
   if (selectedCell.value === null) {
-    return 'Arpeggiator'
+    return 'Step jobs'
   }
 
-  return `Arpeggiator for ${trackOfSelectedCell.value.name}`
+  return `${trackOfSelectedCell.value.name}: [${selectedCell.value?.column}]`
+}
+
+const setModifier = (key: GridCellModifierTypes) => {
+  if (selectedCell.value === null) {
+    return
+  }
+
+  const modifiers = selectedCell.value.modifiers
+  if (modifiers.has(key)) {
+    modifiers.delete(key)
+  } else {
+    modifiers.set(key, GridCell.getDefaultValueForModifier(key))
+  }
+
+  const newGridCell = new GridCell({
+    ...selectedCell.value,
+    modifiers,
+  })
+
+  sequencer.writeCell(newGridCell)
+  refreshInternalState(newGridCell)
 }
 
 const onUpdateNotes = (updatedNotes: string[]) => {
+  console.log('updatedNotes', updatedNotes)
+
   if (selectedCell.value) {
-    _internalState.notes = updatedNotes
+    _internalState.cell.notes = updatedNotes
+    if (updatedNotes.length > 1) {
+      if (!_internalState.cell.arpeggiator) {
+        _internalState.cell.arpeggiator = {
+          gate: Tone.Time('16n') as Tone.Unit.Time,
+          type: 'downUp',
+          pulses: 4,
+          parts: 9,
+          shift: 0,
+        }
+      }
+    } else {
+      _internalState.cell.arpeggiator = undefined
+    }
+
+    handleUpdateCell()
   }
+}
+
+const onGateChange = (ev: Event) => {
+  if (!_internalState.cell.arpeggiator) {
+    return
+  }
+
+  _internalState.cell.arpeggiator.gate = Tone.Time((ev.target as HTMLInputElement).value) as Tone.Unit.Time
+  handleUpdateCell()
+}
+
+const onDurationChange = (ev: Event) => {
+  _internalState.cell.duration = Tone.Time((ev.target as HTMLInputElement).value) as Tone.Unit.Time
+  handleUpdateCell()
+}
+
+const onVelocityChange = (ev: Event) => {
+  _internalState.cell.velocity = parseInt((ev.target as HTMLInputElement).value)
+  handleUpdateCell()
+}
+
+const onCellModifierUpdate = (modifierType: GridCellModifierTypes, fieldName: keyof GridCellModifier, $event: Event, converter: Function = ((_: any) => _)) => {
+  if (selectedCell.value === null) {
+    return
+  }
+
+  const modifier = selectedCell.value.modifiers.get(modifierType)
+
+  if (!modifier) {
+    return
+  }
+
+  if (!selectedCell.value.modifiers.has(modifierType)) {
+    const defaultOptions = GridCell.getDefaultValueForModifier(modifierType)
+
+    selectedCell.value.modifiers.set(modifierType, {
+      ...defaultOptions,
+    })
+  }
+
+  selectedCell.value.modifiers.set(modifierType, {
+    ...modifier,
+    [fieldName]: converter(($event.target as HTMLInputElement).value)
+  })
 }
 
 </script>

@@ -16,7 +16,7 @@ import SettingsDrawer from "@/components/ui/SettingsDrawer.vue";
 import {computed, h, onMounted, ref, resolveComponent} from "vue";
 import {VERSION} from "@/constants";
 import * as Tone from "tone/Tone";
-import {useGridEditor} from "@/stores/gridEditor";
+import {useGridEditorStore} from "@/stores/gridEditor";
 import StepJobs from "@/components/AvailableSides/StepJobs.vue";
 import type {GridCell} from "~/lib/GridCell";
 
@@ -28,7 +28,7 @@ onMounted(() => {
 
 const sequencer = Sequencer.getInstance(16) // the creation is supposed to be done only once - here
 
-const gridEditor = useGridEditor()
+const gridEditor = useGridEditorStore()
 
 const isSettingsOpen = ref(false);
 
@@ -41,9 +41,15 @@ const showInfo = (() => {
     title: `fuquencer v${VERSION}`,
     content: () => h(resolveComponent('InfoPage')),
     closeOnEsc: false,
-    onClose: async () => {
+    async onClose() {
       await Tone.start()
-    }
+    },
+    async onAfterLeave() {
+      // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
+      if (sequencer.soundEngine.tracks.length === 0) {
+        await sequencer.initTracksDemo()
+      }
+    },
   })
 })
 
@@ -82,16 +88,6 @@ const selectedCell = computed(() => {
           <NIcon :component="InfoIcon"></NIcon>
           Info
         </SimpleButton>
-
-        <!--        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DRAW}" class="big"-->
-        <!--                      @click="setDrawMode(GridEditorToolsEnum.DRAW)">-->
-        <!--          DRAW-->
-        <!--        </SimpleButton>-->
-
-        <!--        <SimpleButton :class="{active: gridEditor.selectedGridEditorTool === GridEditorToolsEnum.DETAILS}" class="big"-->
-        <!--                      @click="setDrawMode(GridEditorToolsEnum.DETAILS)">-->
-        <!--          DETAILS-->
-        <!--        </SimpleButton>-->
       </menu>
     </div>
   </header>
@@ -101,13 +97,7 @@ const selectedCell = computed(() => {
       <TrackJobs v-if="!hasCellInEdit" :key="selectedCell?.id"></TrackJobs>
       <StepJobs v-if="selectedCell !== null && hasCellInEdit"
                 :key="selectedCell.id"
-                :duration="Tone.Time(selectedCell.duration).toSeconds()"
-                :gate="selectedCell.arpeggiator?.gate"
-                :notes="selectedCell.notes"
-                :parts="selectedCell.arpeggiator?.parts"
-                :pulses="selectedCell.arpeggiator?.pulses"
-                :shift="selectedCell.arpeggiator?.shift"
-                :type="selectedCell.arpeggiator?.type"
+                :cell="selectedCell"
       ></StepJobs>
     </aside>
 

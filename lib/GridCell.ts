@@ -29,11 +29,20 @@ export enum GridCellModifierTypes {
 	slide = 'slide', // portamento of monophonic
 	
 	// reverse = 'reverse', // TODO: research if possible
-	// arpeggiator = 'arpeggiator', // TODO: research if possible
-	// instrumentSpecific = 'instrumentSpecific' //TODO: research if possible
+	// instrumentSpecific = 'instrumentSpecific' // TODO: research if possible
 }
 
-export type GridCellModifier = SwingParams | FlamParams | ProbabilityParams | SkipParams | SlideParams
+export type GridCellModifier = (SwingParams | FlamParams | ProbabilityParams | SkipParams | SlideParams) & {
+	swing?: number
+	subdivision?: Tone.Unit.Time
+	roll?: number
+	velocity?: number
+	increaseVelocityFrom?: number
+	probability?: number
+	skip?: number
+	timesTriggered?: number
+	slide?: number
+}
 
 export type SwingParams = {
 	type: GridCellModifierTypes.swing
@@ -145,5 +154,20 @@ export class GridCell implements GridCellOptions {
 	
 	public hasModifier(type: GridCellModifierTypes): boolean {
 		return this.modifiers.has(type)
+	}
+	
+	static getDefaultValueForModifier(type: GridCellModifierTypes): GridCellModifier {
+		switch (type) {
+			case GridCellModifierTypes.swing:
+				return {type, swing: 0, subdivision: Tone.Time('16n') as Tone.Unit.Time}
+			case GridCellModifierTypes.flam:
+				return {type, roll: 1, velocity: 1, increaseVelocityFrom: 0.5}
+			case GridCellModifierTypes.probability:
+				return {type, probability: 100}
+			case GridCellModifierTypes.skip:
+				return {type, skip: 1, timesTriggered: 0}
+			case GridCellModifierTypes.slide:
+				return {type, slide: 0}
+		}
 	}
 }

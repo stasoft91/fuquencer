@@ -20,7 +20,7 @@ import type {
 import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
 import {createEuclideanRhythmVector, shiftVector} from "~/lib/utils/createEuclideanRhythmVector";
 import {PatternGenerator} from "~/lib/PatternGenerator";
-import {useGridEditor} from "@/stores/gridEditor";
+import {useGridEditorStore} from "@/stores/gridEditor";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -206,12 +206,6 @@ export class Sequencer {
     const cellIndex = this.getCellIndex(cell.row, cell.column)
     this._sequenceGrid.value[cellIndex] = cell
     
-    const gridEditor = useGridEditor()
-    
-    if (gridEditor.selectedGridCell?.id === cell.id) {
-      useGridEditor().setSelectedGridCell(cell)
-    }
-    
     if (this._parts[cell.row - 1]) {
       this._parts[cell.row - 1].at(getBarsBeatsSixteensFromStep(cell.column - 1), {
         notes: cell.notes,
@@ -222,6 +216,13 @@ export class Sequencer {
         row: cell.row,
         arpeggiator: cell.arpeggiator
       } as PartEvent)
+    }
+    
+    const gridEditorStore = useGridEditorStore()
+    // TODO: should refactor it with moving cells primary state from sequencer to pinia?
+    // we assume every grid state change goes through here, so we can deselect the cell if it was deactivated on the grid
+    if (!cell.velocity && gridEditorStore.selectedGridCell?.id === cell.id) {
+      gridEditorStore.setSelectedGridCell(null)
     }
   }
 
@@ -311,11 +312,6 @@ export class Sequencer {
   }
   
   public async play() {
-    // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
-    if (this.soundEngine.tracks.length === 0) {
-      await this.initTracksDemo()
-    }
-    
     this.currentStep = 1
     
     for (let i = 0; i < this.soundEngine.tracks.length; i++) {
@@ -383,9 +379,9 @@ export class Sequencer {
             }
           }
           
-          if (partEvent.modifiers.has(GridCellModifierTypes.flam)) {
-            const flamParams = partEvent.modifiers.get(GridCellModifierTypes.flam) as FlamParams
-            
+          const flamParams = partEvent.modifiers.get(GridCellModifierTypes.flam) as FlamParams | undefined
+          
+          if (partEvent.modifiers.has(GridCellModifierTypes.flam) && flamParams && flamParams.roll > 1) {
             const timeOfOneFullNote = Tone.Time(partEvent.duration).toSeconds()
             const timeOfOneFlamNote = timeOfOneFullNote / flamParams.roll
             
@@ -428,8 +424,6 @@ export class Sequencer {
             
             const shiftedEuclideanRhythmVector = shiftVector(euclideanRhythmVector, shift)
             
-            console.log(shift, euclideanRhythmVector, shiftedEuclideanRhythmVector)
-            
             const timeOfOneRhythmPart = Tone.Time(partEvent.duration).toSeconds() / shiftedEuclideanRhythmVector.length
             
             let arpMicroTime = -timeOfOneRhythmPart
@@ -443,8 +437,6 @@ export class Sequencer {
                 return
               }
               
-              //todo: check arp note lengths, seems wrong to use
-              
               track.source.releaseAll(time + arpMicroTime) ||
               track.source.triggerRelease(undefined, time + arpMicroTime)
               
@@ -455,23 +447,10 @@ export class Sequencer {
                 partEvent.velocity
               )
             })
-            
-            // const timeOfOneArpNote = Tone.Time(value.duration).toSeconds() / value.note.length
-            // value.note.forEach((note) => {
-            //   track.source.releaseAll(time)
-            //   track.source.triggerAttackRelease(
-            //     note,
-            //     value.duration,
-            //     time,
-            //     value.velocity
-            //   )
-            //   time += timeOfOneArpNote
-            // })
           } else {
-            // if there is 1 note, just play it
             
             if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
-              console.error('Arpeggiator is not defined, yet multiple notes came in')
+              console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has more than 1 note but no arpeggiator, playing only the first note`)
             }
             
             track.source

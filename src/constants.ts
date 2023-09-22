@@ -1,8 +1,9 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 import type {PatternName} from "~/lib/PatternGenerator";
+import {GridCellModifierTypes} from "~/lib/GridCell";
 
-export const VERSION = '0.8.0'
+export const VERSION = '0.8.1'
 
 
 export const GRID_ROWS = 8;
@@ -200,6 +201,14 @@ export const DELAY_OPTIONS_LONG: string[] = [
 	(3.5 * Tone.Time('1n').toSeconds()).toString(),
 	(4 * Tone.Time('1n').toSeconds()).toString(),
 ].reverse()
+
+export const AVAILABLE_CELL_MODIFIERS: GridCellModifierTypes[] = [
+	GridCellModifierTypes.probability,
+	GridCellModifierTypes.skip,
+	GridCellModifierTypes.slide,
+	GridCellModifierTypes.swing,
+	GridCellModifierTypes.flam
+]
 
 export const AVAILABLE_ARPEGGIATOR_TYPES: PatternName[] = ["up", "down", "upDown", "downUp", "alternateUp", "alternateDown", "random", "randomOnce", "randomWalk"];
 

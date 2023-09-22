@@ -13,13 +13,11 @@
         @update:model-value="onUpdate(controlToRawValue($event))"
         @click:link="onLinkClick"
     />
+
     <n-card v-else :size="'small'" :title="fieldName">
       <n-select v-model:value="currentValue" :options="selectOptions" class="constrained-width" size="large"
                 @update:value="onUpdate($event)"/>
     </n-card>
-    <!--    <select v-else :value="currentValue" class="constrained-width" @change="onUpdate($event.target!.value)"> // TODO SELECTOR WITH CAPTION-->
-    <!--      <option v-for="option in selectOptions" :key="effectName+'.'+option" :value="option">{{ option }}</option>-->
-    <!--    </select>-->
   </div>
 </template>
 

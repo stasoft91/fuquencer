@@ -131,7 +131,7 @@ button.display-grid__cell.row-with-opacity.is-hovered {
   opacity: 1;
 }
 
-button.display-grid__cell.is-editing {
+button.display-grid__cell.active.is-editing {
   box-shadow: inset 0 0 2px 2px $color-orange-opaque,
   inset 0 0 3px 3px $color-orange-opaque-lighter500;
 }
@@ -265,11 +265,11 @@ import {NDropdown} from "naive-ui";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
 import * as Tone from "tone/Tone";
-import {useGridEditor} from "@/stores/gridEditor";
+import {useGridEditorStore} from "@/stores/gridEditor";
 
 const sequencer = Sequencer.getInstance()
 
-const gridEditor = useGridEditor()
+const gridEditor = useGridEditorStore()
 
 interface DisplayGridProps {
   tracks: Track[],
@@ -284,7 +284,7 @@ const y = ref(0)
 
 const hoveredCell = ref<GridCell | null>(null)
 
-const gridEditorStore = useGridEditor()
+const gridEditorStore = useGridEditorStore()
 
 const dropdownOptions = [
   {
@@ -489,6 +489,7 @@ const getClassesForCell = (gridCell: GridCell) => {
         hoveredCell.value.row === gridCell.row &&
         stepOfHoveredCellFinish.value !== null,
     'is-hovered': hoveredCell.value?.id === gridCell.id,
+
     'is-editing': gridEditorStore.selectedGridCell?.id === gridCell.id,
   }
 }
