@@ -9,7 +9,7 @@
       @click="emit('selectRow', rowIndex)"
     >
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
-      {{ polyrythms && polyrythms[rowIndex] ? `(+${polyrythms[rowIndex]})` : '' }}
+      {{ polyrhythms && polyrhythms[rowIndex] ? `(+${polyrhythms[rowIndex]})` : '' }}
       <DisplayWaveform
           v-if="shouldDisplayWaveform(rowIndex)"
           :id="`vertical-indicator-${rowIndex}`"
@@ -73,7 +73,7 @@ interface Props {
   selectedRow: number,
   rows: number,
   space?: string
-  polyrythms?: number[]
+  polyrhythms?: number[]
 }
 
 const props = defineProps<Props>()

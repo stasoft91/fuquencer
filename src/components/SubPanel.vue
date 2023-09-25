@@ -60,9 +60,9 @@
               @update:chain="onUpdateEffectsChain"
           ></EffectsChainComposer>
         </n-tab-pane>
-        <n-tab-pane class="polyrythms-tab" name="polyrhythm" tab="POLYRHYTHMS">
-          <SimpleButton @click="onAddPolyrhythm"> Add Polyrythm</SimpleButton>
-          <div v-for="loop in (track.getLoops().value)" :key="loop.name" class="polyrythm-card">
+        <n-tab-pane class="polyrhythms-tab" name="polyrhythm" tab="POLYRHYTHMS">
+          <SimpleButton @click="onAddPolyrhythm"> Add Polyrhythm</SimpleButton>
+          <div v-for="loop in (track.getLoops().value)" :key="loop.name" class="polyrhythm-card">
             <beat-display :interval="loop.interval" :is-playing="loop.isRunning"></beat-display>
 
             <div v-if="!loop.isAutomation.value" class="polyrhythm-card-row">
@@ -344,7 +344,7 @@ const onLinkQ = () => {
   width: 8rem;
 }
 
-.polyrythms-tab {
+.polyrhythms-tab {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -352,7 +352,7 @@ const onLinkQ = () => {
   gap: 2rem;
 }
 
-.polyrythm-card {
+.polyrhythm-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;

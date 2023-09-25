@@ -3,7 +3,7 @@
     <div class="flex-horizontal">
       <VerticalIndicator
           :key="sequencer.isPlaying ? 'playing' : 'stopped'"
-          :polyrythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)"
+          :polyrhythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)"
           :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
           :rows="GRID_ROWS"
           :selected-row="selectedTrackIndex"
