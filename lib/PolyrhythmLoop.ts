@@ -4,13 +4,15 @@ import type {Ref} from "vue";
 import {ref} from "vue";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 
-export type LoopParams = {
+export type LoopOptions = {
 	track: Track,
 	note?: Tone.Unit.Frequency,
 	duration?: Tone.Unit.Time,
 	interval?: Tone.Unit.Time,
 	isAutomation?: boolean,
 } & Partial<Tone.LoopOptions>
+
+export type LoopExportOptions = Omit<LoopOptions, 'track'>
 
 export class PolyrhythmLoop {
 	public isAutomation: Ref<boolean>;
@@ -25,7 +27,7 @@ export class PolyrhythmLoop {
 	private _humanize: Ref<boolean | Tone.Unit.Time> = ref(false);
 	private _probability: Ref<number> = ref(1);
 	
-	public constructor(params: LoopParams) {
+	public constructor(params: LoopOptions) {
 		this.name = Math.random().toString(36).substring(2, 9);
 		this.isAutomation = ref(params.isAutomation ?? false);
 		
@@ -48,22 +50,15 @@ export class PolyrhythmLoop {
 			callback: this._callback
 		})
 	}
-	
 	public get track(): Track {
 		return this._track;
 	}
-
-
-
 	public get note(): Tone.Unit.Frequency {
 		return this._note.value;
 	}
-
-
 	public get duration(): Tone.Unit.Time {
 		return this._duration.value;
 	}
-	
 	public get interval(): Tone.Unit.Time {
 		return this._interval.value;
 	}
@@ -92,7 +87,7 @@ export class PolyrhythmLoop {
 		return this
 	}
 	
-	public set(params: Omit<LoopParams, 'track'>): PolyrhythmLoop {
+	public set(params: Omit<LoopOptions, 'track'>): PolyrhythmLoop {
 		this._note.value = params.note ? params.note : this._note.value;
 		this._duration.value = params.duration ? params.duration : this._duration.value;
 		this._interval.value = params.interval ? params.interval : this._interval.value;
@@ -129,5 +124,18 @@ export class PolyrhythmLoop {
 		this._track.source.releaseAll(time)
 		this._track.source.triggerAttackRelease(this.note, this.duration, time)
 	}
+	
+	public export(): LoopExportOptions {
+		return {
+			note: this.note,
+			duration: this.duration,
+			interval: this.interval,
+			humanize: this.humanize,
+			probability: this.probability,
+			callback: this._callback,
+			isAutomation: this.isAutomation.value,
+		}
+	}
 }
+
 

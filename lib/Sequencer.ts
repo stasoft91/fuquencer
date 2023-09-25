@@ -6,7 +6,7 @@ import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
-import type {LFO} from "~/lib/LFO";
+import {LFO, type LFOOptions} from "~/lib/LFO";
 import AbstractSource from "~/lib/AbstractSource";
 import type {
   FlamParams,
@@ -22,6 +22,10 @@ import {GridCell} from "~/lib/GridCell";
 import {createEuclideanRhythmVector, shiftVector} from "~/lib/utils/createEuclideanRhythmVector";
 import {PatternGenerator} from "~/lib/PatternGenerator";
 import {useGridEditorStore} from "@/stores/gridEditor";
+import {HistoryManager} from "~/lib/HistoryManager";
+import {cloneDeep} from "lodash";
+import {GRID_COLS} from "@/constants";
+import type {UniversalEffect} from "~/lib/Effects.types";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -57,22 +61,21 @@ export const AVAILABLE_NOTES = generateListOfAvailableNotes()
 export class Sequencer {
   private static instance: Sequencer;
   
-  private constructor(sequenceLength: number = 16) {
-    this._sequenceGrid = ref(this.generateGrid())
-    this._sequenceLength = sequenceLength
-  }
+  private readonly historyManager = new HistoryManager<GridCell>(42)
   
   private readonly _bpm: Ref<number> = ref(120)
   
   private readonly _sequenceGrid: Ref<GridCell[]> = ref([])
-
-  private readonly _sequenceLength: number = 16
 
   private _currentStep = ref(1)
   
   public readonly soundEngine: SoundEngine = SoundEngine.getInstance()
   
   public readonly keyboardManager: KeyboardManager = KeyboardManager.getInstance()
+  
+  private constructor() {
+    this.initGrid()
+  }
   
   private _mainLoop: Tone.Loop<any> | null = null;
   
@@ -144,10 +147,6 @@ export class Sequencer {
       type: TrackTypes.synth
     }))
   }
-  
-  public get sequenceLength(): number {
-    return this._sequenceLength
-  }
 
   public get sequenceGrid(): Ref<GridCell[]> {
     return this._sequenceGrid
@@ -158,7 +157,7 @@ export class Sequencer {
   }
 
   public set currentStep(newValue: number) {
-    if (newValue > this._sequenceLength) {
+    if (newValue > GRID_COLS) {
       this._currentStep.value = 1
       return
     }
@@ -174,78 +173,121 @@ export class Sequencer {
     this._isPlaying.value = value
   }
 
-  public generateGrid(): GridCell[] {
-    this.initGrid()
-    return this._sequenceGrid.value
-  }
-
   public getCellIndex(row: number, column: number): number {
     return this._sequenceGrid.value.findIndex((gridCell) => gridCell.id === `${row}-${column}`)
   }
 
-  public readCell(row: number, column: number): GridCell {
-    const cellIndex = this.getCellIndex(row, column)
-    return this._sequenceGrid.value[cellIndex]
+  public get history(): HistoryManager<GridCell> {
+    return this.historyManager
   }
-
-  public static getInstance(sequenceLength: number = 16): Sequencer {
+  
+  public static getInstance(): Sequencer {
     if (!Sequencer.instance) {
-      Sequencer.instance = new Sequencer(sequenceLength);
+      Sequencer.instance = new Sequencer();
       Sequencer.instance.bpm = 120;
     }
     
     return Sequencer.instance;
   }
-
-  public writeCell(cell: GridCell): void {
-    const cellIndex = this.getCellIndex(cell.row, cell.column)
-    this._sequenceGrid.value[cellIndex] = cell
+  
+  public static async importFrom(data: string): Promise<Sequencer> {
+    const parsedData = JSON.parse(data)
     
-    if (this._parts[cell.row - 1]) {
-      this._parts[cell.row - 1].at(getBarsBeatsSixteensFromStep(cell.column - 1), {
-        notes: cell.notes,
-        velocity: (cell.velocity ?? 0) / 100,
-        duration: cell.duration,
-        modifiers: cell.modifiers,
-        column: cell.column,
-        row: cell.row,
-        arpeggiator: cell.arpeggiator
-      } as PartEvent)
+    const sequencer = Sequencer.getInstance()
+    
+    sequencer.bpm = parseInt(parsedData.bpm)
+    
+    sequencer.soundEngine.clearTracks()
+    
+    for (let trackIndex = 0; trackIndex < parsedData.tracks.length; trackIndex++) {
+      const track = await Track.importFrom(parsedData.tracks[trackIndex])
+      sequencer.soundEngine.addTrack(track)
+      
+      if (parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck')) {
+        const options = parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck').options
+        sequencer.soundEngine.toggleSidechain(sequencer.soundEngine.tracks[0], track, options)
+      }
     }
     
-    const gridEditorStore = useGridEditorStore()
-    // TODO: should refactor it with moving cells primary state from sequencer to pinia?
-    // we assume every grid state change goes through here, so we can deselect the cell if it was deactivated on the grid
-    if (!cell.velocity && gridEditorStore.selectedGridCell?.id === cell.id) {
-      gridEditorStore.setSelectedGridCell(null)
+    for (let lfoIndex = 0; lfoIndex < parsedData.lfos.length; lfoIndex++) {
+      sequencer.addLFO(parsedData.lfos[lfoIndex])
     }
+    
+    sequencer.sequenceGrid.value = parsedData.sequenceGrid.map((gridCell: GridCell) => {
+      return new GridCell({
+        ...gridCell,
+        modifiers: new Map(gridCell.modifiers),
+        notes: gridCell.notes,
+        arpeggiator: gridCell.arpeggiator
+      })
+    })
+    
+    return sequencer
   }
 
-  public stop() {
-    this._parts.forEach((part) => part.cancel().stop().dispose())
-    this._parts = []
-    Tone.Transport.stop()
-    this._mainLoop?.stop()
+  public readCell(row: number, column: number): GridCell {
+    const cellIndex = this.getCellIndex(row, column)
     
-    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
-    this._isPlaying.value = false;
+    return <GridCell>({
+      ...this._sequenceGrid.value[cellIndex],
+      modifiers: this._sequenceGrid.value[cellIndex].modifiers,
+      notes: this._sequenceGrid.value[cellIndex].notes,
+      arpeggiator: this._sequenceGrid.value[cellIndex].arpeggiator
+    })
   }
   
   public get LFOs(): ShallowRef<LFO[]> {
     return this._lfos
   }
   
-  public initGrid(): void {
-    for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
-      for (let j = 1; j <=  this._sequenceLength; j++) {
-        this._sequenceGrid.value.push(new GridCell({
-          row: i,
-          column: j,
-          notes: [DEFAULT_NOTE],
-          velocity: 0,
-          duration: Tone.Time('16n') as Tone.Unit.Time,
-          modifiers: new Map()
-        }))
+  public writeCell(newCell: GridCell, ignoreHistory?: boolean): void {
+    newCell = new GridCell({...newCell})
+    
+    if (this._parts[newCell.row - 1]) {
+      this._parts[newCell.row - 1].at(getBarsBeatsSixteensFromStep(newCell.column - 1), {
+        notes: newCell.notes,
+        velocity: (newCell.velocity ?? 0) / 100,
+        duration: newCell.duration,
+        modifiers: newCell.modifiers,
+        column: newCell.column,
+        row: newCell.row,
+        arpeggiator: newCell.arpeggiator
+      } as PartEvent)
+    }
+    
+    if (!ignoreHistory) {
+      const originalCell = this._sequenceGrid.value.find(_ => _.id === newCell.id) ?? null as GridCell | null
+      
+      originalCell && this.historyManager.push(
+        cloneDeep((
+          new GridCell({
+            ...originalCell,
+            modifiers: (originalCell.modifiers),
+            notes: (originalCell.notes),
+            arpeggiator: (originalCell.arpeggiator)
+          })
+        )),
+        
+        cloneDeep((
+          new GridCell({
+            ...newCell,
+            modifiers: newCell.modifiers,
+            notes: newCell.notes,
+            arpeggiator: newCell.arpeggiator
+          })
+        ))
+      )
+    }
+    const cellIndex = this.getCellIndex(newCell.row, newCell.column)
+    this._sequenceGrid.value[cellIndex] = new GridCell({...newCell})
+    
+    const selectedGridCell = useGridEditorStore().selectedGridCell
+    
+    if (selectedGridCell?.id === newCell.id) {
+      if (!newCell.velocity) {
+        useGridEditorStore().setSelectedGridCell(null)
+      } else {
+        useGridEditorStore().setSelectedGridCell(newCell)
       }
     }
   }
@@ -306,6 +348,43 @@ export class Sequencer {
     this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(numOfParts)
   }
   
+  public stop() {
+    this._parts.forEach((part) => part.cancel().stop().dispose())
+    this._parts = []
+    Tone.Transport.stop()
+    Tone.Transport.set({})
+    this._mainLoop?.stop()
+    
+    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
+    this._isPlaying.value = false;
+  }
+  
+  public initGrid(): void {
+    for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
+      for (let j = 1; j <= 16; j++) {
+        this._sequenceGrid.value.push(new GridCell({
+          row: i,
+          column: j,
+          notes: [DEFAULT_NOTE],
+          velocity: 0,
+          duration: Tone.Time('16n').toSeconds(),
+          modifiers: new Map()
+        }))
+      }
+    }
+  }
+  
+  public removeLFO(lfo: LFO): void {
+    const index = this._lfos.value.findIndex(_lfo => _lfo === lfo)
+    
+    if (index === -1) {
+      return
+    }
+    
+    this._lfos.value.splice(index, 1)
+    triggerRef(this._lfos)
+  }
+  
   public async play() {
     this.currentStep = 1
     
@@ -333,26 +412,41 @@ export class Sequencer {
             }
           }
           
+          const cell = this.readCell(partEvent.row, partEvent.column)
+          const modifiers = new Map(cloneDeep(cell.modifiers))
+          
           if (partEvent.modifiers.has(GridCellModifierTypes.skip)) {
             const skipParams = partEvent.modifiers.get(GridCellModifierTypes.skip) as SkipParams
             
-            this.readCell(partEvent.row, partEvent.column).modifiers.set(GridCellModifierTypes.skip, {
+            modifiers.set(GridCellModifierTypes.skip, {
               type: GridCellModifierTypes.skip,
               skip: skipParams.skip,
               timesTriggered: skipParams.timesTriggered ? skipParams.timesTriggered + 1 : 1,
             })
+            
+            let newGridCell = new GridCell({
+              ...cell,
+              modifiers,
+            })
+            this.writeCell(newGridCell, true)
             
             const skipParamsForCell = this.readCell(partEvent.row, partEvent.column).modifiers.get(GridCellModifierTypes.skip) as SkipParams
             
             if (skipParamsForCell.timesTriggered && skipParamsForCell.timesTriggered % skipParams.skip !== 0) {
               return
             } else {
-              partEvent.modifiers.set(GridCellModifierTypes.skip, {
+              modifiers.set(GridCellModifierTypes.skip, {
                 type: GridCellModifierTypes.skip,
                 skip: skipParams.skip,
                 timesTriggered: 0,
               })
             }
+            
+            newGridCell = new GridCell({
+              ...cell,
+              modifiers,
+            })
+            this.writeCell(newGridCell, true)
           }
           
           if (partEvent.modifiers.has(GridCellModifierTypes.swing)) {
@@ -411,7 +505,6 @@ export class Sequencer {
             return
           }
           
-          // TODO should we decide part is an Arpeggiator only based on the Array passed in?
           if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
             const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
             
@@ -489,64 +582,26 @@ export class Sequencer {
     Tone.Transport.start()
     
     this._isPlaying.value = true;
-    
-    //
-    // this._mainLoop = Tone.Transport.scheduleRepeat((time) => {
-    //   const step = getStepFromBarsBeatsSixteens(Tone.Transport.position as Tone.Unit.BarsBeatsSixteenths)
-    //
-    //   for (let i = 0; i < this.soundEngine.tracks.length; i++) {
-    //     const cell = this._sequenceGrid.value.filter(_ => _.column === step)[i]
-    //     this.soundEngine.tracks[i].source.releaseAll().triggerAttackRelease(
-    //       cell.note,
-    //       '8n',
-    //       time,
-    //       cell.velocity / 100
-    //     )
-    //   }
-    //
-    //   Tone.Draw.schedule(() => {
-    //     this.currentStep++
-    //   }, time);
-    // }, '16n', 0)
-    
-    //
-    // this._mainLoop = Tone.Transport.scheduleRepeat((time) => {
-    //   console.log('NOTE',
-    //     this.currentStep,
-    //     Tone.Transport.position,
-    //     getStepFromBarsBeatsSixteens(Tone.Time(time).toBarsBeatsSixteenths()),
-    //     Tone.Time(time).toBarsBeatsSixteenths(),
-    //     Tone.Time(Tone.Time('@1m').quantize('2m')).toBarsBeatsSixteenths()
-    //   )
-    //
-    //   this.playNotes(time)
-    //
-    //   ++this.currentStep
-    // }, this._sequenceLength + 'n')
-    
-
-    //
-    //
-    // const seq = new Tone.Sequence((time, note) => {
-    //   this.soundEngine.tracks[4].source.triggerAttackRelease(note, 0.1, time);
-    //   // synth.triggerAttackRelease(note, 0.1, time);
-    //   // subdivisions are given as subarrays
-    // }, ["C3", ["E3", "D3"], "G3", ["A3", "G3"], ["G3", "E3"]]).start(0);
   }
   
-  public addLFO(lfo: LFO): void {
+  public addLFO(lfoOptions: LFOOptions): void {
+    const lfo = new LFO(lfoOptions)
     this._lfos.value.push(lfo)
     triggerRef(this._lfos)
   }
   
-  public removeLFO(lfo: LFO): void {
-    const index = this._lfos.value.findIndex(_lfo => _lfo === lfo)
-    
-    if (index === -1) {
-      return
+  public export(): string {
+    const data = {
+      bpm: this.bpm,
+      sequenceGrid: cloneDeep(this.sequenceGrid.value).map((gridCell) => {
+        // @ts-ignore
+        gridCell.modifiers = Array.from(gridCell.modifiers.entries())
+        
+        return gridCell
+      }),
+      tracks: this.soundEngine.tracks.map((track) => track.export()),
+      lfos: this.LFOs.value.map((lfo) => lfo.export())
     }
-    
-    this._lfos.value.splice(index, 1)
-    triggerRef(this._lfos)
+    return JSON.stringify(data)
   }
 }

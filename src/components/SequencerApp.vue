@@ -1,5 +1,5 @@
 <template>
-  <div class="sequencer-wrapper" :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': sequencer.sequenceLength }">
+  <div :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': GRID_COLS }" class="sequencer-wrapper">
     <div class="flex-horizontal">
       <VerticalIndicator
           :key="sequencer.isPlaying ? 'playing' : 'stopped'"
@@ -15,9 +15,9 @@
         <DisplayGrid
             :key="sequencer.isPlaying ? 'playing' : 'stopped'"
 
-            :columns="sequencer.sequenceLength"
+            :columns="GRID_COLS"
             :tracks="sequencer.soundEngine.tracks"
-            :items="sequencer.sequenceGrid"
+            :items="sequencer.sequenceGrid.value"
             :rows="GRID_ROWS"
             @click="changeCellState"
             @wheel="onNoteWheel"
@@ -57,7 +57,7 @@ import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
-import {AVAILABLE_EFFECTS, GRID_ROWS} from "@/constants";
+import {AVAILABLE_EFFECTS, GRID_COLS, GRID_ROWS} from "@/constants";
 import type {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
@@ -87,48 +87,50 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
-  const noteIndex = AVAILABLE_NOTES.indexOf(cell.notes[0])
+  const newCell = new GridCell(cell)
+
+  const noteIndex = AVAILABLE_NOTES.indexOf(newCell.notes[0])
 
   if (event.shiftKey) {
-    cell.velocity = cell.velocity + (event.deltaY < 0 ? 10 : -10)
-    cell.velocity = Math.max(0, Math.min(100, cell.velocity))
+    newCell.velocity = newCell.velocity + (event.deltaY < 0 ? 10 : -10)
+    newCell.velocity = Math.max(0, Math.min(100, newCell.velocity))
 
   } else if (event.ctrlKey) {
     // don't allow to change note if there are multiple notes
-    if (cell.notes.length > 1) {
+    if (newCell.notes.length > 1) {
       return
     }
 
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 12 : -12)
-    cell.notes = [
+    newCell.notes = [
       AVAILABLE_NOTES[newNoteIndex] ||
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
     ]
 
   } else if (event.altKey) {
-    if (!cell.velocity) {
+    if (!newCell.velocity) {
       return
     }
 
     let add = Tone.Time('16n')
 
-    if (event.deltaY > 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
+    if (event.deltaY > 0 && Tone.Time(newCell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
       add = Tone.Time('64n')
     }
 
-    if (event.deltaY > 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('16n').toSeconds()) {
+    if (event.deltaY > 0 && Tone.Time(newCell.duration).toSeconds() === Tone.Time('16n').toSeconds()) {
       add = Tone.Time('32n')
     }
 
-    if (event.deltaY < 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('64n').toSeconds()) {
+    if (event.deltaY < 0 && Tone.Time(newCell.duration).toSeconds() === Tone.Time('64n').toSeconds()) {
       add = Tone.Time('32n')
     }
 
-    if (event.deltaY < 0 && Tone.Time(cell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
+    if (event.deltaY < 0 && Tone.Time(newCell.duration).toSeconds() === Tone.Time('32n').toSeconds()) {
       add = Tone.Time('16n')
     }
 
-    let newDuration = Tone.Time(cell.duration).toSeconds() + (event.deltaY < 0 ? 1 : -1) * add.toSeconds()
+    let newDuration = Tone.Time(newCell.duration).toSeconds() + (event.deltaY < 0 ? 1 : -1) * add.toSeconds()
 
     newDuration = Math.max(
         Tone.Time('64n').toSeconds(),
@@ -138,22 +140,23 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
         )
     )
 
-    cell.duration = Tone.Time(newDuration) as Tone.Unit.Time
+    newCell.duration = Tone.Time(newDuration).toSeconds() as Tone.Unit.Time
 
   } else {
     // don't allow to change note if there are multiple notes
-    if (cell.notes.length > 1) {
+    if (newCell.notes.length > 1) {
       return
     }
 
     const newNoteIndex = noteIndex + (event.deltaY < 0 ? 1 : -1)
-    cell.notes = [
+    newCell.notes = [
       AVAILABLE_NOTES[newNoteIndex] ||
       AVAILABLE_NOTES[event.deltaY < 0 ? 1 : AVAILABLE_NOTES.length - 1]
     ]
   }
 
-  sequencer.writeCell(cell)
+  // тут всё плохо, когда пишем клетку по колесику то просираем реактивность у Skip а она нужна для хранения количесвта прошедших скипов ?
+  sequencer.writeCell(newCell)
 }
 
 const changeCellState = (row: number, column: number) => {
@@ -195,6 +198,8 @@ const onEnvelopeUpdate = (envelope: ADSRType) => {
 const onSidechain = () => {
   const tracks = sequencer.soundEngine.tracks;
 
+  // TODO: not always the first track is the kick,
+  // TODO: what about different samples on different notes of that [0] sampler track?
   sequencer.soundEngine.toggleSidechain(tracks[0], tracks[selectedTrackIndex.value])
 }
 

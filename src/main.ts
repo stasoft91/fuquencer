@@ -7,7 +7,10 @@ import InfoPage from "@/components/ui/InfoPage.vue";
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+
+app.use(pinia)
+
 app.component('InfoPage', InfoPage);
 
 app.mount('#app')

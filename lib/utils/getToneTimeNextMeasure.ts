@@ -29,5 +29,5 @@ export const getToneTimeNextMeasure = (add: number = 1): Tone.Unit.Time => {
 	// 	Tone.Time(Tone.Time(`${1 + parseInt(part)}:0:0`).toSeconds()).toBarsBeatsSixteenths(),
 	// )
 	
-	return Tone.Time(`${add + parseInt(part)}:0:0`) as Tone.Unit.Time
+	return Tone.Time(`${add + parseInt(part)}:0:0`).toSeconds() as Tone.Unit.Time
 }

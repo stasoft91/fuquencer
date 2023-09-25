@@ -70,7 +70,7 @@ import BaseEffectParam from "@/components/ui/effects/BaseEffectParam.vue";
 
 let availableEffects: UniversalEffect[] = AVAILABLE_EFFECTS
     .sort((a, b) => a.name.localeCompare(b.name))
-    .filter(_ => _.name !== 'AutoDuck')
+// .filter(_ => _.name !== 'AutoDuck')
 
 const chainEffectsContainer = ref<{ sortable: SortableJS }>()
 

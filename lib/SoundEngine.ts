@@ -63,8 +63,12 @@ export class SoundEngine {
     this.tracksCount.value = this.tracks.length;
   }
   
-  public toggleSidechain(trackFrom: Track, trackTo: Track): void {
-    this.sidechainEnvelopeSource = trackFrom.toSidechainSource()
+  public toggleSidechain(
+    trackFrom: Track,
+    trackTo: Track,
+    defaultEnv?: { attack: number, decay: number, sustain: number, release: number }
+  ): void {
+    this.sidechainEnvelopeSource = trackFrom.toSidechainSource(defaultEnv?.attack, defaultEnv?.decay, defaultEnv?.sustain, defaultEnv?.release)
     
     trackTo.toggleSidechain(this.sidechainEnvelopeSource)
   }

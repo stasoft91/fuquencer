@@ -12,7 +12,6 @@ export const useGridEditorStore = defineStore('gridEditorStore', () => {
 	const selectedGridEditorTool: Ref<GridEditorToolsEnum> = ref(GridEditorToolsEnum.DRAW)
 	const selectedGridCell: Ref<GridCell | null> = ref(null)
 	
-	
 	function setGridEditorTool(newVal: GridEditorToolsEnum) {
 		selectedGridEditorTool.value = newVal
 	}
@@ -25,6 +24,6 @@ export const useGridEditorStore = defineStore('gridEditorStore', () => {
 		setGridEditorTool,
 		selectedGridEditorTool,
 		setSelectedGridCell,
-		selectedGridCell
+		selectedGridCell,
 	}
 })

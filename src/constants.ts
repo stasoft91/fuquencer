@@ -1,12 +1,13 @@
 import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} from "~/lib/Effects.types";
 import * as Tone from "tone/Tone";
 import type {PatternName} from "~/lib/PatternGenerator";
-import {GridCellModifierTypes} from "~/lib/GridCell";
+import {GridCellModifierTypes} from "~/lib/GridCell.types";
 
-export const VERSION = '0.8.1'
-
+export const VERSION = '0.8.2'
 
 export const GRID_ROWS = 8;
+export const GRID_COLS = 16;
+
 
 export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 	{

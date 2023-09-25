@@ -9,6 +9,7 @@
               id="arpeggiator-type"
               v-model="_internalState.cell.arpeggiator.type"
               class="full-size big"
+              @change="handleUpdateCell"
           >
             <option v-for="arpType in AVAILABLE_ARPEGGIATOR_TYPES" :key="arpType" :value="arpType">
               {{ arpType }}
@@ -16,13 +17,19 @@
           </select>
 
           <label for="">Pulses</label>
-          <input v-model="_internalState.cell.arpeggiator.pulses" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.pulses" class="full-size big" type="number"
+                 @change="handleUpdateCell"
+          >
 
           <label for="">Parts</label>
-          <input v-model="_internalState.cell.arpeggiator.parts" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.parts" class="full-size big" type="number"
+                 @change="handleUpdateCell"
+          >
 
           <label for="">Shift</label>
-          <input v-model="_internalState.cell.arpeggiator.shift" class="full-size big" type="number">
+          <input v-model="_internalState.cell.arpeggiator.shift" class="full-size big" type="number"
+                 @change="handleUpdateCell"
+          >
 
           <label for="">Gate</label>
           <select
@@ -39,7 +46,8 @@
 
       <div class="row">
         <label for="">Notes</label>
-        <chord-editor :value="_internalState.cell.notes" @update:value="onUpdateNotes"></chord-editor>
+        <chord-editor :value="selectedCell?.notes ?? _internalState.cell.notes"
+                      @update:value="onUpdateNotes"></chord-editor>
 
         <label for="">Duration</label>
         <select id="gate"
@@ -160,9 +168,7 @@
                   @change="onCellModifierUpdate(key, 'slide', $event)">
             </label>
 
-
           </template>
-
 
         </div>
 
@@ -173,15 +179,17 @@
 
 <script lang="ts" setup>
 import {NCard, NSwitch} from "naive-ui";
-import {computed, reactive} from "vue";
+import {computed, onUpdated, reactive} from "vue";
 import {Sequencer} from "~/lib/Sequencer";
 import {AVAILABLE_ARPEGGIATOR_TYPES, AVAILABLE_CELL_MODIFIERS} from "@/constants";
 import {useGridEditorStore} from "@/stores/gridEditor";
-import type {GridCellModifier} from "~/lib/GridCell";
-import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import type {GridCellModifier} from "~/lib/GridCell.types";
+import {GridCellModifierTypes} from "~/lib/GridCell.types";
+import {GridCell} from "~/lib/GridCell";
 import ChordEditor from "@/components/ui/ChordEditor.vue";
 import * as Tone from "tone/Tone";
 import {toMeasure} from "~/lib/utils/toMeasure";
+import {cloneDeep} from "lodash";
 
 const gridEditorStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()
@@ -193,12 +201,18 @@ type Props = {
 
 const props = defineProps<Props>();
 
+onUpdated(() => {
+  if (props.cell !== _internalState.cell) {
+    refreshInternalState(props.cell)
+  }
+})
+
 const _internalState = reactive({
-  cell: props.cell,
+  cell: new GridCell(props.cell),
 } as Props)
 
 const selectedCell = computed(() => {
-  return gridEditorStore.selectedGridCell as GridCell
+  return gridEditorStore.selectedGridCell
 })
 
 const trackOfSelectedCell = computed(() => {
@@ -213,7 +227,7 @@ const selectedCellDurationSec = computed(() => {
   return Tone.Time(_internalState.cell.duration).toSeconds()
 })
 
-const handleUpdateCell = () => {
+function handleUpdateCell() {
   if (selectedCell.value === null) {
     return
   }
@@ -227,16 +241,16 @@ const handleUpdateCell = () => {
   refreshInternalState(newGridCell)
 }
 
-const refreshInternalState = (newGridCell: GridCell) => {
+function refreshInternalState(newGridCell: GridCell) {
   _internalState.cell = newGridCell
   gridEditorStore.setSelectedGridCell(newGridCell)
 }
 
-const handleClose = () => {
+function handleClose() {
   gridEditorStore.setSelectedGridCell(null)
 }
 
-const getTitleForCard = () => {
+function getTitleForCard() {
   if (selectedCell.value === null) {
     return 'Step jobs'
   }
@@ -244,12 +258,13 @@ const getTitleForCard = () => {
   return `${trackOfSelectedCell.value.name}: [${selectedCell.value?.column}]`
 }
 
-const setModifier = (key: GridCellModifierTypes) => {
+function setModifier(key: GridCellModifierTypes) {
   if (selectedCell.value === null) {
     return
   }
 
-  const modifiers = selectedCell.value.modifiers
+  const modifiers = new Map(cloneDeep(selectedCell.value.modifiers))
+
   if (modifiers.has(key)) {
     modifiers.delete(key)
   } else {
@@ -265,7 +280,7 @@ const setModifier = (key: GridCellModifierTypes) => {
   refreshInternalState(newGridCell)
 }
 
-const onUpdateNotes = (updatedNotes: string[]) => {
+function onUpdateNotes(updatedNotes: string[]) {
   console.log('updatedNotes', updatedNotes)
 
   if (selectedCell.value) {
@@ -273,7 +288,7 @@ const onUpdateNotes = (updatedNotes: string[]) => {
     if (updatedNotes.length > 1) {
       if (!_internalState.cell.arpeggiator) {
         _internalState.cell.arpeggiator = {
-          gate: Tone.Time('16n') as Tone.Unit.Time,
+          gate: Tone.Time('16n').toSeconds() as Tone.Unit.Time,
           type: 'downUp',
           pulses: 4,
           parts: 9,
@@ -288,48 +303,55 @@ const onUpdateNotes = (updatedNotes: string[]) => {
   }
 }
 
-const onGateChange = (ev: Event) => {
+function onGateChange(ev: Event) {
   if (!_internalState.cell.arpeggiator) {
     return
   }
 
-  _internalState.cell.arpeggiator.gate = Tone.Time((ev.target as HTMLInputElement).value) as Tone.Unit.Time
+  _internalState.cell.arpeggiator.gate = Tone.Time((ev.target as HTMLInputElement).value).toSeconds() as Tone.Unit.Time
   handleUpdateCell()
 }
 
-const onDurationChange = (ev: Event) => {
-  _internalState.cell.duration = Tone.Time((ev.target as HTMLInputElement).value) as Tone.Unit.Time
+function onDurationChange(ev: Event) {
+  _internalState.cell.duration = Tone.Time((ev.target as HTMLInputElement).value).toSeconds() as Tone.Unit.Time
   handleUpdateCell()
 }
 
-const onVelocityChange = (ev: Event) => {
+function onVelocityChange(ev: Event) {
   _internalState.cell.velocity = parseInt((ev.target as HTMLInputElement).value)
   handleUpdateCell()
 }
 
-const onCellModifierUpdate = (modifierType: GridCellModifierTypes, fieldName: keyof GridCellModifier, $event: Event, converter: Function = ((_: any) => _)) => {
+function onCellModifierUpdate(
+    modifierType: GridCellModifierTypes,
+    fieldName: keyof GridCellModifier,
+    $event: Event,
+    converter: Function = ((_: any) => _)
+) {
   if (selectedCell.value === null) {
     return
   }
 
-  const modifier = selectedCell.value.modifiers.get(modifierType)
+  const modifiers = new Map(cloneDeep(selectedCell.value.modifiers))
+
+  const modifier = modifiers.get(modifierType)
 
   if (!modifier) {
     return
   }
 
-  if (!selectedCell.value.modifiers.has(modifierType)) {
-    const defaultOptions = GridCell.getDefaultValueForModifier(modifierType)
-
-    selectedCell.value.modifiers.set(modifierType, {
-      ...defaultOptions,
-    })
-  }
-
-  selectedCell.value.modifiers.set(modifierType, {
+  modifiers.set(modifierType, {
     ...modifier,
     [fieldName]: converter(($event.target as HTMLInputElement).value)
   })
+
+  const newGridCell = new GridCell({
+    ...selectedCell.value,
+    modifiers,
+  })
+
+  sequencer.writeCell(newGridCell)
+  refreshInternalState(newGridCell)
 }
 
 </script>

@@ -5,10 +5,11 @@ import {ref, shallowReactive, shallowRef} from "vue";
 import {getEnvelopeOfAudioSource} from "~/lib/utils/getEnvelopeOfAudioSource";
 import * as Tone from "tone/Tone";
 import type {UniversalEffect} from "~/lib/Effects.types";
-import type {LoopParams} from "~/lib/PolyrhythmLoop";
+import type {LoopOptions} from "~/lib/PolyrhythmLoop";
 import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import {Sequencer} from "~/lib/Sequencer";
-import type AbstractSource from "~/lib/AbstractSource";
+import type {AbstractSourceOptions} from "~/lib/AbstractSource";
+import AbstractSource from "~/lib/AbstractSource";
 
 export type TrackOptions = {
 	name: string,
@@ -17,15 +18,21 @@ export type TrackOptions = {
 	type: TrackTypes
 }
 
+export type TrackExportOptions = Omit<TrackOptions, 'source'> & {
+	source: AbstractSourceOptions,
+	middlewares: UniversalEffect[],
+	envelope: ADSRType,
+	length: number,
+	loops: Omit<LoopOptions, 'track'>[],
+}
+
 export class Track {
 	private _volume: Ref<number>;
-	private _type: Ref<string>;
+	private _type: Ref<TrackTypes>;
 	private _envelope: Ref<ADSRType>;
 	private _name: Ref<string>;
 
 	public channel: Tone.Channel = new Tone.Channel();
-
-	public isSolo: Ref<boolean> = ref(true);
 	
 	constructor(params: TrackOptions) {
 		const {name, volume, source, type} = params;
@@ -38,6 +45,7 @@ export class Track {
 		
 		this.reconnectMiddlewares();
 	}
+	
 	private _sidechainEnvelope: Tone.Envelope | undefined = undefined;
 
 	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
@@ -70,11 +78,11 @@ export class Track {
 		}
 	}
 	
-	public get type(): string {
+	public get type(): TrackTypes {
 		return this._type.value;
 	}
 	
-	public set type(value: string) {
+	public set type(value: TrackTypes) {
 		this._type.value = value;
 	}
 	
@@ -169,6 +177,35 @@ export class Track {
 		return this._length.value;
 	}
 	
+	public static async importFrom(trackOptions: TrackExportOptions): Promise<Track> {
+		const source = new AbstractSource(trackOptions.source)
+		await source.init();
+		
+		const newTrack = new Track({
+			name: trackOptions.name,
+			volume: trackOptions.volume,
+			source,
+			type: trackOptions.type,
+		});
+		
+		newTrack.envelope = trackOptions.envelope;
+		newTrack._length.value = trackOptions.length;
+		
+		trackOptions.middlewares.filter(_ => _.name !== 'AutoDuck').forEach((middleware) => {
+			newTrack.addMiddleware(middleware);
+		});
+		
+		trackOptions.loops.forEach((loop) => {
+			newTrack.addLoop(loop);
+		});
+		
+		return newTrack;
+	}
+	
+	public getLoops() {
+		return shallowRef(this._loops);
+	}
+	
 	public reconnectMiddlewares(): void {
 		this._middlewares.value.map((middleware) => {
 			if (middleware.effect && !middleware.effect.disposed) {
@@ -183,10 +220,10 @@ export class Track {
 			
 			if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
 				// EFFECT IS AUTODUCK
-				middleware.effect = new Tone.Gain(1, "normalRange");
+				middleware.effect?.dispose();
+				middleware.effect = new Tone.Gain();
 				const scale = new Tone.Scale(1, 0);
 				scale.connect(middleware.effect.gain);
-				
 				this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
 				this._sidechainEnvelope?.connect(scale);
 				
@@ -201,7 +238,7 @@ export class Track {
 			}
 		});
 		
-		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect.disconnect())
+		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect?.disconnect())
 		
 		this._source.disconnect();
 		
@@ -212,11 +249,11 @@ export class Track {
 		);
 	}
 	
-	public getLoops() {
-		return shallowRef(this._loops);
+	public removeLoop(loop: PolyrhythmLoop): void {
+		this._loops.value = this._loops.value.filter((l) => l.name !== loop.name);
 	}
 	
-	public addLoop(loop: Omit<LoopParams, 'track' | 'context'>): PolyrhythmLoop {
+	public addLoop(loop: Omit<LoopOptions, 'track' | 'context'>): PolyrhythmLoop {
 		const newLoop = (new PolyrhythmLoop({...loop, track: this}) as PolyrhythmLoop)
 		
 		this._loops.value = [
@@ -227,40 +264,13 @@ export class Track {
 		return newLoop
 	}
 	
-	public removeLoop(loop: PolyrhythmLoop): void {
-		this._loops.value = this._loops.value.filter((l) => l.name !== loop.name);
-	}
-	
-	public toSidechainSource(): Tone.Envelope {
+	public toSidechainSource(attack = 0, decay = 0, sustain = 0.42, release = 0.1): Tone.Envelope {
 		this._sidechainEnvelope?.dispose();
-		this._sidechainEnvelope = new Tone.Envelope(0, 0.2, 0, 0);
+		this._sidechainEnvelope = new Tone.Envelope(attack, decay, sustain, release);
 		
 		this.reconnectMiddlewares()
 		
 		return this._sidechainEnvelope
-	}
-	
-	public toggleSidechain(env: Tone.Envelope): void {
-		this._sidechainEnvelope = env;
-		
-		if (this._middlewares.value.find((middleware) => middleware.name === 'AutoDuck')) {
-			this.removeMiddleware({
-				name: 'AutoDuck',
-			})
-			this.reconnectMiddlewares()
-			return
-		}
-		
-		this.addMiddleware({
-			name: 'AutoDuck',
-			options: {
-				attack: 0,
-				decay: 0.1,
-				sustain: 0.42,
-				release: 0.5,
-			}
-		})
-		this.reconnectMiddlewares()
 	}
 	
 	public setToSource(keyOrObject: string | Object, value?: any): void {
@@ -288,5 +298,47 @@ export class Track {
 		const seq = Sequencer.getInstance();
 		const trackNumber = seq.soundEngine.tracks.findIndex((t) => t.name === this.name) + 1;
 		seq.updatePartDuration(trackNumber, length);
+	}
+	
+	public toggleSidechain(env: Tone.Envelope): void {
+		this._sidechainEnvelope = env;
+		
+		if (this._middlewares.value.find((middleware) => middleware.name === 'AutoDuck')) {
+			this.removeMiddleware({
+				name: 'AutoDuck',
+			})
+			this.reconnectMiddlewares()
+			return
+		}
+		
+		this.addMiddleware({
+			name: 'AutoDuck',
+			options: {
+				attack: env.attack || 0,
+				decay: env.decay || 0,
+				sustain: env.sustain || 0.42,
+				release: env.release || 0,
+			}
+		})
+		this.reconnectMiddlewares()
+	}
+	
+	public export(): TrackExportOptions {
+		return {
+			name: this.name,
+			volume: this.volume,
+			source: this.source.export(),
+			type: this.type,
+			middlewares: this.middlewares.map(_ => ({
+				name: _.name,
+				options: {..._.options, ..._.effect.get()},
+				effect: undefined,
+			})) as UniversalEffect[],
+			envelope: this.envelope,
+			length: this.length,
+			loops: this._loops.value.map((loop) => ({
+				...loop.export()
+			})),
+		}
 	}
 }

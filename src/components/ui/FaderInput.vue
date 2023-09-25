@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper" @dblclick="onDblClick">
-    <input type="range" :min="min" :max="max" v-model.number="value"/>
+    <input v-model.number="value" :max="max" :min="min" :step="step ?? 1" type="range"/>
   </div>
 </template>
 
@@ -10,11 +10,11 @@ const value = defineModel<number>()
 const props = defineProps<{
   min: number,
   max: number,
+  step?: number,
   defaultValue?: number,
 }>()
 
 const onDblClick = () => {
-  console.log('dblclick')
   props.defaultValue !== undefined && (value.value = props.defaultValue)
 }
 </script>
@@ -67,8 +67,6 @@ input[type="range"] {
 
   &[step]{
     --stepSize: 5%;
-    background-color: transparent;
-    background-image: repeating-linear-gradient(to right, rgba(#fff, .2), rgba(#fff, .2) calc(var(--stepSize) - 1px), #05051a var(--stepSize));
   }
 
   &::-webkit-slider-thumb {

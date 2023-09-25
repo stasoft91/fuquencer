@@ -63,16 +63,16 @@
         <SimpleButton class="big" @click="onSwingTrack(50)">Swing 50%</SimpleButton>
       </div>
 
-      <div v-if="selectedTrack?.type === TrackTypes.sample" class="full-size">
-        <SampleEditorButton
-            :sampleUrl="selectedSampleUrl"
-            :track="selectedTrack"
-            color="rgba(26, 32, 44, 1)"
-            width="100%"
-        >
-          Change
-        </SampleEditorButton>
-      </div>
+      <!--      <div v-if="selectedTrack?.type === TrackTypes.sample" class="full-size">-->
+      <!--        <SampleEditorButton-->
+      <!--            :sampleUrl="selectedSampleUrl"-->
+      <!--            :track="selectedTrack"-->
+      <!--            color="rgba(26, 32, 44, 1)"-->
+      <!--            width="100%"-->
+      <!--        >-->
+      <!--          Change-->
+      <!--        </SampleEditorButton>-->
+      <!--      </div>-->
     </div>
   </n-card>
 </template>
@@ -80,13 +80,13 @@
 <script lang="ts" setup>
 import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
 import {TrackTypes} from "~/lib/SoundEngine";
-import SampleEditorButton from "@/components/SampleEditor/SampleButton.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import {computed, ref} from "vue";
 import * as Tone from "tone/Tone";
 import {NCard} from "naive-ui";
-import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import {GridCell} from "~/lib/GridCell";
+import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DELAY_OPTIONS} from "@/constants";
 import {toMeasure} from "~/lib/utils/toMeasure";
 
@@ -208,6 +208,7 @@ const onSwingTrack = (swingPercentage: number) => {
   if (swingPercentage === 0) {
     sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
       cell.modifiers.delete(GridCellModifierTypes.swing)
+      sequencer.writeCell(cell)
     })
     return
   }
@@ -216,8 +217,9 @@ const onSwingTrack = (swingPercentage: number) => {
     cell.modifiers.set(GridCellModifierTypes.swing, {
       type: GridCellModifierTypes.swing,
       swing: swingPercentage,
-      subdivision: Tone.Time(swingSubdivision.value) as Tone.Unit.Time
+      subdivision: Tone.Time(swingSubdivision.value).toSeconds() as Tone.Unit.Time
     })
+    sequencer.writeCell(cell)
   })
 }
 </script>

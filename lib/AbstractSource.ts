@@ -2,12 +2,15 @@ import * as Tone from 'tone/Tone';
 import type {RecursivePartial} from "~/lib/typescript.types";
 import {DEFAULT_NOTE} from "~/lib/Sequencer";
 
-export type AbstractSourceOptions = {
+export type AbstractSourceOptions = ({
 	sampler?: never,
 	synth: RecursivePartial<Tone.MonoSynthOptions>
 } | {
 	sampler: Partial<Tone.SamplerOptions>,
 	synth?: never
+}) & {
+	filter?: Partial<Tone.FilterOptions>,
+	filterEnvelope?: Partial<Tone.FrequencyEnvelopeOptions>
 }
 
 export default class AbstractSource {
@@ -15,8 +18,8 @@ export default class AbstractSource {
 	private _sampler?: Tone.Sampler;
 	private _synth?: Tone.MonoSynth;
 	
-	private readonly _filter: Tone.Filter;
-	private readonly _filterEnvelope: Tone.FrequencyEnvelope;
+	private _filter: Tone.Filter;
+	private _filterEnvelope: Tone.FrequencyEnvelope;
 	
 	private _options!: AbstractSourceOptions;
 	
@@ -29,24 +32,24 @@ export default class AbstractSource {
 			throw new Error('No options provided for AbstractSource')
 		}
 		
-		this._filter = new Tone.Filter({
+		const filterOptions: Partial<Tone.FilterOptions> = options.filter ?? {
 			frequency: Tone.Frequency(20000, 'hz').toFrequency(),
 			type: 'lowpass',
 			rolloff: -12,
-		})
+		}
 		
-		this._filterEnvelope = new Tone.FrequencyEnvelope({
-			// attack: 0,
-			// decay: 1,
-			// sustain: 1,
-			// release: 1,
+		this._filter = new Tone.Filter(filterOptions)
+		
+		const filterEnvelopeOptions: Partial<Tone.FrequencyEnvelopeOptions> = options.filterEnvelope ?? {
 			attack: 0.01,
 			decay: 0.01,
 			sustain: 0,
 			release: 0.1,
 			octaves: 4,
 			baseFrequency: 20000,
-		})
+		}
+		
+		this._filterEnvelope = new Tone.FrequencyEnvelope(filterEnvelopeOptions)
 		
 		this._filterEnvelope.connect(this._filter.frequency)
 		this._filter.frequency.overridden = false;
@@ -152,6 +155,7 @@ export default class AbstractSource {
 	public set(options: Partial<Tone.SamplerOptions> | RecursivePartial<Tone.MonoSynthOptions>): void {
 		if ('filter' in options) {
 			this._filter!.set(options.filter as Partial<Tone.FilterOptions>);
+			console.log('filter', options.filter, this._filter.get())
 			delete options.filter;
 		}
 		
@@ -231,5 +235,13 @@ export default class AbstractSource {
 		} else {
 			return this._synth!.triggerAttack(note, time, velocity);
 		}
+	}
+	
+	public export(): AbstractSourceOptions {
+		return {
+			...this._options,
+			filter: this._filter.get(),
+			filterEnvelope: this._filterEnvelope.get(),
+		};
 	}
 }

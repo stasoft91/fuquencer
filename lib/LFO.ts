@@ -1,6 +1,8 @@
 import type {Ref} from "vue";
 import {ref} from "vue";
 import * as Tone from "tone/Tone";
+import {Sequencer} from "~/lib/Sequencer";
+import type {Track} from "~/lib/Track";
 
 export type LFOType = Tone.ToneOscillatorType | 'random' | 'oneshot'
 
@@ -12,7 +14,7 @@ export interface LFOOptions {
 	min: number,
 	max: number,
 	phase?: number,
-	destination: AutomatableParam,
+	address: string,
 	title?: string
 }
 
@@ -20,9 +22,32 @@ export class LFO {
 	public readonly title: string = ''
 	private _lfo!: Tone.LFO | Tone.ToneEvent | Tone.Loop
 	private readonly _destination: AutomatableParam
+	private readonly _address: string
 	
 	constructor(options: LFOOptions) {
-		const {type, frequency, min, max, phase, destination} = options;
+		const {type, frequency, min, max, phase, address, title} = options;
+		
+		const sequencer = Sequencer.getInstance();
+		
+		const path = options.address.split('.');
+		
+		const track = sequencer.soundEngine.tracks.find((track: Track) => track.name === path[0]);
+		if (!track) {
+			throw new Error(`No track found with name ${path[0]}`)
+		}
+		
+		path.shift();
+		
+		let pathAccumulator: unknown = track;
+		
+		path.forEach((key: string) => {
+			try {
+				// @ts-ignore
+				pathAccumulator = pathAccumulator[key];
+			} catch (e) {
+				throw new Error(`No key ${key} found in ${path.join('.')}`)
+			}
+		})
 		
 		this._id = Math.random().toString(36).substring(2, 9)
 		this._type.value = type
@@ -30,8 +55,9 @@ export class LFO {
 		this._min.value = min
 		this._max.value = max
 		this._phase.value = phase ?? 0
-		this._destination = destination
-		this.title = options.title ?? ''
+		this._destination = pathAccumulator as AutomatableParam
+		this._address = address
+		this.title = title ?? ''
 		
 		this.setLfo();
 	}
@@ -210,5 +236,17 @@ export class LFO {
 			})
 			this._lfo.connect(this._destination)
 		}
+	}
+	
+	public export(): LFOOptions {
+		return ({
+			type: this._type.value,
+			frequency: this._frequency.value,
+			min: this._min.value,
+			max: this._max.value,
+			phase: this._phase.value,
+			title: this.title,
+			address: this._address
+		})
 	}
 }

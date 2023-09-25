@@ -2,7 +2,7 @@
   <div class="display-grid-wrapper" :style="{ '--grid-rows': props.rows, '--grid-columns': props.columns}" >
     <div class="display-grid">
       <button
-          v-for="gridCell in props.items.value"
+          v-for="gridCell in props.items"
           :key="gridCell.id"
           class="display-grid__cell"
           :class="getClassesForCell(gridCell)"
@@ -255,17 +255,19 @@ button.inactive {
 
 <script setup lang="ts">
 import {GRID_ROWS} from "@/constants";
-import type {SkipParams} from "~/lib/GridCell";
-import {GridCell, GridCellModifierTypes} from "~/lib/GridCell";
+import type {SkipParams} from "~/lib/GridCell.types";
+import {GridCellModifierTypes} from "~/lib/GridCell.types";
+import {GridCell} from "~/lib/GridCell";
 import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
-import {nextTick, ref, toRef} from "vue";
+import {nextTick, ref} from "vue";
 import {Track} from "~/lib/Track";
 import {NDropdown} from "naive-ui";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
 import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
+import {cloneDeep} from "lodash";
 
 const sequencer = Sequencer.getInstance()
 
@@ -275,7 +277,7 @@ interface DisplayGridProps {
   tracks: Track[],
   rows: number,
   columns: number,
-  items: Ref<GridCell[]>
+  items: GridCell[]
 }
 
 const isDropdownOpened = ref(false)
@@ -320,19 +322,22 @@ const handleSelect = (key: string) => {
     return;
   }
 
+  const modifiers = new Map(cloneDeep(cellOfContextMenu.value).modifiers)
+
   if (key === 'add-probability') {
     const probability: number = parseInt(prompt('Probability [0-100]', '50') || '50') || 50
 
     if (probability === 100) {
-      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.probability)
-      sequencer.writeCell(cellOfContextMenu.value)
+      modifiers.delete(GridCellModifierTypes.probability)
+      sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
       return
     }
 
-    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.probability, {
+    modifiers.set(GridCellModifierTypes.probability, {
       type: GridCellModifierTypes.probability,
       probability: probability,
     })
+    sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
   }
 
   if (key === 'add-flam') {
@@ -340,18 +345,19 @@ const handleSelect = (key: string) => {
     const flam: number = parseInt(prompt('How many times to repeat? [0-99]', '4') || '1') || 1
 
     if (flam === 0 || flam === 1) {
-      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.flam)
-      sequencer.writeCell(cellOfContextMenu.value)
+      modifiers.delete(GridCellModifierTypes.flam)
+      sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
+
       return
     }
 
-    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.flam, {
+    modifiers.set(GridCellModifierTypes.flam, {
       type: GridCellModifierTypes.flam,
       roll: flam,
       velocity: 1,
       increaseVelocityFrom: 0.25
     })
-    sequencer.writeCell(cellOfContextMenu.value)
+    sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
   }
 
   if (key === 'add-skip') {
@@ -359,16 +365,17 @@ const handleSelect = (key: string) => {
     const skip: number = parseInt(prompt('How many skips to accumulate before triggering? [0-99]', '4') || '1') || 1
 
     if (skip === 0 || skip === 1) {
-      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.skip)
-      sequencer.writeCell(cellOfContextMenu.value)
+      modifiers.delete(GridCellModifierTypes.skip)
+      sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
+
       return
     }
 
-    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.skip, {
+    modifiers.set(GridCellModifierTypes.skip, {
       type: GridCellModifierTypes.skip,
       skip: skip,
     })
-    sequencer.writeCell(cellOfContextMenu.value)
+    sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
   }
 
   if (key === 'add-slide') {
@@ -376,16 +383,16 @@ const handleSelect = (key: string) => {
     const slide: number = parseInt(prompt('Portamento (milliseconds) [0-9999]', '100') || '0') || 0
 
     if (slide === 0) {
-      cellOfContextMenu.value.modifiers.delete(GridCellModifierTypes.slide)
-      sequencer.writeCell(cellOfContextMenu.value)
+      modifiers.delete(GridCellModifierTypes.slide)
+      sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
       return
     }
 
-    cellOfContextMenu.value.modifiers.set(GridCellModifierTypes.slide, {
+    modifiers.set(GridCellModifierTypes.slide, {
       type: GridCellModifierTypes.slide,
       slide: slide,
     })
-    sequencer.writeCell(cellOfContextMenu.value)
+    sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
   }
 
   if (key === 'edit-step') {
@@ -407,7 +414,7 @@ const handleContextMenu = (e: MouseEvent) => {
   const dataRow = (e.currentTarget as HTMLElement).getAttribute('data-row')
   const dataColumn = (e.currentTarget as HTMLElement).getAttribute('data-column')
 
-  cellOfContextMenu.value = props.items.value.find(cell =>
+  cellOfContextMenu.value = props.items.find(cell =>
       cell.row === Number(dataRow) &&
       cell.column === Number(dataColumn)
   ) ?? null
@@ -429,7 +436,6 @@ const onClickoutside = () => {
 const props = withDefaults(defineProps<DisplayGridProps>(), {
   rows: GRID_ROWS,
   columns: 16,
-  items: () => toRef([])
 });
 
 const emit = defineEmits([
@@ -458,7 +464,7 @@ const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: To
     zIndex: 3,
   } : {}
 
-  const doesCellHaveVelocity = props.items.value.filter(_ =>
+  const doesCellHaveVelocity = props.items.filter(_ =>
       // we look for an intersection in the row currently hovered
       _.row === rowNumber &&
       // look for cells after the hovered in same row
@@ -501,7 +507,7 @@ const onClick = (rowNumber: number, columnNumber: number) => {
 const onWheel = (rowNumber: number, columnNumber: number, event: WheelEvent) => {
   event.preventDefault()
   event.stopPropagation()
-  const cell = props.items.value.find(cell => cell.row === rowNumber && cell.column === columnNumber)
+  const cell = sequencer.readCell(rowNumber, columnNumber)
 
   if (cell) {
     if (event.shiftKey) {
@@ -590,7 +596,7 @@ const handleMouseEnter = (e: MouseEvent) => {
   const dataRow = (e.currentTarget as HTMLElement).getAttribute('data-row')
   const dataColumn = (e.currentTarget as HTMLElement).getAttribute('data-column')
 
-  const cell = props.items.value.find(cell =>
+  const cell = props.items.find(cell =>
       cell.row === Number(dataRow) &&
       cell.column === Number(dataColumn)
   )
@@ -604,7 +610,7 @@ const handleMouseEnter = (e: MouseEvent) => {
   // all of this can happen only if cell is longer than 1/16
   if (Tone.Time(cell.duration).toSeconds() > durationOf16n.toSeconds()) {
 
-    let hasIntersection = props.items.value.filter(_ =>
+    let hasIntersection = props.items.filter(_ =>
             // we look for an intersection in the row currently hovered
             _.row === cell.row &&
             // look for cells after the hovered in same row
@@ -614,7 +620,7 @@ const handleMouseEnter = (e: MouseEvent) => {
         // check if any of the cells is in the range of the hovered cell
     ).some(_ => _.column < stepOfCellFinish(cell, cell.duration))
 
-    hasIntersection = hasIntersection || props.items.value.filter(_ =>
+    hasIntersection = hasIntersection || props.items.filter(_ =>
             // we look for an intersection in the row currently hovered
             _.row === cell.row &&
             // look for cells before the hovered in same row

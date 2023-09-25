@@ -26,6 +26,19 @@
                 @click:link="onLinkFilter"
             />
 
+            <RichFaderInput
+                :default-value="0.707"
+                :max="25"
+                :min="0"
+                :model-value="reverseScaleLogarithmically(track.meta.get('filter')?.q) || 0.707"
+                :step="0.001"
+
+                class="constrained-width"
+                label="Filter Q"
+                @update:model-value="onUpdateQ(scaleLogarithmically($event as number))"
+                @click:link="onLinkQ"
+            />
+
             <ADSRForm :track="track"/>
           </div>
         </n-tab-pane>
@@ -156,10 +169,9 @@ import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {AVAILABLE_NOTES, Sequencer} from "~/lib/Sequencer";
 import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
-import type {LoopParams, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
+import type {LoopOptions, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
-import {LFO} from "~/lib/LFO";
 import {toMeasure} from "../../lib/utils/toMeasure";
 
 const props = defineProps<{
@@ -180,6 +192,35 @@ const volumePercentToLog = (volumePercent: number) => {
 
 const volumeLogToPercent = (volumeLog: number) => {
   return Math.pow(10, volumeLog / 48) * 100
+}
+
+//scale between 0 and 25 exponentially to 0 and 100
+function scaleLogarithmically(inputSignal: number) {
+  // Ensure inputSignal is within the [0, 100] range
+  inputSignal = Math.min(Math.max(inputSignal, 0), 100);
+
+  // Map the input signal to the logarithmic scale [0, 15]
+  const minInput = 0;
+  const maxInput = 100;
+  const minOutput = 0;
+  const maxOutput = 15;
+
+  // Calculate the scaled value logarithmically
+  return ((Math.log(inputSignal / minInput) / Math.log(maxInput / minInput)) * (maxOutput - minOutput)) + minOutput;
+}
+
+function reverseScaleLogarithmically(outputSignal: number) {
+  // Ensure outputSignal is within the [0, 15] range
+  outputSignal = Math.min(Math.max(outputSignal, 0), 15);
+
+  // Map the output signal back to the original scale [0, 100]
+  const minInput = 0;
+  const maxInput = 100;
+  const minOutput = 0;
+  const maxOutput = 15;
+
+  // Calculate the reverse scaled value
+  return Math.pow((outputSignal - minOutput) / (maxOutput - minOutput), Math.log(maxInput / minInput)) * minInput;
 }
 
 //scale between 20 and 20000 exponentially to 0 and 100
@@ -205,9 +246,15 @@ const onUpdateFilter = (frequency: number) => {
       baseFrequency: frequency
     }
   })
+}
 
-  // eslint-disable-next-line vue/no-mutating-props
-  props.track.source.filter.frequency.value = frequency
+const onUpdateQ = (Q: number) => {
+  props.track.setToSource({
+    filter: {
+      ...props.track.meta.get('filter'),
+      Q
+    }
+  })
 }
 
 const onUpdateEffectsChain = (chain: string[]) => {
@@ -224,7 +271,7 @@ const onAddPolyrhythm = (): void => {
   })
 }
 
-const onLoopUpdate = (loop: PolyrhythmLoop, fieldName: keyof LoopParams, $event: string | Event) => {
+const onLoopUpdate = (loop: PolyrhythmLoop, fieldName: keyof LoopOptions, $event: string | Event) => {
   // decide where in $event we have actual value (is $event a string or Event object)
   const value: string = Object.getOwnPropertyNames($event).includes('isTrusted') ? (($event as InputEvent).target as HTMLInputElement).value : $event as string
 
@@ -249,29 +296,37 @@ const onStopLoop = (loop: PolyrhythmLoop) => {
 }
 
 const onLinkVolume = () => {
-  const lfo = new LFO({
+  sequencer.addLFO({
     frequency: Tone.Time('16n').toFrequency(),
     type: 'random',
     max: 0,
     min: -20,
-    destination: props.track.source.volume,
+    address: `${props.track.name}.source.volume`,
     title: `${props.track.name} / Volume`,
   })
-
-  sequencer.addLFO(lfo)
 }
 
 const onLinkFilter = () => {
-  const lfo = new LFO({
+
+  sequencer.addLFO({
     frequency: Tone.Time('16n').toFrequency(),
     type: 'random',
-    max: Tone.Frequency(20000).toFrequency(),
-    min: 0,
-    destination: props.track.source.filter.frequency,
+    max: Tone.Frequency(10000).toFrequency(),
+    min: 210,
+    address: `${props.track.name}.source.filter.frequency`,
     title: `${props.track.name} / Frequency`,
   })
+}
 
-  sequencer.addLFO(lfo)
+const onLinkQ = () => {
+  sequencer.addLFO({
+    frequency: Tone.Time('16n').toFrequency(),
+    type: 'random',
+    max: 20,
+    min: 0,
+    address: `${props.track.name}.source.filter.Q`,
+    title: `${props.track.name} / Q`,
+  })
 }
 </script>
 

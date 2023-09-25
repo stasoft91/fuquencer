@@ -5,6 +5,7 @@
                 :min="min"
                 :max="max"
                 :id="id"
+                :step="step"
                 :default-value="defaultValue"
     />
 

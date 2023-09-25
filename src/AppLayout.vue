@@ -4,7 +4,8 @@ import {NIcon, useDialog} from 'naive-ui'
 import TrackJobs from "@/components/AvailableSides/TrackJobs.vue";
 import LFOJobs from "@/components/AvailableSides/LFOJobs.vue";
 import {
-  DownloadOutline as DownloadIcon,
+  ArrowRedoOutline as RedoIcon,
+  ArrowUndoOutline as UndoIcon,
   FolderOpen as FolderIcon,
   InformationCircleOutline as InfoIcon,
   OptionsOutline as OptionsIcon,
@@ -17,8 +18,9 @@ import {computed, h, onMounted, ref, resolveComponent} from "vue";
 import {VERSION} from "@/constants";
 import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
+
 import StepJobs from "@/components/AvailableSides/StepJobs.vue";
-import type {GridCell} from "~/lib/GridCell";
+import {GridCell} from "~/lib/GridCell";
 
 const dialog = useDialog()
 
@@ -26,9 +28,9 @@ onMounted(() => {
   showInfo()
 })
 
-const sequencer = Sequencer.getInstance(16) // the creation is supposed to be done only once - here
+const gridStore = useGridEditorStore()
 
-const gridEditor = useGridEditorStore()
+const sequencer = Sequencer.getInstance(16) // the creation is supposed to be done only once - here
 
 const isSettingsOpen = ref(false);
 
@@ -54,12 +56,68 @@ const showInfo = (() => {
 })
 
 const hasCellInEdit = computed(() => {
-  return gridEditor.selectedGridCell !== null
+  return gridStore.selectedGridCell !== null
 })
 
 const selectedCell = computed(() => {
-  return gridEditor.selectedGridCell as GridCell | null
+  return gridStore.selectedGridCell as GridCell | null
 })
+
+const canUndo = computed(() => {
+  return sequencer.history.canUndo
+})
+
+const canRedo = computed(() => {
+  return sequencer.history.canRedo
+})
+
+const onUndo = () => {
+  const cell = sequencer.history.undo()
+  cell && sequencer.writeCell(cell, true)
+}
+
+const onRedo = () => {
+  const cell = sequencer.history.redo()
+  cell && sequencer.writeCell(cell, true)
+}
+
+const handleExport = () => {
+  const exportData = sequencer.export();
+
+  // save file dialog
+  const blob = new Blob([(exportData)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fuquencer.json';
+  a.click();
+  URL.revokeObjectURL(url)
+  a.remove()
+}
+
+const handleImport = async () => {
+  let importData = ''
+
+  // read json from open file dialog
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      importData = event.target?.result as string;
+      await Sequencer.importFrom(importData);
+      input.remove();
+    };
+    reader.readAsText(file);
+  };
+
+  input.click();
+}
 
 </script>
 
@@ -68,18 +126,18 @@ const selectedCell = computed(() => {
     <div class="flex">
       <h1 class="title">fuquencer</h1>
       <menu>
-        <SimpleButton class="big">
+        <SimpleButton class="big" @click="handleExport">
           <NIcon :component="SaveIcon"></NIcon>
           Save
         </SimpleButton>
-        <SimpleButton class="big">
+        <SimpleButton class="big" @click="handleImport">
           <NIcon :component="FolderIcon"></NIcon>
           Load
         </SimpleButton>
-        <SimpleButton class="big">
-          <NIcon :component="DownloadIcon"></NIcon>
-          Export
-        </SimpleButton>
+        <!--        <SimpleButton class="big">-->
+        <!--          <NIcon :component="DownloadIcon"></NIcon>-->
+        <!--          Export-->
+        <!--        </SimpleButton>-->
         <SimpleButton class="big" @click="onShowOptions">
           <NIcon :component="OptionsIcon"></NIcon>
           Options
@@ -87,6 +145,14 @@ const selectedCell = computed(() => {
         <SimpleButton class="big" @click="showInfo">
           <NIcon :component="InfoIcon"></NIcon>
           Info
+        </SimpleButton>
+        <SimpleButton :disabled="!canUndo" class="big" @click="onUndo">
+          <NIcon :component="UndoIcon"></NIcon>
+          Undo
+        </SimpleButton>
+        <SimpleButton :disabled="!canRedo" class="big" @click="onRedo">
+          <NIcon :component="RedoIcon"></NIcon>
+          Redo
         </SimpleButton>
       </menu>
     </div>
