@@ -24,7 +24,7 @@ import {PatternGenerator} from "~/lib/PatternGenerator";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {HistoryManager} from "~/lib/HistoryManager";
 import {cloneDeep} from "lodash";
-import {GRID_COLS} from "@/constants";
+import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
 
 export const DEFAULT_NOTE = 'C4'
@@ -84,6 +84,12 @@ export class Sequencer {
   private _isPlaying: Ref<boolean> = ref(false)
   
   private _lfos: ShallowRef<LFO[]> = shallowRef([]);
+  
+  private _indicatorLoops: Tone.Loop[] = []
+
+  public get indicatorLoops(): Tone.Loop[] {
+    return this._indicatorLoops
+  }
   
   public get bpm(): number {
     return this._bpm.value
@@ -168,6 +174,8 @@ export class Sequencer {
   public get isPlaying(): boolean {
     return this._isPlaying.value
   }
+  
+  private _indicatorMatrix = ref(Array.from({length: GRID_COLS}, () => Array.from({length: GRID_ROWS}, () => false)))
   
   public set isPlaying(value: boolean) {
     this._isPlaying.value = value
@@ -340,23 +348,12 @@ export class Sequencer {
     })
   }
   
-  public updatePartDuration(trackNumber: number, numOfParts: number): void {
-    if (!this._parts[trackNumber - 1]) {
-      return
-    }
-    
-    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(numOfParts)
+  public get indicatorMatrix(): Ref<boolean[][]> {
+    return this._indicatorMatrix
   }
   
-  public stop() {
-    this._parts.forEach((part) => part.cancel().stop().dispose())
-    this._parts = []
-    Tone.Transport.stop()
-    Tone.Transport.set({})
-    this._mainLoop?.stop()
-    
-    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
-    this._isPlaying.value = false;
+  public get isPlayingRef(): Ref<boolean> {
+    return this._isPlaying
   }
   
   public initGrid(): void {
@@ -385,8 +382,51 @@ export class Sequencer {
     triggerRef(this._lfos)
   }
   
+  public updatePartDuration(trackNumber: number, numOfParts: number): void {
+    if (!this._parts[trackNumber - 1]) {
+      return
+    }
+    
+    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(numOfParts)
+    
+    this.setupIndicatorLoops()
+  }
+  
+  public addLFO(lfoOptions: LFOOptions): void {
+    const lfo = new LFO(lfoOptions)
+    this._lfos.value.push(lfo)
+    triggerRef(this._lfos)
+  }
+  
+  public stop() {
+    console.log(this._parts)
+    
+    this._parts.forEach((part) => part.cancel().stop().dispose())
+    this._parts = []
+    
+    this._indicatorLoops.forEach((loop) => loop.cancel().stop().dispose())
+    this._indicatorLoops = []
+    
+    this.soundEngine.tracks.forEach((_, trackIndex) => {
+      this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
+        this.indicatorMatrix.value[trackIndex][columnIndex] = false
+      })
+      
+      this.toggleIndicator(trackIndex + 1, 1)
+    })
+    
+    Tone.Transport.stop()
+    this._mainLoop?.stop()
+    
+    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
+    
+    this._isPlaying.value = false;
+  }
+  
   public async play() {
     this.currentStep = 1
+    
+    this.setupIndicatorLoops()
     
     for (let i = 0; i < this.soundEngine.tracks.length; i++) {
       const part = new Tone.Part(
@@ -536,7 +576,6 @@ export class Sequencer {
               )
             })
           } else {
-            
             if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
               console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has more than 1 note but no arpeggiator, playing only the first note`)
             }
@@ -579,15 +618,43 @@ export class Sequencer {
       }, time);
     }, "16n").start(0);
     
+    this._indicatorLoops.forEach(loop => loop.start(0))
+    
+    
     Tone.Transport.start()
     
     this._isPlaying.value = true;
   }
   
-  public addLFO(lfoOptions: LFOOptions): void {
-    const lfo = new LFO(lfoOptions)
-    this._lfos.value.push(lfo)
-    triggerRef(this._lfos)
+  public toggleIndicator(row: number, column: number): void {
+    const matrix = this._indicatorMatrix.value
+    matrix[row - 1][column - 1] = !matrix[row - 1][column - 1]
+    this._indicatorMatrix.value = matrix
+  }
+  
+  public setupIndicatorLoops() {
+    const durationOf16n = Tone.Time('16n')
+    
+    this.soundEngine.tracks.forEach((track, trackIndex) => {
+      if (!this.indicatorLoops[trackIndex]) {
+        this.indicatorLoops.push(
+          new Tone.Loop((time) => {
+            Tone.Draw.schedule(() => {
+              const columnOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
+              
+              this.indicatorMatrix.value[trackIndex].forEach(() => {
+                this.indicatorMatrix.value[trackIndex][columnOfEnabledIndicator] = false
+              })
+              
+              let columnOfNextStep = columnOfEnabledIndicator + 1
+              columnOfNextStep >= track.length && (columnOfNextStep = 0)
+              
+              this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
+            }, time)
+          }, durationOf16n.toSeconds())
+        )
+      }
+    })
   }
   
   public export(): string {

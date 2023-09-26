@@ -17,7 +17,7 @@
           @contextmenu="handleContextMenu"
       >
         <span class="left-side">
-          <span :class="getClassForIndicator(gridCell)" class="button-indicator"></span>
+          <span :class="getClassForPolyrhythmIndicator(gridCell)" class="button-indicator"></span>
         </span>
 
         <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
@@ -260,7 +260,7 @@ import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {GridCell} from "~/lib/GridCell";
 import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
-import {nextTick, ref} from "vue";
+import {computed, nextTick, ref} from "vue";
 import {Track} from "~/lib/Track";
 import {NDropdown} from "naive-ui";
 import {toMeasure} from "~/lib/utils/toMeasure";
@@ -277,7 +277,8 @@ interface DisplayGridProps {
   tracks: Track[],
   rows: number,
   columns: number,
-  items: GridCell[]
+  items: GridCell[],
+  isPlaying: boolean,
 }
 
 const isDropdownOpened = ref(false)
@@ -436,6 +437,7 @@ const onClickoutside = () => {
 const props = withDefaults(defineProps<DisplayGridProps>(), {
   rows: GRID_ROWS,
   columns: 16,
+  isPlaying: () => false,
 });
 
 const emit = defineEmits([
@@ -648,5 +650,30 @@ const getNoteText = (gridCell: GridCell) => {
       gridCell.notes.length === 1 ? gridCell.notes[0] :
           'Rst'
 
+}
+
+const indicatorMatrix = computed(() => {
+  return sequencer.indicatorMatrix
+})
+
+const getClassForPolyrhythmIndicator = (gridCell: GridCell) => {
+  const trackCells = indicatorMatrix.value.value[gridCell.row - 1]
+  let isActive: boolean = trackCells[gridCell.column - 1]
+
+  const realSpan: number = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
+
+  if (gridCell.velocity > 0 && realSpan > 1) {
+    const activeFor: number[] = []
+    for (let i = 0; i < realSpan; i++) {
+      activeFor.push(gridCell.column + i)
+    }
+
+    isActive = activeFor.includes(trackCells.indexOf(true) + 1)
+  }
+
+  return {
+    active: isActive,
+    disabled: gridCell.column > props.tracks[gridCell.row - 1]?.length
+  }
 }
 </script>

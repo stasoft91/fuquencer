@@ -13,8 +13,7 @@
       />
       <div class="flex-auto">
         <DisplayGrid
-            :key="sequencer.isPlaying ? 'playing' : 'stopped'"
-
+            :is-playing="sequencer.isPlaying"
             :columns="GRID_COLS"
             :tracks="sequencer.soundEngine.tracks"
             :items="sequencer.sequenceGrid.value"

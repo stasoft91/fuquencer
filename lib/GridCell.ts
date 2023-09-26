@@ -1,12 +1,11 @@
 import * as Tone from "tone/Tone";
-import {DEFAULT_NOTE} from "~/lib/Sequencer";
 import type {GridCellArpeggiator, GridCellModifier, GridCellOptions} from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {toRaw} from "vue";
 import {cloneDeep} from "lodash";
 
 export class GridCell implements GridCellOptions {
-	public notes: string[] = [DEFAULT_NOTE]
+	public notes: string[] = []
 	public velocity: number = 0
 	public row: number = 0
 	public column: number = 0
@@ -21,7 +20,7 @@ export class GridCell implements GridCellOptions {
 			throw new Error('GridCell: row and column are required')
 		}
 		
-		this.notes = toRaw(notes) ?? [DEFAULT_NOTE]
+		this.notes = toRaw(notes) ?? []
 		this.velocity = velocity ?? 0
 		this.row = row
 		this.column = column
