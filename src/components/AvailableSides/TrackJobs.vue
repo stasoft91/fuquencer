@@ -96,13 +96,13 @@ const sequencer = Sequencer.getInstance()
 const swingSubdivision = ref('8n')
 
 const selectedTrack = computed(() => {
-  return sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  return sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 })
 
 const onFillTrack = (repeats?: number) => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
-  const trackNumber = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const trackNumber = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   for (let i = 1; i <= 16; i++) {
     sequencer.writeCell(new GridCell({
@@ -130,9 +130,9 @@ const onFillTrack = (repeats?: number) => {
 }
 
 const onGenerateBassline = () => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
   sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
 }
@@ -142,15 +142,15 @@ const selectedSampleUrl = computed(() => {
     return ''
   }
 
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
   return selectedTrack.meta.get('urls')[DEFAULT_NOTE] || (selectedTrack.source.get() as Tone.SamplerOptions).urls[DEFAULT_NOTE]
 })
 
 const onShiftTrackLeft = () => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === 1 ? 16 : cellPosition.column - 1
@@ -162,9 +162,9 @@ const onShiftTrackLeft = () => {
   })
 }
 const onShiftTrackRight = () => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === 16 ? 1 : cellPosition.column + 1
@@ -177,9 +177,9 @@ const onShiftTrackRight = () => {
 }
 
 const onHumanizeTrack = () => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
-  const trackIndex = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     let newVelocity = Math.ceil(Math.random() * 25) + 75
@@ -196,14 +196,14 @@ const onHumanizeTrack = () => {
 }
 
 const onPartLengthChange = (event: Event) => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
 
   selectedTrack.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
 }
 
 const onSwingTrack = (swingPercentage: number) => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
-  const trackRow = sequencer.soundEngine.tracks.findIndex(track => track.name === selectedTrack.name) + 1
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
+  const trackRow = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   if (swingPercentage === 0) {
     sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {

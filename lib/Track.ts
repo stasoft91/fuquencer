@@ -137,18 +137,6 @@ export class Track {
 		this.reconnectMiddlewares();
 	}
 	
-	public set envelope(envelope: ADSRType) {
-		this._envelope.value = envelope;
-		
-		this._source.set({
-			envelope,
-			// @ts-ignore
-			attack: envelope.attack || this._source.attack || 0,
-			// @ts-ignore
-			release: envelope.release || this._source.release || 0
-		})
-	}
-	
 	public get sidechainEnvelope(): Tone.Envelope | undefined {
 		return this._sidechainEnvelope;
 	}
@@ -177,6 +165,10 @@ export class Track {
 		return this._length.value;
 	}
 	
+	public getLoops() {
+		return shallowRef(this._loops);
+	}
+	
 	public static async importFrom(trackOptions: TrackExportOptions): Promise<Track> {
 		const source = new AbstractSource(trackOptions.source)
 		await source.init();
@@ -188,7 +180,6 @@ export class Track {
 			type: trackOptions.type,
 		});
 		
-		newTrack.envelope = trackOptions.envelope;
 		newTrack._length.value = trackOptions.length;
 		
 		trackOptions.middlewares.filter(_ => _.name !== 'AutoDuck').forEach((middleware) => {
@@ -200,53 +191,6 @@ export class Track {
 		});
 		
 		return newTrack;
-	}
-	
-	public getLoops() {
-		return shallowRef(this._loops);
-	}
-	
-	public reconnectMiddlewares(): void {
-		this._middlewares.value.map((middleware) => {
-			if (middleware.effect && !middleware.effect.disposed) {
-				if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
-					this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
-				} else {
-					middleware.effect.set(middleware.options);
-				}
-				
-				return;
-			}
-			
-			if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
-				// EFFECT IS AUTODUCK
-				middleware.effect?.dispose();
-				middleware.effect = new Tone.Gain();
-				const scale = new Tone.Scale(1, 0);
-				scale.connect(middleware.effect.gain);
-				this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
-				this._sidechainEnvelope?.connect(scale);
-				
-			} else if (middleware.name !== 'AutoDuck') {
-				// EFFECT IS ANY OTHER EFFECT
-				// @ts-ignore
-				middleware.effect = new Tone[middleware.name](middleware.options);
-				
-			} else if (middleware.name === 'AutoDuck' && !this._sidechainEnvelope) {
-				console.error('You need to add a sidechain source to use AutoDuck');
-				return undefined;
-			}
-		});
-		
-		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect?.disconnect())
-		
-		this._source.disconnect();
-		
-		this._source.chain(
-			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],
-			this.channel,
-			Tone.Destination
-		);
 	}
 	
 	public removeLoop(loop: PolyrhythmLoop): void {
@@ -264,13 +208,53 @@ export class Track {
 		return newLoop
 	}
 	
-	public toSidechainSource(attack = 0, decay = 0, sustain = 0.42, release = 0.1): Tone.Envelope {
-		this._sidechainEnvelope?.dispose();
-		this._sidechainEnvelope = new Tone.Envelope(attack, decay, sustain, release);
+	public reconnectMiddlewares(): void {
+		this._middlewares.value.map((middleware) => {
+			if (middleware.effect && !middleware.effect.disposed) {
+				if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
+					this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
+				} else {
+					middleware.effect.set(middleware.options);
+				}
+				
+				return;
+			}
+			
+			if (middleware.name === 'AutoDuck' && this._sidechainEnvelope) {
+				// EFFECT IS AUTODUCK
+				middleware.effect?.disconnect().dispose();
+				const effect = new Tone.Volume() as Tone.Volume;
+				effect.volume.value = -Infinity;
+				
+				const scale = new Tone.Scale(0, -1);
+				scale.connect(effect.volume);
+				
+				this._sidechainEnvelope.set(middleware.options as Tone.EnvelopeOptions);
+				this._sidechainEnvelope?.connect(scale);
+				
+				middleware.effect = effect;
+				
+			} else if (middleware.name !== 'AutoDuck') {
+				// EFFECT IS ANY OTHER EFFECT
+				// @ts-ignore
+				middleware.effect = new Tone[middleware.name](middleware.options);
+				
+			} else if (middleware.name === 'AutoDuck' && !this._sidechainEnvelope) {
+				console.error('You need to add a sidechain source to use AutoDuck');
+				return undefined;
+			}
+		});
 		
-		this.reconnectMiddlewares()
+		this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect).forEach(effect => effect?.disconnect())
 		
-		return this._sidechainEnvelope
+		this._source.disconnect();
+		this.channel.disconnect();
+		
+		this._source.chain(
+			...this._middlewares.value.filter(_ => _).map((middleware) => middleware.effect) as Tone.ToneAudioNode[],
+			this.channel,
+			Tone.Destination
+		);
 	}
 	
 	public setToSource(keyOrObject: string | Object, value?: any): void {
@@ -292,12 +276,16 @@ export class Track {
 		this._meta.value.set(key, value);
 	}
 	
-	public setLength(length: number): void {
-		this._length.value = length;
+	public toSidechainSource(attack = 0, decay = 0, sustain = 0.42, release = 0.1): Tone.Envelope {
+		if (!this._sidechainEnvelope) {
+			this._sidechainEnvelope = new Tone.Envelope(attack, decay, sustain, release);
+		} else {
+			this._sidechainEnvelope.set({attack, decay, sustain, release});
+		}
 		
-		const seq = Sequencer.getInstance();
-		const trackNumber = seq.soundEngine.tracks.findIndex((t) => t.name === this.name) + 1;
-		seq.updatePartDuration(trackNumber, length);
+		this.reconnectMiddlewares()
+		
+		return this._sidechainEnvelope
 	}
 	
 	public toggleSidechain(env: Tone.Envelope): void {
@@ -307,7 +295,6 @@ export class Track {
 			this.removeMiddleware({
 				name: 'AutoDuck',
 			})
-			this.reconnectMiddlewares()
 			return
 		}
 		
@@ -320,7 +307,6 @@ export class Track {
 				release: env.release || 0,
 			}
 		})
-		this.reconnectMiddlewares()
 	}
 	
 	public export(): TrackExportOptions {
@@ -340,5 +326,13 @@ export class Track {
 				...loop.export()
 			})),
 		}
+	}
+	
+	public setLength(length: number): void {
+		this._length.value = length;
+		
+		const seq = Sequencer.getInstance();
+		const trackNumber = seq.soundEngine.tracks.value.findIndex((t) => t.name === this.name) + 1;
+		seq.updatePartDuration(trackNumber, length);
 	}
 }

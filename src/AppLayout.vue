@@ -8,6 +8,7 @@ import {
   ArrowUndoOutline as UndoIcon,
   FolderOpen as FolderIcon,
   InformationCircleOutline as InfoIcon,
+  MusicalNoteOutline as NotesIcon,
   OptionsOutline as OptionsIcon,
   SaveOutline as SaveIcon
 } from '@vicons/ionicons5'
@@ -30,7 +31,7 @@ onMounted(() => {
 
 const gridStore = useGridEditorStore()
 
-const sequencer = Sequencer.getInstance(16) // the creation is supposed to be done only once - here
+const sequencer = Sequencer.getInstance() // the creation is supposed to be done only once - here
 
 const isSettingsOpen = ref(false);
 
@@ -48,8 +49,8 @@ const showInfo = (() => {
     },
     async onAfterLeave() {
       // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
-      if (sequencer.soundEngine.tracks.length === 0) {
-        await sequencer.initTracksDemo()
+      if (sequencer.soundEngine.tracks.value.length === 0) {
+        await sequencer.initTracksDemoLegacy()
       }
     },
   })
@@ -119,6 +120,10 @@ const handleImport = async () => {
   input.click();
 }
 
+const handleDemo = async () => {
+  await fetch('./demo_1.json').then(res => res.text()).then(importData => Sequencer.importFrom(importData))
+}
+
 </script>
 
 <template>
@@ -133,6 +138,10 @@ const handleImport = async () => {
         <SimpleButton class="big" @click="handleImport">
           <NIcon :component="FolderIcon"></NIcon>
           Load
+        </SimpleButton>
+        <SimpleButton class="big" @click="handleDemo">
+          <NIcon :component="NotesIcon"></NIcon>
+          Demo #1
         </SimpleButton>
         <!--        <SimpleButton class="big">-->
         <!--          <NIcon :component="DownloadIcon"></NIcon>-->

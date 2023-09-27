@@ -2,20 +2,20 @@
   <div :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': GRID_COLS }" class="sequencer-wrapper">
     <div class="flex-horizontal">
       <VerticalIndicator
-          :key="sequencer.isPlaying ? 'playing' : 'stopped'"
-          :polyrhythms="sequencer.soundEngine.tracks.map(_=>_.getLoops().value.length)"
-          :row-captions="sequencer.soundEngine.tracks.map(_=>_.name)"
-          :rows="GRID_ROWS"
+          :key="`${sequencer.isPlaying}_${sequencer.soundEngine.tracks.value.length}`"
+          :polyrhythms="sequencer.soundEngine.tracks.value.map(_=>_.getLoops().value.length)"
+          :rows="sequencer.soundEngine.tracks.value.length"
           :selected-row="selectedTrackIndex"
-          :tracks="sequencer.soundEngine.tracks"
+          :tracks="sequencer.soundEngine.tracks.value"
           space="0"
           @select-row="onSelectTrack"
+          @add-track="onAddTrack"
       />
       <div class="flex-auto">
         <DisplayGrid
             :is-playing="sequencer.isPlaying"
             :columns="GRID_COLS"
-            :tracks="sequencer.soundEngine.tracks"
+            :tracks="sequencer.soundEngine.tracks.value"
             :items="sequencer.sequenceGrid.value"
             :rows="GRID_ROWS"
             @click="changeCellState"
@@ -34,9 +34,9 @@
     <MixerDisplay :key="sequencer.isPlaying ? 'playing' : 'stopped'"></MixerDisplay>
 
     <SubPanel
-        v-if="sequencer.soundEngine.tracks[selectedTrackIndex]"
-        :effects-chain="sequencer.soundEngine.tracks[selectedTrackIndex].middlewares"
-        :track="sequencer.soundEngine.tracks[selectedTrackIndex]"
+        v-if="sequencer.soundEngine.tracks.value[selectedTrackIndex]"
+        :effects-chain="sequencer.soundEngine.tracks.value[selectedTrackIndex].middlewares"
+        :track="sequencer.soundEngine.tracks.value[selectedTrackIndex]"
         @update:envelope="onEnvelopeUpdate"
 
         @update:chain="onUpdateEffects"
@@ -56,8 +56,9 @@ import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
+import {TrackTypes} from "~/lib/SoundEngine";
 import {AVAILABLE_EFFECTS, GRID_COLS, GRID_ROWS} from "@/constants";
-import type {Track} from "~/lib/Track";
+import {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {jsonCopy} from "~/lib/utils/jsonCopy";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
@@ -65,6 +66,7 @@ import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import * as Tone from "tone/Tone";
 import {GridCell} from "~/lib/GridCell";
+import AbstractSource from "~/lib/AbstractSource";
 
 const sequencer = Sequencer.getInstance()
 
@@ -73,7 +75,7 @@ const store = useSelectedTrackNumber()
 const selectedTrackIndex = computed(() => store.selectedTrackIndex);
 
 const selectedTrack = computed<Track>(() => {
-  return sequencer.soundEngine.tracks[selectedTrackIndex.value]
+  return sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 });
 
 const onSelectTrack = (trackIndex: number) => {
@@ -160,6 +162,10 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
 
 const changeCellState = (row: number, column: number) => {
   const cell = sequencer.readCell(row, column)
+  const trackLength = sequencer.soundEngine.tracks.value[selectedTrackIndex.value].length
+  if (trackLength < column) {
+    return
+  }
 
   const newVelocity = sequencer.readCell(row, column).velocity > 0 ? 0 : 100;
 
@@ -189,13 +195,13 @@ const play = async () => {
 }
 
 const onEnvelopeUpdate = (envelope: ADSRType) => {
-  const track = sequencer.soundEngine.tracks[selectedTrackIndex.value]
+  const track = sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 
-  track.envelope = envelope
+  track.setToSource({envelope})
 }
 
 const onSidechain = () => {
-  const tracks = sequencer.soundEngine.tracks;
+  const tracks = sequencer.soundEngine.tracks.value;
 
   // TODO: not always the first track is the kick,
   // TODO: what about different samples on different notes of that [0] sampler track?
@@ -206,7 +212,7 @@ const onUpdateEffects = (chain: string[]) => {
   // array of effect names (:string[]) maps to actual effect objects (:UniversalEffect) then goes to initialize in middlewares `set` method
   // jsonCopy to actually have different instances of effects for each track
   const newEffectByName = (effectName: string): UniversalEffect => {
-    const track = sequencer.soundEngine.tracks[selectedTrackIndex.value];
+    const track = sequencer.soundEngine.tracks.value[selectedTrackIndex.value];
     const effect = track.middlewares.find(_ => _.name === effectName)
 
     if (effect) {
@@ -218,8 +224,44 @@ const onUpdateEffects = (chain: string[]) => {
 
   const effects: UniversalEffect[] = chain.map(newEffectByName)
 
-  sequencer.soundEngine.tracks[selectedTrackIndex.value].clearMiddlewares()
-  sequencer.soundEngine.tracks[selectedTrackIndex.value].addMiddleware(effects)
+  sequencer.soundEngine.tracks.value[selectedTrackIndex.value].clearMiddlewares()
+  sequencer.soundEngine.tracks.value[selectedTrackIndex.value].addMiddleware(effects)
+}
+
+const onAddTrack = async () => {
+  // TODO!!!!!!
+  if (sequencer.soundEngine.tracks.value.length >= 8) {
+    throw new Error('Maximum number of tracks reached')
+  }
+
+  const abstractSourceSynth = new AbstractSource({
+    synth: {
+      oscillator: {
+        type: 'pulse'
+      },
+      envelope: {
+        attack: 0.01,
+        decay: 0.42,
+        sustain: 0.01,
+        release: 0.25
+      },
+      filterEnvelope: {
+        attack: 0.001,
+        decay: 0.1,
+        sustain: 0.5,
+      },
+      volume: -6
+    }
+  })
+
+  await abstractSourceSynth.init();
+
+  sequencer.soundEngine.addTrack(new Track({
+    volume: -6,
+    name: 'Tone #' + (sequencer.soundEngine.tracks.value.length + 1),
+    source: abstractSourceSynth,
+    type: TrackTypes.synth
+  }))
 }
 </script>
 

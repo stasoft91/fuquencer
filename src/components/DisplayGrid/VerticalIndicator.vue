@@ -1,5 +1,5 @@
 <template>
-  <div class="vertical-indicator" :style="{ '--grid-rows': rows, '--space': space }">
+  <div :style="{ '--grid-rows': GRID_ROWS, '--space': space }" class="vertical-indicator">
     <div
       class="vertical-indicator__cell"
       v-for="(row, rowIndex) in rows"
@@ -17,6 +17,16 @@
           :wave-color="rowIndex === selectedRow ? '#edf2f7' : '#a0aec0'"
           :normalize="true"
       ></DisplayWaveform>
+    </div>
+
+    <div
+        v-if="rows < GRID_ROWS"
+        :style="getStyleForCell(rows+1, 1)"
+        class="vertical-indicator__cell no-wrap"
+        @click="$emit('addTrack')"
+    >
+      <NIcon :component="AddIcon"></NIcon>
+      Track
     </div>
   </div>
 </template>
@@ -51,6 +61,13 @@
   border-radius: 3px;
 }
 
+.no-wrap {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  background-color: $color-grey-700;
+}
+
 .active {
   border: none;
   padding: 4px;
@@ -66,6 +83,9 @@ import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
 import type {Track} from "~/lib/Track";
 import {computed} from "vue";
 import {DEFAULT_NOTE} from "~/lib/Sequencer";
+import {GRID_ROWS} from "@/constants";
+import {AddOutline as AddIcon} from "@vicons/ionicons5";
+import {NIcon} from "naive-ui";
 
 interface Props {
   tracks: Track[],
@@ -78,7 +98,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['selectRow'])
+const emit = defineEmits(['selectRow', 'addTrack'])
 
 const getStyleForCell = (rowNumber: number, columnNumber: number) => {
   return {

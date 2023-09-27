@@ -454,9 +454,9 @@ const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: 
 
   noteSpan = getStepFromBarsBeatsSixteens(Tone.Time(noteLength).toBarsBeatsSixteenths()) - 1
 
-  const maximumSpan = sequencer.soundEngine.tracks[rowNumber - 1]?.length - columnNumber + 1;
+  const maximumSpan = sequencer.soundEngine.tracks.value[rowNumber - 1]?.length - columnNumber + 1;
 
-  return columnNumber + noteSpan > sequencer.soundEngine.tracks[rowNumber - 1]?.length ? maximumSpan : noteSpan
+  return columnNumber + noteSpan > sequencer.soundEngine.tracks.value[rowNumber - 1]?.length ? maximumSpan : noteSpan
 }
 
 const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: Tone.Unit.Time) => {
@@ -537,36 +537,6 @@ const getClassForFxIndicator = (gridCell: GridCell, effect: GridCellModifierType
 
   return {
     active: gridCell.velocity > 0 && gridCell.modifiers.has(effect),
-    disabled: gridCell.column > length
-  }
-}
-
-const getClassForIndicator = (gridCell: GridCell) => {
-  let length = 16
-
-  if (props.tracks[gridCell.row - 1]) {
-    length = props.tracks[gridCell.row - 1].length
-  }
-
-  let active: boolean
-
-  // todo fix step indication for polyrhythm tracks, for now it will indicate step right only on 16 steps part (or twice on 8 steps part)
-
-  active = gridCell.column === sequencer.currentStep
-
-  const realSpan = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
-
-  if (gridCell.velocity > 0 && realSpan > 1) {
-    const activeFor: number[] = []
-    for (let i = 0; i < realSpan; i++) {
-      activeFor.push(gridCell.column + i)
-    }
-
-    active = activeFor.includes(sequencer.currentStep)
-  }
-
-  return {
-    active,
     disabled: gridCell.column > length
   }
 }

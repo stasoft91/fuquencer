@@ -216,7 +216,7 @@ const selectedCell = computed(() => {
 })
 
 const trackOfSelectedCell = computed(() => {
-  return sequencer.soundEngine.tracks[(selectedCell.value?.row ?? 0) - 1]
+  return sequencer.soundEngine.tracks.value[(selectedCell.value?.row ?? 0) - 1]
 })
 
 const isArpeggio = computed(() => {

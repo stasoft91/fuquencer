@@ -39,7 +39,7 @@ const sequencer = Sequencer.getInstance()
 const store = useSelectedTrackNumber()
 
 const onKeyboardSettingsUpdate = () => {
-  const selectedTrack = sequencer.soundEngine.tracks[store.selectedTrackIndex]
+  const selectedTrack = sequencer.soundEngine.tracks.value[store.selectedTrackIndex]
   sequencer.keyboardManager.unregisterEvents()
   sequencer.keyboardManager.registerEvents(selectedTrack)
 }

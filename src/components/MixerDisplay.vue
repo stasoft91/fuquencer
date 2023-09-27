@@ -1,6 +1,6 @@
 <template>
   <div class="mixer">
-    <div v-for="track in sequencer.soundEngine.tracks" :key="track.name" class="channel">
+    <div v-for="track in sequencer.soundEngine.tracks.value" :key="track.name" class="channel">
       <div class="channel-label">
         {{ track.name }}
       </div>

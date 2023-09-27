@@ -94,64 +94,41 @@ export class Sequencer {
   public get bpm(): number {
     return this._bpm.value
   }
-
-  public async initTracksDemo(): Promise<void> {
-    this.soundEngine.clearTracks()
+  
+  public static async importFrom(data: string): Promise<Sequencer> {
+    const parsedData = JSON.parse(data)
     
-    for (let i = 0; i < SAMPLES.length; i++) {
-      const abstractSourceSampler = new AbstractSource({
-        sampler: {
-          volume: -6,
-          urls: {
-            [DEFAULT_NOTE]: SAMPLES[i]
-          },
-          release: 1,
-          baseUrl: '/samples/',
-        }
-      })
+    const sequencer = Sequencer.getInstance()
+    
+    sequencer.bpm = parseInt(parsedData.bpm)
+    
+    sequencer.soundEngine.clearTracks()
+    
+    for (let trackIndex = 0; trackIndex < parsedData.tracks.length; trackIndex++) {
+      const track = await Track.importFrom(parsedData.tracks[trackIndex])
+      sequencer.soundEngine.addTrack(track)
       
-      await abstractSourceSampler.init();
-
-      this.soundEngine.addTrack(
-        new Track({
-          name: SAMPLES[i],
-          volume: -6,
-          source: abstractSourceSampler,
-          type: TrackTypes.sample
-        })
-      ).meta.set('urls', {
-        [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
-      })
+      const autoDuck = parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck')
+      if (autoDuck) {
+        const options = autoDuck.options
+        sequencer.soundEngine.toggleSidechain(sequencer.soundEngine.tracks.value[0], track, options)
+      }
     }
     
-    const abstractSourceSynth = new AbstractSource({
-      synth: {
-        oscillator: {
-          type: 'pulse'
-        },
-        envelope: {
-          attack: 0.01,
-          decay: 0.42,
-          sustain: 0.01,
-          release: 0.25
-        },
-        filterEnvelope: {
-          attack: 0.001,
-          decay: 0.1,
-          sustain: 0.5,
-        },
-        volume: -6
-      }
+    for (let lfoIndex = 0; lfoIndex < parsedData.lfos.length; lfoIndex++) {
+      sequencer.addLFO(parsedData.lfos[lfoIndex])
+    }
+    
+    sequencer.sequenceGrid.value = parsedData.sequenceGrid.map((gridCell: GridCell) => {
+      return new GridCell({
+        ...gridCell,
+        modifiers: new Map(gridCell.modifiers),
+        notes: gridCell.notes,
+        arpeggiator: gridCell.arpeggiator
+      })
     })
     
-    await abstractSourceSynth.init();
-
-    this.soundEngine.addTrack(new Track({
-      volume: -6,
-      name: 'Bass',
-      source: abstractSourceSynth,
-      type: TrackTypes.synth
-    }))
+    return sequencer
   }
 
   public get sequenceGrid(): Ref<GridCell[]> {
@@ -196,41 +173,6 @@ export class Sequencer {
     }
     
     return Sequencer.instance;
-  }
-  
-  public static async importFrom(data: string): Promise<Sequencer> {
-    const parsedData = JSON.parse(data)
-    
-    const sequencer = Sequencer.getInstance()
-    
-    sequencer.bpm = parseInt(parsedData.bpm)
-    
-    sequencer.soundEngine.clearTracks()
-    
-    for (let trackIndex = 0; trackIndex < parsedData.tracks.length; trackIndex++) {
-      const track = await Track.importFrom(parsedData.tracks[trackIndex])
-      sequencer.soundEngine.addTrack(track)
-      
-      if (parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck')) {
-        const options = parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck').options
-        sequencer.soundEngine.toggleSidechain(sequencer.soundEngine.tracks[0], track, options)
-      }
-    }
-    
-    for (let lfoIndex = 0; lfoIndex < parsedData.lfos.length; lfoIndex++) {
-      sequencer.addLFO(parsedData.lfos[lfoIndex])
-    }
-    
-    sequencer.sequenceGrid.value = parsedData.sequenceGrid.map((gridCell: GridCell) => {
-      return new GridCell({
-        ...gridCell,
-        modifiers: new Map(gridCell.modifiers),
-        notes: gridCell.notes,
-        arpeggiator: gridCell.arpeggiator
-      })
-    })
-    
-    return sequencer
   }
 
   public readCell(row: number, column: number): GridCell {
@@ -398,6 +340,126 @@ export class Sequencer {
     triggerRef(this._lfos)
   }
   
+  /**
+   * @deprecated
+   */
+  public async initTracksDemoLegacy(): Promise<void> {
+    this.soundEngine.clearTracks()
+    
+    for (let i = 0; i < SAMPLES.length; i++) {
+      const abstractSourceSampler = new AbstractSource({
+        sampler: {
+          volume: -6,
+          urls: {
+            [DEFAULT_NOTE]: SAMPLES[i]
+          },
+          release: 1,
+          baseUrl: '/samples/',
+        }
+      })
+      
+      await abstractSourceSampler.init();
+
+      this.soundEngine.addTrack(
+        new Track({
+          name: SAMPLES[i],
+          volume: -6,
+          source: abstractSourceSampler,
+          type: TrackTypes.sample
+        })
+      ).meta.set('urls', {
+        [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
+      })
+    }
+    
+    const abstractSourceSynth = new AbstractSource({
+      synth: {
+        oscillator: {
+          type: 'pulse'
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.42,
+          sustain: 0.01,
+          release: 0.25
+        },
+        filterEnvelope: {
+          attack: 0.001,
+          decay: 0.1,
+          sustain: 0.5,
+        },
+        volume: -6
+      }
+    })
+    
+    await abstractSourceSynth.init();
+
+    this.soundEngine.addTrack(new Track({
+      volume: -6,
+      name: 'Bass',
+      source: abstractSourceSynth,
+      type: TrackTypes.synth
+    }))
+    
+    const abstractSourceSynth2 = new AbstractSource({
+      synth: {
+        oscillator: {
+          type: 'pulse'
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.42,
+          sustain: 0.01,
+          release: 0.25
+        },
+        filterEnvelope: {
+          attack: 0.001,
+          decay: 0.1,
+          sustain: 0.5,
+        },
+        volume: -6
+      }
+    })
+    
+    await abstractSourceSynth2.init();
+    
+    this.soundEngine.addTrack(new Track({
+      volume: -6,
+      name: 'Bass 2',
+      source: abstractSourceSynth2,
+      type: TrackTypes.synth
+    }))
+    
+    const abstractSourceSynth3 = new AbstractSource({
+      synth: {
+        oscillator: {
+          type: 'sawtooth'
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.42,
+          sustain: 0.01,
+          release: 0.25
+        },
+        filterEnvelope: {
+          attack: 0.001,
+          decay: 0.1,
+          sustain: 0.5,
+        },
+        volume: -6
+      }
+    })
+    
+    await abstractSourceSynth3.init();
+    
+    this.soundEngine.addTrack(new Track({
+      volume: -6,
+      name: 'Arp 1',
+      source: abstractSourceSynth2,
+      type: TrackTypes.synth
+    }))
+  }
+  
   public stop() {
     console.log(this._parts)
     
@@ -407,7 +469,7 @@ export class Sequencer {
     this._indicatorLoops.forEach((loop) => loop.cancel().stop().dispose())
     this._indicatorLoops = []
     
-    this.soundEngine.tracks.forEach((_, trackIndex) => {
+    this.soundEngine.tracks.value.forEach((_, trackIndex) => {
       this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
         this.indicatorMatrix.value[trackIndex][columnIndex] = false
       })
@@ -418,9 +480,15 @@ export class Sequencer {
     Tone.Transport.stop()
     this._mainLoop?.stop()
     
-    this.soundEngine.tracks.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
+    this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
     this._isPlaying.value = false;
+  }
+  
+  public toggleIndicator(row: number, column: number): void {
+    const matrix = this._indicatorMatrix.value
+    matrix[row - 1][column - 1] = !matrix[row - 1][column - 1]
+    this._indicatorMatrix.value = matrix
   }
   
   public async play() {
@@ -428,10 +496,10 @@ export class Sequencer {
     
     this.setupIndicatorLoops()
     
-    for (let i = 0; i < this.soundEngine.tracks.length; i++) {
+    for (let i = 0; i < this.soundEngine.tracks.value.length; i++) {
       const part = new Tone.Part(
         ((time, partEvent: PartEvent) => {
-          const track = this.soundEngine.tracks[i]
+          const track = this.soundEngine.tracks.value[i]
           
           if (partEvent.velocity === 0) {
             return
@@ -442,9 +510,13 @@ export class Sequencer {
             track.sidechainEnvelope?.triggerAttackRelease(partEvent.duration, time)
           }
           
-          new Promise(() => console.log('PART', i, partEvent.notes, partEvent.velocity, partEvent.duration, Tone.Time(time).toBarsBeatsSixteenths(), partEvent.modifiers, partEvent.arpeggiator))
+          // new Promise(() => console.log('PART', i, partEvent.notes, partEvent.velocity, partEvent.duration, Tone.Time(time).toBarsBeatsSixteenths(), partEvent.modifiers, partEvent.arpeggiator))
           
-          if (partEvent.modifiers.has(GridCellModifierTypes.probability)) {
+          const hasArpEnabled = partEvent.arpeggiator && partEvent.notes.length > 1
+          
+          // Probability
+          // Works differently with Arps (see Arp section)
+          if (partEvent.modifiers.has(GridCellModifierTypes.probability) && !hasArpEnabled) {
             const probabilityParams = partEvent.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
             
             if (Math.random() * 100 > probabilityParams.probability) {
@@ -545,6 +617,7 @@ export class Sequencer {
             return
           }
           
+          // ARP SECTION
           if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
             const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
             
@@ -563,6 +636,14 @@ export class Sequencer {
               
               if (!hasPulse) {
                 return
+              }
+              
+              if (partEvent.modifiers.has(GridCellModifierTypes.probability)) {
+                const probabilityParams = partEvent.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
+                
+                if (Math.random() * 100 > probabilityParams.probability) {
+                  return
+                }
               }
               
               track.source.releaseAll(time + arpMicroTime) ||
@@ -603,7 +684,7 @@ export class Sequencer {
       ).start(0).set({
         loop: true,
         loopStart: 0,
-        loopEnd: stepsToLoopLength(this.soundEngine.tracks[i].length),
+        loopEnd: stepsToLoopLength(this.soundEngine.tracks.value[i].length),
       })
       
       this._parts.push(
@@ -626,16 +707,10 @@ export class Sequencer {
     this._isPlaying.value = true;
   }
   
-  public toggleIndicator(row: number, column: number): void {
-    const matrix = this._indicatorMatrix.value
-    matrix[row - 1][column - 1] = !matrix[row - 1][column - 1]
-    this._indicatorMatrix.value = matrix
-  }
-  
   public setupIndicatorLoops() {
     const durationOf16n = Tone.Time('16n')
     
-    this.soundEngine.tracks.forEach((track, trackIndex) => {
+    this.soundEngine.tracks.value.forEach((track, trackIndex) => {
       if (!this.indicatorLoops[trackIndex]) {
         this.indicatorLoops.push(
           new Tone.Loop((time) => {
@@ -666,7 +741,7 @@ export class Sequencer {
         
         return gridCell
       }),
-      tracks: this.soundEngine.tracks.map((track) => track.export()),
+      tracks: this.soundEngine.tracks.value.map((track) => track.export()),
       lfos: this.LFOs.value.map((lfo) => lfo.export())
     }
     return JSON.stringify(data)

@@ -31,7 +31,7 @@ export class LFO {
 		
 		const path = options.address.split('.');
 		
-		const track = sequencer.soundEngine.tracks.find((track: Track) => track.name === path[0]);
+		const track = sequencer.soundEngine.tracks.value.find((track: Track) => track.name === path[0]);
 		if (!track) {
 			throw new Error(`No track found with name ${path[0]}`)
 		}

@@ -1,0 +1,2047 @@
+{
+  "bpm": 120,
+  "sequenceGrid": [
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 1,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 1,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 1,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 1,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 3,
+      "duration": 0.03125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 70,
+      "row": 2,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 20,
+      "row": 2,
+      "column": 12,
+      "duration": 0.21875,
+      "modifiers": [
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": "3",
+            "velocity": 0.3,
+            "increaseVelocityFrom": 0.1
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 0
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 70,
+      "row": 2,
+      "column": 13,
+      "duration": 0.09375,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 30,
+      "row": 2,
+      "column": 15,
+      "duration": 0.03125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": "4",
+            "timesTriggered": 3
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 70,
+      "row": 3,
+      "column": 1,
+      "duration": 0.03125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 2,
+            "timesTriggered": 0
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C0"
+      ],
+      "velocity": 10,
+      "row": 3,
+      "column": 3,
+      "duration": 0.34375,
+      "modifiers": [
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": "4",
+            "velocity": 0.3,
+            "increaseVelocityFrom": 0.1
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": "6",
+            "timesTriggered": 1
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C1"
+      ],
+      "velocity": 60,
+      "row": 5,
+      "column": 1,
+      "duration": 0.75,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 4
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "E2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 5,
+      "duration": 0.875,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C1"
+      ],
+      "velocity": 60,
+      "row": 5,
+      "column": 7,
+      "duration": 0.75,
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 2
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "E2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 3
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 60,
+      "row": 5,
+      "column": 13,
+      "duration": 0.5,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 2,
+            "timesTriggered": 1
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "B2"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3,
+            "timesTriggered": 0
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 4
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B2"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 4
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 3
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 3
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 2
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 2
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "E2"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 2
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "F2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": 120
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "B1"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "B3"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 1
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "A2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 1
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "G#2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "G2"
+      ],
+      "velocity": 100,
+      "row": 6,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3,
+            "timesTriggered": 0
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "C5",
+        "E5",
+        "F4",
+        "C6",
+        "F5",
+        "E6"
+      ],
+      "velocity": 20,
+      "row": 7,
+      "column": 1,
+      "duration": 2,
+      "modifiers": [
+        [
+          "slide",
+          {
+            "type": "slide",
+            "slide": "71"
+          }
+        ],
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": "42"
+          }
+        ]
+      ],
+      "arpeggiator": {
+        "gate": 0.03125,
+        "type": "randomWalk",
+        "pulses": 16,
+        "parts": 31,
+        "shift": 0
+      }
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    }
+  ],
+  "tracks": [
+    {
+      "name": "kick.wav",
+      "volume": -6,
+      "source": {
+        "sampler": {
+          "volume": -0.20951065931760424,
+          "urls": {
+            "C4": "kick.wav"
+          },
+          "release": 1,
+          "baseUrl": "/samples/",
+          "portamento": 0,
+          "envelope": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0,
+            "release": 1
+          },
+          "attack": 0
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 20000,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "sample",
+      "middlewares": [],
+      "envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 1
+      },
+      "length": 16,
+      "loops": []
+    },
+    {
+      "name": "clap.wav",
+      "volume": -6,
+      "source": {
+        "sampler": {
+          "volume": -6,
+          "urls": {
+            "C4": "clap.wav"
+          },
+          "release": 0.287,
+          "baseUrl": "/samples/",
+          "envelope": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0,
+            "release": 1
+          },
+          "attack": 0,
+          "portamento": 0
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 20000,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "sample",
+      "middlewares": [
+        {
+          "name": "Freeverb",
+          "options": {
+            "roomSize": 0.72,
+            "dampening": 3000,
+            "wet": 0.057
+          }
+        }
+      ],
+      "envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 1
+      },
+      "length": 16,
+      "loops": []
+    },
+    {
+      "name": "hat1.wav",
+      "volume": -6,
+      "source": {
+        "sampler": {
+          "volume": -19.04907011423125,
+          "urls": {
+            "C4": "hat1.wav"
+          },
+          "release": 0.212,
+          "baseUrl": "/samples/",
+          "envelope": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0,
+            "release": 1
+          },
+          "attack": 0,
+          "portamento": 0
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.054000000000000006,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 1333.521432163324,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "sample",
+      "middlewares": [],
+      "envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 1
+      },
+      "length": 6,
+      "loops": []
+    },
+    {
+      "name": "hat2.wav",
+      "volume": -6,
+      "source": {
+        "sampler": {
+          "volume": -10.928558077299847,
+          "urls": {
+            "C4": "hat2.wav"
+          },
+          "release": 1,
+          "baseUrl": "/samples/",
+          "envelope": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0,
+            "release": 1
+          },
+          "attack": 0,
+          "portamento": 0
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 20000,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "sample",
+      "middlewares": [],
+      "envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 1
+      },
+      "length": 16,
+      "loops": []
+    },
+    {
+      "name": "Bass",
+      "volume": -6,
+      "source": {
+        "synth": {
+          "oscillator": {
+            "type": "pulse"
+          },
+          "envelope": {
+            "attack": 0.01,
+            "attackCurve": "linear",
+            "decay": 0.42,
+            "decayCurve": "exponential",
+            "release": 0.634,
+            "releaseCurve": "exponential",
+            "sustain": 0.271
+          },
+          "filterEnvelope": {
+            "attack": 0.001,
+            "decay": 0.1,
+            "sustain": 0.5
+          },
+          "volume": -11.718006927720415,
+          "portamento": 0,
+          "attack": 0.01,
+          "release": 0.25
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.48700000000000004,
+          "decayCurve": "exponential",
+          "release": 0.594,
+          "releaseCurve": "exponential",
+          "sustain": 1,
+          "baseFrequency": 20433.59717856944,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "synth",
+      "middlewares": [
+        {
+          "name": "AutoDuck",
+          "options": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0.42,
+            "release": 0.1,
+            "mute": false,
+            "volume": 0
+          }
+        }
+      ],
+      "envelope": {
+        "attack": 0.01,
+        "decay": 0.42,
+        "sustain": 0.271,
+        "release": 0.634
+      },
+      "length": 16,
+      "loops": []
+    },
+    {
+      "name": "Bass 2",
+      "volume": -6,
+      "source": {
+        "synth": {
+          "oscillator": {
+            "type": "pulse"
+          },
+          "envelope": {
+            "attack": 0.01,
+            "decay": 0.42,
+            "sustain": 0.01,
+            "release": 0.25
+          },
+          "filterEnvelope": {
+            "attack": 0.001,
+            "decay": 0.1,
+            "sustain": 0.5
+          },
+          "volume": -11.03446585021912,
+          "portamento": 0,
+          "attack": 0.01,
+          "release": 0.25
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.128,
+          "attackCurve": "linear",
+          "decay": 0.295,
+          "decayCurve": "exponential",
+          "release": 0.332,
+          "releaseCurve": "exponential",
+          "sustain": 0.43799999999999994,
+          "baseFrequency": 1137.7176164312007,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "synth",
+      "middlewares": [
+        {
+          "name": "AutoDuck",
+          "options": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0.42,
+            "release": 0.1,
+            "mute": false,
+            "volume": 0
+          }
+        }
+      ],
+      "envelope": {
+        "attack": 0.01,
+        "decay": 0.42,
+        "sustain": 0.01,
+        "release": 0.25
+      },
+      "length": 16,
+      "loops": []
+    },
+    {
+      "name": "Tone #7",
+      "volume": -6,
+      "source": {
+        "synth": {
+          "oscillator": {
+            "type": "pulse"
+          },
+          "envelope": {
+            "attack": 0.01,
+            "decay": 0.42,
+            "sustain": 0.01,
+            "release": 0.25
+          },
+          "filterEnvelope": {
+            "attack": 0.001,
+            "decay": 0.1,
+            "sustain": 0.5
+          },
+          "volume": -6,
+          "portamento": 0.071
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 20000,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "type": "synth",
+      "middlewares": [
+        {
+          "name": "PingPongDelay",
+          "options": {
+            "wet": 0.25,
+            "delayTime": 0.375,
+            "feedback": 0.22,
+            "maxDelay": 1
+          }
+        },
+        {
+          "name": "Reverb",
+          "options": {
+            "decay": 0.354,
+            "preDelay": 0.14800000000000002,
+            "wet": 0.298
+          }
+        },
+        {
+          "name": "AutoDuck",
+          "options": {
+            "attack": 0,
+            "decay": 0,
+            "sustain": 0.42,
+            "release": 0.1,
+            "mute": false,
+            "volume": 0
+          }
+        }
+      ],
+      "envelope": {
+        "attack": 0.01,
+        "decay": 0.42,
+        "sustain": 0.01,
+        "release": 0.25
+      },
+      "length": 16,
+      "loops": []
+    }
+  ],
+  "lfos": []
+}

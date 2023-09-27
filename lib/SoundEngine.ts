@@ -1,6 +1,6 @@
 import * as Tone from 'tone/Tone'
-import type {Ref} from "vue";
-import {reactive, ref} from "vue";
+import type {Ref, ShallowRef} from "vue";
+import {ref, shallowRef, triggerRef} from "vue";
 import {GRID_ROWS} from "@/constants";
 import {Track} from "~/lib/Track";
 
@@ -27,7 +27,7 @@ export class SoundEngine {
 		return SoundEngine.instance;
 	}
   
-  public tracks: Track[] = reactive([])
+  public tracks: ShallowRef<Track[]> = shallowRef([])
   
   public tracksCount: Ref<number> = ref(GRID_ROWS);
   
@@ -40,27 +40,32 @@ export class SoundEngine {
     if (!track.source) {
       throw new Error('No source provided for track')
     }
-
-    this.tracks.push(track)
+    
+    this.tracks.value.push(track)
+    triggerRef(this.tracks)
     
     return track
   }
 
   public removeTrack(trackName: string): void {
-    const trackIndex = this.tracks.findIndex((track) => track.name === trackName)
+    const trackIndex = this.tracks.value.findIndex((track) => track.name === trackName)
 
     if (trackIndex === -1) {
       throw new Error(`No track found with name ${trackName}`)
     }
-
-    this.tracks.splice(trackIndex, 1)
     
-    this.tracksCount.value = this.tracks.length;
+    this.tracks.value.splice(trackIndex, 1)
+    
+    this.tracksCount.value = this.tracks.value.length;
+    
+    triggerRef(this.tracks)
   }
 
   public clearTracks(): void {
-    this.tracks = []
-    this.tracksCount.value = this.tracks.length;
+    this.tracks.value = []
+    this.tracksCount.value = this.tracks.value.length;
+    triggerRef(this.tracks)
+    
   }
   
   public toggleSidechain(

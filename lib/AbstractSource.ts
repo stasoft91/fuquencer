@@ -18,10 +18,10 @@ export default class AbstractSource {
 	private _sampler?: Tone.Sampler;
 	private _synth?: Tone.MonoSynth;
 	
-	private _filter: Tone.Filter;
-	private _filterEnvelope: Tone.FrequencyEnvelope;
+	private readonly _filter: Tone.Filter;
+	private readonly _filterEnvelope: Tone.FrequencyEnvelope;
 	
-	private _options!: AbstractSourceOptions;
+	private readonly _options!: AbstractSourceOptions;
 	
 	private _isInitialized: boolean = false;
 	
@@ -117,27 +117,9 @@ export default class AbstractSource {
 		}
 		
 		if (this._options.synth) {
-			this._synth = new Tone.MonoSynth({
-				oscillator: {
-					type: 'pwm',
-				},
-				envelope: {
-					attack: 0.01,
-					decay: 0.42,
-					sustain: 0.01,
-					release: 0.25
-				},
-				filterEnvelope: {
-					baseFrequency: 20000,
-					attack: 0,
-					decay: 1,
-					sustain: 1,
-					release: 1,
-				},
-				volume: -6,
-				
-				...this._options.synth
-			})
+			this._synth = new Tone.MonoSynth(this._options.synth)
+			
+			this._synth.set({envelope: this._options.synth.envelope})
 			
 			this._synth.connect(this._filter)
 			
@@ -155,7 +137,6 @@ export default class AbstractSource {
 	public set(options: Partial<Tone.SamplerOptions> | RecursivePartial<Tone.MonoSynthOptions>): void {
 		if ('filter' in options) {
 			this._filter!.set(options.filter as Partial<Tone.FilterOptions>);
-			console.log('filter', options.filter, this._filter.get())
 			delete options.filter;
 		}
 		
@@ -185,6 +166,8 @@ export default class AbstractSource {
 		} else {
 			this._synth!.disconnect();
 		}
+		
+		this._filter.disconnect();
 	}
 	
 	public chain(...args: Tone.ToneAudioNode[]): void {
@@ -208,6 +191,9 @@ export default class AbstractSource {
 	}
 	
 	public dispose(): Tone.Sampler | Tone.MonoSynth {
+		this._filterEnvelope.dispose();
+		this._filter.dispose();
+		
 		if (this.isSampler) {
 			return this._sampler!.dispose();
 		} else {
@@ -217,11 +203,15 @@ export default class AbstractSource {
 	
 	public releaseAll(time?: Tone.Unit.Time): Tone.Sampler | undefined {
 		if (this.isSampler) {
+			this._filterEnvelope.triggerRelease(time)
+			
 			return this._sampler!.releaseAll(time);
 		}
 	}
 	
 	public triggerRelease(note: Tone.Unit.Frequency = DEFAULT_NOTE, time?: Tone.Unit.Time): Tone.Sampler | Tone.MonoSynth {
+		this._filterEnvelope.triggerRelease(time)
+		
 		if (this.isSampler) {
 			return this._sampler!.triggerRelease(note, time);
 		} else {
@@ -230,6 +220,8 @@ export default class AbstractSource {
 	}
 	
 	public triggerAttack(note: Tone.Unit.Frequency = DEFAULT_NOTE, time?: Tone.Unit.Time, velocity?: number): Tone.Sampler | Tone.MonoSynth {
+		this._filterEnvelope.triggerAttack(time)
+		
 		if (this.isSampler) {
 			return this._sampler!.triggerAttack(note, time, velocity);
 		} else {

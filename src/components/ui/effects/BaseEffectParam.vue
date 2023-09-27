@@ -37,7 +37,6 @@ import {EFFECTS_OPTIONS} from "@/constants";
 import type {SelectMixedOption} from "naive-ui/es/select/src/interface";
 import * as Tone from "tone/Tone";
 import {Sequencer} from "~/lib/Sequencer";
-import {LFO} from "~/lib/LFO";
 
 const emit = defineEmits<{
   (event: `update:value`, payload: UniversalEffect): void
@@ -66,8 +65,8 @@ const onUpdate = (value: string | number) => {
   currentValue.value = value
   const soundEngine = SoundEngine.getInstance()
 
-  for (const track in soundEngine.tracks) {
-    const editedEffect = soundEngine.tracks[track].middlewares.find(__ => __.name === props.effectName)
+  for (let track = 0; track < soundEngine.tracks.value.length; track++) {
+    const editedEffect = soundEngine.tracks.value[track].middlewares.find(__ => __.name === props.effectName)
 
     if (!editedEffect || !editedEffect.options || !editedEffect.effect) continue;
 
@@ -98,7 +97,7 @@ const onUpdate = (value: string | number) => {
 onMounted(() => {
   const soundEngine = SoundEngine.getInstance()
 
-  const track = soundEngine.tracks
+  const track = soundEngine.tracks.value
       .find(_ => _.name === props.trackName)!
 
   const middlewares = track.middlewares
@@ -133,7 +132,7 @@ onMounted(() => {
 })
 
 const isAutomatable = computed(() => {
-  const track = soundEngine.tracks
+  const track = soundEngine.tracks.value
       .find(_ => _.name === props.trackName)!
 
   const middlewares = track.middlewares
@@ -145,7 +144,7 @@ const isAutomatable = computed(() => {
 })
 
 const onLinkClick = () => {
-  const track = soundEngine.tracks
+  const track = soundEngine.tracks.value
       .find(_ => _.name === props.trackName)!
 
   const middlewares = track.middlewares
@@ -165,14 +164,13 @@ const onLinkClick = () => {
 
   const prop = effect[props.fieldName] as Tone.Param
 
-  const lfo = new LFO({
+  sequencer.addLFO({
     frequency: Tone.Time('16n').toFrequency(),
     type: 'random',
     max: prop.maxValue,
     min: prop.minValue,
-    destination: prop,
     title: `${track.name} / ${props.effectName} / ${props.fieldName}`,
+    address: `${track.name}.middlewares.${props.effectName}.${props.fieldName}`,
   })
-  sequencer.addLFO(lfo)
 }
 </script>

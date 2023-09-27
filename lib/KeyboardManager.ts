@@ -131,7 +131,7 @@ export class KeyboardManager {
 			
 			seq.writeCell(new GridCell({
 				column: seq.currentStep,
-				row: seq.soundEngine.tracks.findIndex((t) => t.name === this._track?.name) + 1,
+				row: seq.soundEngine.tracks.value.findIndex((t) => t.name === this._track?.name) + 1,
 				velocity: velocity * 100,
 				notes: [note],
 			}))
