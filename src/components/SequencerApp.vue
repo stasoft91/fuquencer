@@ -2,7 +2,7 @@
   <div :style="{ '--grid-rows': GRID_ROWS, '--grid-columns': GRID_COLS }" class="sequencer-wrapper">
     <div class="flex-horizontal">
       <VerticalIndicator
-          :key="`${sequencer.isPlaying}_${sequencer.soundEngine.tracks.value.length}`"
+          :key="`${sequencer.isPlaying}_${sequencer.soundEngine.tracks.value.map(_=>_.name).join('_')}`"
           :polyrhythms="sequencer.soundEngine.tracks.value.map(_=>_.getLoops().value.length)"
           :rows="sequencer.soundEngine.tracks.value.length"
           :selected-row="selectedTrackIndex"
@@ -10,6 +10,7 @@
           space="0"
           @select-row="onSelectTrack"
           @add-track="onAddTrack"
+          @remove-track="onRemoveTrack"
       />
       <div class="flex-auto">
         <DisplayGrid
@@ -48,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, h} from 'vue'
 
 import {AVAILABLE_NOTES, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
@@ -67,6 +68,11 @@ import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import * as Tone from "tone/Tone";
 import {GridCell} from "~/lib/GridCell";
 import AbstractSource from "~/lib/AbstractSource";
+import {Trash as DeleteIcon} from "@vicons/ionicons5";
+
+import {useDialog} from 'naive-ui'
+
+const dialog = useDialog()
 
 const sequencer = Sequencer.getInstance()
 
@@ -226,6 +232,23 @@ const onUpdateEffects = (chain: string[]) => {
 
   sequencer.soundEngine.tracks.value[selectedTrackIndex.value].clearMiddlewares()
   sequencer.soundEngine.tracks.value[selectedTrackIndex.value].addMiddleware(effects)
+}
+
+const onRemoveTrack = (trackIndex: number) => {
+  const trackName = sequencer.soundEngine.tracks.value[trackIndex].name
+
+  trackName && dialog.warning({
+    title: `Removing "${trackName}"?`,
+    icon: () => h(DeleteIcon),
+    content: `Are you sure you want to remove track "${trackName}"?`,
+    positiveText: 'Sure',
+    negativeText: 'Cancel',
+    onPositiveClick: () => {
+      sequencer.soundEngine.removeTrack(trackName)
+    },
+    onNegativeClick: () => {
+    }
+  })
 }
 
 const onAddTrack = async () => {

@@ -4,6 +4,12 @@
 
       <div v-if="isArpeggio && _internalState.cell.arpeggiator" class="row">
         <div class="row">
+          <euclidean-rhythm-display
+              :parts="_internalState.cell.arpeggiator.parts"
+              :pulses="_internalState.cell.arpeggiator.pulses"
+              :shift="_internalState.cell.arpeggiator.shift"
+          ></euclidean-rhythm-display>
+
           <label for="">Arpeggiator type</label>
           <select
               id="arpeggiator-type"
@@ -190,6 +196,7 @@ import ChordEditor from "@/components/ui/ChordEditor.vue";
 import * as Tone from "tone/Tone";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import {cloneDeep} from "lodash";
+import EuclideanRhythmDisplay from "@/components/ui/EuclideanRhythmDisplay.vue";
 
 const gridEditorStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()

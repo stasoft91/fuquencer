@@ -19,13 +19,14 @@ import type {
 } from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {GridCell} from "~/lib/GridCell";
-import {createEuclideanRhythmVector, shiftVector} from "~/lib/utils/createEuclideanRhythmVector";
+import {createEuclideanRhythmVector} from "~/lib/utils/createEuclideanRhythmVector";
 import {PatternGenerator} from "~/lib/PatternGenerator";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {HistoryManager} from "~/lib/HistoryManager";
 import {cloneDeep} from "lodash";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
+import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -621,9 +622,7 @@ export class Sequencer {
           if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
             const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
             
-            const euclideanRhythmVector = createEuclideanRhythmVector(pulses, parts)
-            
-            const shiftedEuclideanRhythmVector = shiftVector(euclideanRhythmVector, shift)
+            const shiftedEuclideanRhythmVector = createEuclideanRhythmVector(pulses, parts, shift)
             
             const timeOfOneRhythmPart = Tone.Time(partEvent.duration).toSeconds() / shiftedEuclideanRhythmVector.length
             
@@ -701,7 +700,6 @@ export class Sequencer {
     
     this._indicatorLoops.forEach(loop => loop.start(0))
     
-    
     Tone.Transport.start()
     
     this._isPlaying.value = true;
@@ -728,8 +726,35 @@ export class Sequencer {
             }, time)
           }, durationOf16n.toSeconds())
         )
+      } else {
+        this.indicatorLoops[trackIndex].set({
+          callback: this.processDisplayIndicatorTick(trackIndex, track.length),
+        })
+        
+        Tone.Transport.scheduleOnce(() => {
+          this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
+            this.indicatorMatrix.value[trackIndex][columnIndex] = false
+          })
+          
+          this.toggleIndicator(trackIndex + 1, 1)
+        }, getToneTimeNextMeasure())
       }
     })
+  }
+  
+  private processDisplayIndicatorTick(trackIndex: number, trackLength: number): (time: number) => void {
+    return (time: number) => Tone.Draw.schedule(() => {
+      const columnOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
+      
+      this.indicatorMatrix.value[trackIndex].forEach(() => {
+        this.indicatorMatrix.value[trackIndex][columnOfEnabledIndicator] = false
+      })
+      
+      let columnOfNextStep = columnOfEnabledIndicator + 1
+      columnOfNextStep >= trackLength && (columnOfNextStep = 0)
+      
+      this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
+    }, time)
   }
   
   public export(): string {

@@ -3,7 +3,7 @@ import * as Tone from "tone/Tone";
 import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 
-export const VERSION = '0.8.2'
+export const VERSION = '0.8.3'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;

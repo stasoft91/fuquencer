@@ -61,6 +61,7 @@
       </button>
     </div>
   </div>
+
   <n-dropdown
       :on-clickoutside="onClickoutside"
       :options="dropdownOptions"
@@ -268,6 +269,7 @@ import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixtee
 import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {cloneDeep} from "lodash";
+import {useContextMenu} from "@/components/DisplayGrid/useContextMenu";
 
 const sequencer = Sequencer.getInstance()
 
@@ -281,9 +283,7 @@ interface DisplayGridProps {
   isPlaying: boolean,
 }
 
-const isDropdownOpened = ref(false)
-const x = ref(0)
-const y = ref(0)
+const {onClickoutside, y, x, isDropdownOpened} = useContextMenu()
 
 const hoveredCell = ref<GridCell | null>(null)
 
@@ -326,7 +326,7 @@ const handleSelect = (key: string) => {
   const modifiers = new Map(cloneDeep(cellOfContextMenu.value).modifiers)
 
   if (key === 'add-probability') {
-    const probability: number = parseInt(prompt('Probability [0-100]', '50') || '50') || 50
+    const probability: number = parseInt(prompt('Probability [0-100]', '50') || '100') || 100
 
     if (probability === 100) {
       modifiers.delete(GridCellModifierTypes.probability)
@@ -429,9 +429,6 @@ const handleContextMenu = (e: MouseEvent) => {
     x.value = e.clientX
     y.value = e.clientY
   })
-}
-const onClickoutside = () => {
-  isDropdownOpened.value = false
 }
 
 const props = withDefaults(defineProps<DisplayGridProps>(), {

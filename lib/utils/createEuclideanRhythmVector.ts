@@ -1,4 +1,4 @@
-export function createEuclideanRhythmVector(pulses: number, parts: number): (0 | 1)[] {
+export function createEuclideanRhythmVector(pulses: number, parts: number, shift: number): (0 | 1)[] {
 	if (parts < 1) {
 		return [];
 	}
@@ -19,7 +19,7 @@ export function createEuclideanRhythmVector(pulses: number, parts: number): (0 |
 		pattern[i * distribution + Math.min(i, remainder)] = 1;
 	}
 	
-	return pattern;
+	return shiftVector(pattern, shift)
 }
 
 export const shiftVector = (vector: (0 | 1)[], shift: number) => {

@@ -7,6 +7,7 @@
       :style="getStyleForCell(row, 1)"
       :class="{ active: rowIndex === selectedRow }"
       @click="emit('selectRow', rowIndex)"
+      @contextmenu="handleContextMenu(rowIndex, $event)"
     >
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
       {{ polyrhythms && polyrhythms[rowIndex] ? `(+${polyrhythms[rowIndex]})` : '' }}
@@ -29,6 +30,17 @@
       Track
     </div>
   </div>
+
+  <n-dropdown
+      :on-clickoutside="onClickoutside"
+      :options="dropdownOptions"
+      :show="isDropdownOpened"
+      :x="x"
+      :y="y"
+      placement="bottom-start"
+      trigger="manual"
+      @select="handleSelect"
+  />
 </template>
 
 <style scoped lang="scss" >
@@ -85,7 +97,8 @@ import {computed} from "vue";
 import {DEFAULT_NOTE} from "~/lib/Sequencer";
 import {GRID_ROWS} from "@/constants";
 import {AddOutline as AddIcon} from "@vicons/ionicons5";
-import {NIcon} from "naive-ui";
+import {NDropdown, NIcon} from "naive-ui";
+import {useContextMenu} from "@/components/DisplayGrid/useContextMenu";
 
 interface Props {
   tracks: Track[],
@@ -98,7 +111,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['selectRow', 'addTrack'])
+const emit = defineEmits(['selectRow', 'addTrack', 'removeTrack'])
+
+const {onClickoutside, y, x, isDropdownOpened, handleContextMenu, selectedItem} = useContextMenu()
+
+const dropdownOptions = [
+  {
+    label: 'Remove',
+    key: 'remove-track'
+  },
+]
 
 const getStyleForCell = (rowNumber: number, columnNumber: number) => {
   return {
@@ -114,4 +136,12 @@ const shouldDisplayWaveform = (rowIndex: number) => {
 const rowCaptions = computed(() => {
   return props.tracks.map(t => t.name)
 })
+
+const handleSelect = (key: string) => {
+  isDropdownOpened.value = false
+
+  if (key === 'remove-track') {
+    emit('removeTrack', selectedItem.value)
+  }
+}
 </script>
