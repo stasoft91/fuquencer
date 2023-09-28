@@ -2,8 +2,9 @@ import type {AvailableEffectNames, EffectParametersDescriptor, UniversalEffect} 
 import * as Tone from "tone/Tone";
 import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
+import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
 
-export const VERSION = '0.8.3'
+export const VERSION = '0.8.4'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;
@@ -71,6 +72,7 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 		options: {
 			distortion: 0.4,
 			oversample: 'none',
+			type: 'SATURATOR',
 			wet: 1
 		}
 	} as UniversalEffect,
@@ -179,15 +181,15 @@ export const AVAILABLE_EFFECTS: UniversalEffect[] = [
 			knee: 30,
 		},
 	} as UniversalEffect,
-	{
-		name: "AutoDuck",
-		options: {
-			attack: 0,
-			release: 0.2,
-			sustain: 0,
-			delay: 0,
-		},
-	} as UniversalEffect
+	// {
+	// 	name: "AutoDuck",
+	// 	options: {
+	// 		attack: 0,
+	// 		release: 0.2,
+	// 		sustain: 0,
+	// 		delay: 0,
+	// 	},
+	// } as UniversalEffect
 ]
 
 export const AVAILABLE_OSCILLATOR_TYPES: Tone.ToneOscillatorType[] = ["sawtooth", "sine", "square", "triangle", "sawtooth21", "sine21", "square21", "triangle21",]
@@ -262,6 +264,7 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	Distortion: [
 		{name: 'distortion'},
 		{name: 'oversample', enum: ['none', '2x', '4x']},
+		{name: 'type', enum: Object.keys(DISTORTION_ALGORITHMS)},
 		{name: 'wet'}
 	] as EffectParametersDescriptor<'Distortion'>[],
 	

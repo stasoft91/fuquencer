@@ -4,3 +4,6 @@ export type RecursivePartial<T> = {
       T[P] extends object ? RecursivePartial<T[P]> :
         T[P];
 };
+
+
+export type Dictionary = { [key: string]: any }

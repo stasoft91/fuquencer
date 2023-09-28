@@ -1,4 +1,5 @@
 import * as Tone from "tone/Tone";
+import DistortionModule, {type DistortionModuleOptions} from "~/lib/sound-components/DistortionModule/DistortionModule"
 
 export type AvailableEffectNames =
 	'AutoFilter' |
@@ -60,8 +61,8 @@ export type Chorus = {
 
 export type Distortion = {
 	name: 'Distortion';
-	options: Tone.DistortionOptions & { [key: string]: any };
-	effect?: Tone.Distortion;
+	options: DistortionModuleOptions & { [key: string]: any };
+	effect?: DistortionModule;
 }
 
 export type FeedbackDelay = {
@@ -158,7 +159,7 @@ export type GetOptionsType<T extends AvailableEffectNames> =
 				T extends 'BitCrusher' ? Tone.BitCrusherOptions :
 					T extends 'Chebyshev' ? Tone.ChebyshevOptions :
 						T extends 'Chorus' ? Tone.ChorusOptions :
-							T extends 'Distortion' ? Tone.DistortionOptions :
+							T extends 'Distortion' ? DistortionModuleOptions :
 								T extends 'FeedbackDelay' ? Tone.FeedbackDelayOptions :
 									T extends 'Freeverb' ? Tone.FreeverbOptions :
 										T extends 'FrequencyShifter' ? Tone.FrequencyShifterOptions :

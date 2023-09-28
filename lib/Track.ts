@@ -10,6 +10,8 @@ import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import {Sequencer} from "~/lib/Sequencer";
 import type {AbstractSourceOptions} from "~/lib/AbstractSource";
 import AbstractSource from "~/lib/AbstractSource";
+import DistortionModule from "~/lib/sound-components/DistortionModule/DistortionModule"
+
 
 export type TrackOptions = {
 	name: string,
@@ -235,10 +237,14 @@ export class Track {
 				middleware.effect = effect;
 				
 			} else if (middleware.name !== 'AutoDuck') {
-				// EFFECT IS ANY OTHER EFFECT
-				// @ts-ignore
-				middleware.effect = new Tone[middleware.name](middleware.options);
-				
+				if (middleware.name === 'Distortion') {
+					// @ts-ignore
+					middleware.effect = new DistortionModule({...middleware.options});
+				} else {
+					// EFFECT IS ANY OTHER EFFECT
+					// @ts-ignore
+					middleware.effect = new Tone[middleware.name](middleware.options);
+				}
 			} else if (middleware.name === 'AutoDuck' && !this._sidechainEnvelope) {
 				console.error('You need to add a sidechain source to use AutoDuck');
 				return undefined;
