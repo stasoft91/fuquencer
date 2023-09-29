@@ -19,6 +19,7 @@
             :tracks="sequencer.soundEngine.tracks.value"
             :items="sequencer.sequenceGrid.value"
             :rows="GRID_ROWS"
+            :is-visualizer-active="gridEditorStore.isVisualizerActive"
             @click="changeCellState"
             @wheel="onNoteWheel"
             @ctrl-wheel="onNoteWheel"
@@ -71,21 +72,27 @@ import AbstractSource from "~/lib/AbstractSource";
 import {Trash as DeleteIcon} from "@vicons/ionicons5";
 
 import {useDialog} from 'naive-ui'
+import {useGridEditorStore} from "@/stores/gridEditor";
 
 const dialog = useDialog()
 
 const sequencer = Sequencer.getInstance()
 
-const store = useSelectedTrackNumber()
+const trackNumberStore = useSelectedTrackNumber()
+const gridEditorStore = useGridEditorStore()
 
-const selectedTrackIndex = computed(() => store.selectedTrackIndex);
+const selectedTrackIndex = computed(() => trackNumberStore.selectedTrackIndex);
 
 const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 });
 
 const onSelectTrack = (trackIndex: number) => {
-  store.setTrackIndex(trackIndex);
+  trackNumberStore.setTrackIndex(trackIndex);
+  if (gridEditorStore.isVisualizerActive) {
+    sequencer.soundEngine.addFFTAnalyzer(sequencer.soundEngine.tracks.value[trackIndex])
+  }
+
   sequencer.keyboardManager.unregisterEvents()
   sequencer.keyboardManager.registerEvents(selectedTrack.value)
 }

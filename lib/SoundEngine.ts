@@ -18,6 +18,10 @@ export enum TrackTypes {
 
 export class SoundEngine {
 	private static instance: SoundEngine;
+  
+  public FFTValues: ShallowRef<Float32Array> = shallowRef(new Float32Array(32));
+  // TODO: check if we really should use 32 instead of, hm, anything else
+  private FFT: Tone.FFT = new Tone.FFT(32);
 	
 	public static getInstance(): SoundEngine {
 		if (!SoundEngine.instance) {
@@ -76,5 +80,33 @@ export class SoundEngine {
     this.sidechainEnvelopeSource = trackFrom.toSidechainSource(defaultEnv?.attack, defaultEnv?.decay, defaultEnv?.sustain, defaultEnv?.release)
     
     trackTo.toggleSidechain(this.sidechainEnvelopeSource)
+  }
+  
+  public addFFTAnalyzer(track: Track): void {
+    this.stopFFTAnalyzer()
+    
+    this.FFTUpdateLoop = this.FFTUpdateLoopCallback
+    track.channel.connect(this.FFT);
+    
+    this.FFTUpdateLoop();
+  }
+  
+  public stopFFTAnalyzer(): void {
+    this.FFTUpdateLoop = this.noOp
+    this.FFT.dispose()
+    this.FFT = new Tone.FFT(32);
+  }
+  
+  private FFTUpdateLoop = () => {
+  }
+  
+  private noOp = () => {
+  }
+  
+  private readonly FFTUpdateLoopCallback = () => {
+    setTimeout(() => {
+      requestAnimationFrame(this.FFTUpdateLoop);
+      this.FFTValues.value = this.FFT.getValue();
+    }, 1000 / 20);
   }
 }

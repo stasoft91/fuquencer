@@ -124,6 +124,10 @@ button.display-grid__cell {
   transition: opacity 0.1s ease-in-out;
 }
 
+button.display-grid__cell.is-visualizer > * {
+  opacity: 0.25;
+}
+
 button.display-grid__cell.row-with-opacity {
   opacity: 0.33;
 }
@@ -132,7 +136,7 @@ button.display-grid__cell.row-with-opacity.is-hovered {
   opacity: 1;
 }
 
-button.display-grid__cell.active.is-editing {
+button.display-grid__cell.active.is-editing:not(.is-visualizer) {
   box-shadow: inset 0 0 2px 2px $color-orange-opaque,
   inset 0 0 3px 3px $color-orange-opaque-lighter500;
 }
@@ -281,6 +285,7 @@ interface DisplayGridProps {
   columns: number,
   items: GridCell[],
   isPlaying: boolean,
+  isVisualizerActive: boolean
 }
 
 const {onClickoutside, y, x, isDropdownOpened} = useContextMenu()
@@ -457,7 +462,8 @@ const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: 
 }
 
 const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: Tone.Unit.Time) => {
-  const hasSpan = calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
+  // Colorful background for cells longer than 1/16
+  const hasSpan = !gridEditorStore.isVisualizerActive && calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
     width: '100%',
     backgroundColor: `hsl(${(columnNumber * 360 / 16) % 360}, 30%, 80%)`,
     zIndex: 3,
@@ -472,28 +478,47 @@ const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: To
       _.velocity > 0
   ).length > 0
 
+  const isGridColumnEndLong = !gridEditorStore.isVisualizerActive && doesCellHaveVelocity
+
   return {
     gridRow: rowNumber,
     gridColumn: columnNumber,
     gridRowEnd: 'auto',
-    gridColumnEnd: doesCellHaveVelocity ? 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength) : 'auto',
+    gridColumnEnd: isGridColumnEndLong ? 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength) : 'auto',
     ...(doesCellHaveVelocity ? hasSpan : {})
   }
 }
 
+/**
+ * Scale function [-100, 0] to [8, 0]
+ *
+ * @param x
+ */
+const scale = (x: number) => {
+  return Math.max(0, 8 + x / 100 * 8)
+}
+
 const getClassesForCell = (gridCell: GridCell) => {
+  let isActive = gridCell.velocity > 0
+
+  if (props.isVisualizerActive) {
+    const isActiveForColumn = sequencer.soundEngine.FFTValues.value[gridCell.column - 1] > -100
+    isActive = isActiveForColumn && scale(sequencer.soundEngine.FFTValues.value[gridCell.column - 1] ?? 0) >= 8 - gridCell.row
+  }
+
   return {
-    active: gridCell.velocity > 0,
+    active: isActive,
     inactive:
         props.tracks[gridCell.row - 1] ?
             gridCell.column > props.tracks[gridCell.row - 1].length :
             false,
-    'first-in-quarter': gridCell.column % 4 === 1,
+    'is-visualizer': props.isVisualizerActive,
+    'first-in-quarter': gridCell.column % 4 === 1, // TODO: maybe this could be done pure css?
     'row-with-opacity':
         hoveredCell.value !== null &&
         hoveredCell.value.row === gridCell.row &&
         stepOfHoveredCellFinish.value !== null,
-    'is-hovered': hoveredCell.value?.id === gridCell.id,
+    'is-hovered': hoveredCell.value?.id === gridCell.id, // TODO: maybe this could be done pure css?
 
     'is-editing': gridEditorStore.selectedGridCell?.id === gridCell.id,
   }

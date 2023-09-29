@@ -21,12 +21,11 @@ yarn install
 - [x] Basic sampler track
 - [x] Melody auto generation for synth tracks
 - [x] Per-track Effects
-- [x] Multiple different distortion types
-- [x] Additional per-track polyrhythmyc loops
+- [x] Additional per-track polyrhythmyc one-note loops
 - [x] Oneshot \ LFO automations for some of the properties of the instruments and ~~effects~~ (soon)
 - [x] Keyboard Piano
-- [x] Primitive keyboard recording (1/16 resolution, as fast as possible without too much lag)
 - [x] Save \ Load
+- [x] Basic Undo \ Redo
 - [ ] More instruments
 - [ ] More effects
 - [ ] Chokes on sampler
@@ -37,4 +36,4 @@ Huge thanksies:
 
 - [Tone.js](https://tonejs.github.io/): like, everything, haha
 - [vue-synth](https://github.com/Razz21/vue-synth): distortion effect
-- 
+- [RNBO](https://rnbo.cycling74.com/learn/welcome-to-rnbo): 3rd party synths
