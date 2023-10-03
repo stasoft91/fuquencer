@@ -14,7 +14,15 @@ export class GridCell implements GridCellOptions {
 	public arpeggiator?: GridCellArpeggiator
 	
 	constructor(params: Partial<GridCell>) {
-		const {notes, velocity, row, column, duration, arpeggiator, modifiers} = cloneDeep(params)
+        const {
+            notes,
+            velocity,
+            row,
+            column,
+            duration,
+            arpeggiator,
+            modifiers
+        } = cloneDeep(params)
 		
 		if (!row || !column) {
 			throw new Error('GridCell: row and column are required')

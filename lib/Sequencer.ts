@@ -1,13 +1,13 @@
 import type {Ref, ShallowRef} from 'vue'
 import {ref, shallowRef, triggerRef} from 'vue'
 import * as Tone from 'tone/Tone'
-import {SoundEngine, TrackTypes} from '~/lib/SoundEngine'
+import {SoundEngine, TRACK_TYPES} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 import {LFO, type LFOOptions} from "~/lib/LFO";
-import AbstractSource from "~/lib/AbstractSource";
+import LegacySource from "~/lib/sources/LegacySource";
 import type {
   FlamParams,
   GridCellArpeggiator,
@@ -27,6 +27,7 @@ import {cloneDeep} from "lodash";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
+import RNBOSource from "~/lib/sources/RNBOSource";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -210,23 +211,18 @@ export class Sequencer {
       const originalCell = this._sequenceGrid.value.find(_ => _.id === newCell.id) ?? null as GridCell | null
       
       originalCell && this.historyManager.push(
-        cloneDeep((
-          new GridCell({
-            ...originalCell,
-            modifiers: (originalCell.modifiers),
-            notes: (originalCell.notes),
-            arpeggiator: (originalCell.arpeggiator)
-          })
-        )),
-        
-        cloneDeep((
-          new GridCell({
-            ...newCell,
-            modifiers: newCell.modifiers,
-            notes: newCell.notes,
-            arpeggiator: newCell.arpeggiator
-          })
-        ))
+        new GridCell({
+          ...originalCell,
+          modifiers: (originalCell.modifiers),
+          notes: (originalCell.notes),
+          arpeggiator: (originalCell.arpeggiator)
+        }),
+        new GridCell({
+          ...newCell,
+          modifiers: newCell.modifiers,
+          notes: newCell.notes,
+          arpeggiator: newCell.arpeggiator
+        })
       )
     }
     const cellIndex = this.getCellIndex(newCell.row, newCell.column)
@@ -346,9 +342,9 @@ export class Sequencer {
    */
   public async initTracksDemoLegacy(): Promise<void> {
     this.soundEngine.clearTracks()
-    
+
     for (let i = 0; i < SAMPLES.length; i++) {
-      const abstractSourceSampler = new AbstractSource({
+      const abstractSourceSampler = new LegacySource({
         sampler: {
           volume: -6,
           urls: {
@@ -358,51 +354,31 @@ export class Sequencer {
           baseUrl: '/samples/',
         }
       })
-      
+
       await abstractSourceSampler.init();
 
       this.soundEngine.addTrack(
         new Track({
           name: SAMPLES[i],
-          volume: -6,
           source: abstractSourceSampler,
-          type: TrackTypes.sample
+          sourceType: TRACK_TYPES.sampler,
         })
       ).meta.set('urls', {
         [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
       })
     }
-    
-    const abstractSourceSynth = new AbstractSource({
-      synth: {
-        oscillator: {
-          type: 'pulse'
-        },
-        envelope: {
-          attack: 0.01,
-          decay: 0.42,
-          sustain: 0.01,
-          release: 0.25
-        },
-        filterEnvelope: {
-          attack: 0.001,
-          decay: 0.1,
-          sustain: 0.5,
-        },
-        volume: -6
-      }
-    })
-    
+
+    const abstractSourceSynth = new RNBOSource(TRACK_TYPES.RNBO_Sub)
+
     await abstractSourceSynth.init();
 
     this.soundEngine.addTrack(new Track({
-      volume: -6,
       name: 'Bass',
       source: abstractSourceSynth,
-      type: TrackTypes.synth
+      sourceType: TRACK_TYPES.RNBO_Sub,
     }))
-    
-    const abstractSourceSynth2 = new AbstractSource({
+
+    const abstractSourceSynth2 = new LegacySource({
       synth: {
         oscillator: {
           type: 'pulse'
@@ -421,48 +397,29 @@ export class Sequencer {
         volume: -6
       }
     })
-    
+
     await abstractSourceSynth2.init();
-    
+
     this.soundEngine.addTrack(new Track({
-      volume: -6,
       name: 'Bass 2',
       source: abstractSourceSynth2,
-      type: TrackTypes.synth
+      sourceType: TRACK_TYPES.legacyMono,
     }))
-    
-    const abstractSourceSynth3 = new AbstractSource({
-      synth: {
-        oscillator: {
-          type: 'sawtooth'
-        },
-        envelope: {
-          attack: 0.01,
-          decay: 0.42,
-          sustain: 0.01,
-          release: 0.25
-        },
-        filterEnvelope: {
-          attack: 0.001,
-          decay: 0.1,
-          sustain: 0.5,
-        },
-        volume: -6
-      }
-    })
-    
+
+    const abstractSourceSynth3 = new RNBOSource(TRACK_TYPES.RNBO_Synth)
+
     await abstractSourceSynth3.init();
-    
+
     this.soundEngine.addTrack(new Track({
-      volume: -6,
       name: 'Arp 1',
-      source: abstractSourceSynth2,
-      type: TrackTypes.synth
+      source: abstractSourceSynth3,
+      sourceType: TRACK_TYPES.RNBO_Synth
     }))
   }
   
   public stop() {
-    console.log(this._parts)
+    Tone.Transport.stop()
+    this._mainLoop?.stop()
     
     this._parts.forEach((part) => part.cancel().stop().dispose())
     this._parts = []
@@ -475,20 +432,17 @@ export class Sequencer {
         this.indicatorMatrix.value[trackIndex][columnIndex] = false
       })
       
-      this.toggleIndicator(trackIndex + 1, 1)
+      this.toggleIndicator(trackIndex + 1, 0, true)
     })
-    
-    Tone.Transport.stop()
-    this._mainLoop?.stop()
     
     this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
     this._isPlaying.value = false;
   }
   
-  public toggleIndicator(row: number, column: number): void {
+  public toggleIndicator(row: number, column: number, value: boolean): void {
     const matrix = this._indicatorMatrix.value
-    matrix[row - 1][column - 1] = !matrix[row - 1][column - 1]
+    matrix[row - 1][column - 1] = value
     this._indicatorMatrix.value = matrix
   }
   
@@ -569,15 +523,15 @@ export class Sequencer {
           }
           
           // Reset portamento
-          track.source.set({portamento: 0})
+          track.source.set({slide: 0}, 0)
           
           if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
             const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
             
             if (slideParams.slide) {
-              track.source.set({portamento: slideParams.slide / 1000})
+              track.source.set({slide: slideParams.slide / 1000}, 0) //TODO are we really sure its /1000?
             } else {
-              track.source.set({portamento: 0})
+              track.source.set({slide: 0}, 0)
             }
           }
           
@@ -736,7 +690,7 @@ export class Sequencer {
             this.indicatorMatrix.value[trackIndex][columnIndex] = false
           })
           
-          this.toggleIndicator(trackIndex + 1, 1)
+          this.toggleIndicator(trackIndex + 1, 1, true)
         }, getToneTimeNextMeasure())
       }
     })

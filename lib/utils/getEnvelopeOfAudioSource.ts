@@ -1,7 +1,7 @@
 import type {ADSRType} from "../SoundEngine";
-import AbstractSource from "~/lib/AbstractSource";
+import LegacySource from "~/lib/sources/LegacySource";
 
-export function getEnvelopeOfAudioSource(audioSource: AbstractSource): ADSRType {
+export function getEnvelopeOfAudioSource(audioSource: LegacySource): ADSRType {
 	const rawEnvelope = audioSource.envelope?.get();
 
 	return {

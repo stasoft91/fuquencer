@@ -14,7 +14,6 @@
 
       <RichFaderInput
           class="constrained-width"
-          v-if="track.type === TrackTypes.synth"
           label="Decay"
           id="decay"
           :default-value="25"
@@ -26,7 +25,6 @@
 
       <RichFaderInput
           class="constrained-width"
-          v-if="track.type === TrackTypes.synth"
           label="Sustain"
           id="sustain"
           :default-value="0"
@@ -46,7 +44,7 @@
           @click:link="onLinkClick('release')"
       />
 
-      <div v-if="track.type === TrackTypes.synth" class="envelope-display" style="width: 200px;">
+      <div class="envelope-display" style="width: 200px;">
         <DisplayEnvelope
             :envelope="envelope"
             fill-color="rgba(100, 50, 200, 0.3)"
@@ -117,7 +115,6 @@
 <script setup lang="ts">
 import DisplayEnvelope from '@/components/DisplayEnvelope/DisplayEnvelope.vue'
 import type {ADSRType} from "~/lib/SoundEngine";
-import {TrackTypes} from "~/lib/SoundEngine";
 import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
@@ -127,9 +124,9 @@ const props = defineProps<{
 }>()
 
 const envelope = computed<ADSRType>(() => {
-  if (props.track.meta.has('envelope')) {
-    return props.track.meta.get('envelope')
-  }
+  const state = props.track.source.get()
+
+  console.log(state)
 
   return {
     attack: props.track.meta.get('attack') ?? 0,
@@ -156,12 +153,10 @@ const getEnvelopeWithChanges = (changes: Partial<ADSRType>, original: ADSRType) 
 }
 
 const onUpdateEnvelope = (envelope: ADSRType) => {
-  if (props.track.meta.has('envelope')) {
-    props.track.setToSource('envelope', envelope)
-  } else {
-    props.track.setToSource('attack', envelope.attack)
-    props.track.setToSource('release', envelope.release)
-  }
+  props.track.setToSource('a', envelope.attack)
+  props.track.setToSource('d', envelope.decay)
+  props.track.setToSource('s', envelope.sustain)
+  props.track.setToSource('r', envelope.release)
 }
 
 const onUpdateFilterEnvelope = (envelope: ADSRType) => {

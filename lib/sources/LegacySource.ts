@@ -1,6 +1,7 @@
 import * as Tone from 'tone/Tone';
 import type {RecursivePartial} from "~/lib/typescript.types";
 import {DEFAULT_NOTE} from "~/lib/Sequencer";
+import {AbstractSource} from "~/lib/sources/AbstractSource";
 
 export type AbstractSourceOptions = ({
 	sampler?: never,
@@ -13,19 +14,18 @@ export type AbstractSourceOptions = ({
 	filterEnvelope?: Partial<Tone.FrequencyEnvelopeOptions>
 }
 
-export default class AbstractSource {
-	
+export default class LegacySource extends AbstractSource {
 	private _sampler?: Tone.Sampler;
 	private _synth?: Tone.MonoSynth;
 	
 	private readonly _filter: Tone.Filter;
 	private readonly _filterEnvelope: Tone.FrequencyEnvelope;
-	
-	private readonly _options!: AbstractSourceOptions;
-	
-	private _isInitialized: boolean = false;
+
+	private _options!: AbstractSourceOptions;
 	
 	constructor(options: AbstractSourceOptions) {
+		super();
+		
 		this._options = options;
 		
 		if (!this._options.sampler && !this._options.synth) {
@@ -54,33 +54,13 @@ export default class AbstractSource {
 		this._filterEnvelope.connect(this._filter.frequency)
 		this._filter.frequency.overridden = false;
 	}
-	
-	public get envelope(): Tone.Envelope | undefined {
-		return this.isSampler ? undefined : this._synth!.envelope;
-	}
-	
-	public get volume(): Tone.Param<"decibels"> {
-		return this.isSampler ? this._sampler!.volume : this._synth!.volume;
-	}
-	
-	public get attack(): Tone.Unit.Time {
-		return this.isSampler ? this._sampler!.attack : this._synth!.envelope.attack
-	}
-	
-	public get release(): Tone.Unit.Time {
-		return this.isSampler ? this._sampler!.release : this._synth!.envelope.release
-	}
-	
-	public get filterEnvelope(): Tone.FrequencyEnvelope {
+
+	private get filterEnvelope(): Tone.FrequencyEnvelope {
 		return this._filterEnvelope;
 	}
-	
-	public get filter(): Tone.Filter {
+
+	private get filter(): Tone.Filter {
 		return this._filter;
-	}
-	
-	public get portamento(): Tone.Unit.Time | undefined {
-		return this.isSampler ? undefined : this._synth!.portamento
 	}
 	
 	private get isSampler(): boolean {

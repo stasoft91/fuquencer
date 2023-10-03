@@ -3,6 +3,19 @@
     <n-card :title="props.track.name">
       <n-tabs animated type="line">
         <n-tab-pane name="instrument" tab="INSTRUMENT">
+          <div class="select-instrument">
+            <select
+                :value="props.track.sourceType"
+                class="select"
+                @change="props.track.setTrackType($event.target?.value ?? TRACK_TYPES.legacyMono)"
+            >
+              <option v-for="(instrument, i) in Object.keys(TRACK_TYPES)" :key="instrument"
+                      :value="Object.values(TRACK_TYPES)[i]">{{
+                  instrument
+                }}
+              </option>
+            </select>
+          </div>
           <div class="primary-faders">
             <RichFaderInput
                 :default-value="75"
@@ -172,7 +185,8 @@ import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopOptions, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
-import {toMeasure} from "../../lib/utils/toMeasure";
+import {toMeasure} from "~/lib/utils/toMeasure";
+import {TRACK_TYPES} from "~/lib/SoundEngine";
 
 const props = defineProps<{
   track: Track,
@@ -241,19 +255,13 @@ const onUpdateVolume = ( volume: number) => {
 
 const onUpdateFilter = (frequency: number) => {
   props.track.setToSource({
-    filterEnvelope: {
-      ...props.track.meta.get('filterEnvelope'),
-      baseFrequency: frequency
-    }
+    cutoff: Math.floor(frequency)
   })
 }
 
 const onUpdateQ = (Q: number) => {
   props.track.setToSource({
-    filter: {
-      ...props.track.meta.get('filter'),
-      Q
-    }
+    res: Q
   })
 }
 
@@ -428,5 +436,13 @@ const onLinkQ = () => {
     padding: 1rem;
     text-indent: 5px;
   }
+}
+
+.select-instrument select {
+  outline: none;
+  border: none;
+  background: (var(--color-grey-300));
+  padding: 0.5rem;
+  width: 100%;
 }
 </style>

@@ -1605,7 +1605,7 @@
   "tracks": [
     {
       "name": "kick.wav",
-      "volume": -6,
+      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -0.20951065931760424,
@@ -1644,7 +1644,6 @@
           "octaves": 4
         }
       },
-      "type": "sample",
       "middlewares": [],
       "envelope": {
         "attack": 0,
@@ -1657,7 +1656,7 @@
     },
     {
       "name": "clap.wav",
-      "volume": -6,
+      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -6,
@@ -1696,7 +1695,6 @@
           "octaves": 4
         }
       },
-      "type": "sample",
       "middlewares": [
         {
           "name": "Freeverb",
@@ -1718,7 +1716,7 @@
     },
     {
       "name": "hat1.wav",
-      "volume": -6,
+      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -19.04907011423125,
@@ -1757,7 +1755,6 @@
           "octaves": 4
         }
       },
-      "type": "sample",
       "middlewares": [],
       "envelope": {
         "attack": 0,
@@ -1770,7 +1767,7 @@
     },
     {
       "name": "hat2.wav",
-      "volume": -6,
+      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -10.928558077299847,
@@ -1809,7 +1806,6 @@
           "octaves": 4
         }
       },
-      "type": "sample",
       "middlewares": [],
       "envelope": {
         "attack": 0,
@@ -1822,7 +1818,7 @@
     },
     {
       "name": "Bass",
-      "volume": -6,
+      "sourceType": "legacyMono",
       "source": {
         "synth": {
           "oscillator": {
@@ -1868,7 +1864,6 @@
           "octaves": 4
         }
       },
-      "type": "synth",
       "middlewares": [
         {
           "name": "AutoDuck",
@@ -1893,50 +1888,8 @@
     },
     {
       "name": "Bass 2",
-      "volume": -6,
-      "source": {
-        "synth": {
-          "oscillator": {
-            "type": "pulse"
-          },
-          "envelope": {
-            "attack": 0.01,
-            "decay": 0.42,
-            "sustain": 0.01,
-            "release": 0.25
-          },
-          "filterEnvelope": {
-            "attack": 0.001,
-            "decay": 0.1,
-            "sustain": 0.5
-          },
-          "volume": -11.03446585021912,
-          "portamento": 0,
-          "attack": 0.01,
-          "release": 0.25
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.128,
-          "attackCurve": "linear",
-          "decay": 0.295,
-          "decayCurve": "exponential",
-          "release": 0.332,
-          "releaseCurve": "exponential",
-          "sustain": 0.43799999999999994,
-          "baseFrequency": 1137.7176164312007,
-          "exponent": 1,
-          "octaves": 4
-        }
-      },
-      "type": "synth",
+      "sourceType": "sub",
+      "source": "sub",
       "middlewares": [
         {
           "name": "AutoDuck",
@@ -1961,7 +1914,7 @@
     },
     {
       "name": "Tone #7",
-      "volume": -6,
+      "sourceType": "legacyMono",
       "source": {
         "synth": {
           "oscillator": {
@@ -2002,7 +1955,6 @@
           "octaves": 4
         }
       },
-      "type": "synth",
       "middlewares": [
         {
           "name": "PingPongDelay",

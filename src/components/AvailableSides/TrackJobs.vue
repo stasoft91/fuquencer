@@ -43,7 +43,7 @@
         <SimpleButton class="big" @click="onHumanizeTrack">Humanize</SimpleButton>
       </div>
 
-      <div v-if="selectedTrack?.type === TrackTypes.synth" class="">
+      <div v-if="selectedTrack?.type === TRACK_TYPES.synth" class="">
         <SimpleButton class="big" @click="onGenerateBassline">Improvise</SimpleButton>
       </div>
 
@@ -79,7 +79,7 @@
 
 <script lang="ts" setup>
 import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
-import {TrackTypes} from "~/lib/SoundEngine";
+import {TRACK_TYPES} from "~/lib/SoundEngine";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import {computed, ref} from "vue";

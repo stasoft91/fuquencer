@@ -1,64 +1,60 @@
-import type {ADSRType} from "~/lib/SoundEngine";
-import {TrackTypes} from "~/lib/SoundEngine";
+import {TRACK_TYPES} from "~/lib/SoundEngine";
 import type {Ref, ShallowRef} from "vue";
 import {ref, shallowReactive, shallowRef} from "vue";
-import {getEnvelopeOfAudioSource} from "~/lib/utils/getEnvelopeOfAudioSource";
 import * as Tone from "tone/Tone";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import type {LoopOptions} from "~/lib/PolyrhythmLoop";
 import {PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import {Sequencer} from "~/lib/Sequencer";
-import type {AbstractSourceOptions} from "~/lib/AbstractSource";
-import AbstractSource from "~/lib/AbstractSource";
+import type {AbstractSourceOptions} from "~/lib/sources/LegacySource";
+import LegacySource from "~/lib/sources/LegacySource";
 import DistortionModule from "~/lib/sound-components/DistortionModule/DistortionModule"
+import RNBOSource from "~/lib/sources/RNBOSource";
+import type {VoiceType} from "~/lib/rnbo/data";
+import {createNewSource} from "~/lib/utils/createNewSource";
 
 
 export type TrackOptions = {
 	name: string,
-	volume: number,
-	source: AbstractSource,
-	type: TrackTypes
+    source: LegacySource | RNBOSource,
+    sourceType: TRACK_TYPES,
 }
 
 export type TrackExportOptions = Omit<TrackOptions, 'source'> & {
-	source: AbstractSourceOptions,
+    sourceType: TRACK_TYPES,
+    source: VoiceType | AbstractSourceOptions,
 	middlewares: UniversalEffect[],
-	envelope: ADSRType,
 	length: number,
 	loops: Omit<LoopOptions, 'track'>[],
 }
-
 export class Track {
-	private _volume: Ref<number>;
-	private _type: Ref<TrackTypes>;
-	private _envelope: Ref<ADSRType>;
 	private _name: Ref<string>;
 
 	public channel: Tone.Channel = new Tone.Channel();
-	
-	constructor(params: TrackOptions) {
-		const {name, volume, source, type} = params;
-
-		this._name = ref(name);
-		this._volume = ref(volume);
-		this._source = source;
-		this._type = ref(type);
-		this._envelope = ref(getEnvelopeOfAudioSource(source));
-		
-		this.reconnectMiddlewares();
-	}
 	
 	private _sidechainEnvelope: Tone.Envelope | undefined = undefined;
 
 	private _loops: ShallowRef<PolyrhythmLoop[]> = shallowRef([]);
 	private _middlewares = shallowReactive({value: [] as UniversalEffect[]});
-	
-	private _source: AbstractSource;
+
+    public sourceType: TRACK_TYPES = TRACK_TYPES.legacyMono;
 
 	private _length: Ref<number> = ref(16);
 
 	private _meta: Ref<Map<string, any>> = ref(new Map());
 
+    constructor(params: TrackOptions) {
+        const {name, source, sourceType} = params;
+
+        this._name = ref(name);
+        this._source = source;
+        this.sourceType = sourceType;
+
+        this.reconnectMiddlewares();
+    }
+
+    private _source: RNBOSource | LegacySource;
+	
 	public get name(): string {
 		return this._name.value;
 	}
@@ -66,41 +62,16 @@ export class Track {
 	public set name(value: string) {
 		this._name.value = value;
 	}
-
-	public get volume(): number {
-		return this._volume.value;
-	}
-	
-	public set volume(value: number) {
-		this._volume.value = value;
-		try {
-			this._source.volume.value = value;
-		} catch (e) {
-			console.log('error', e);
-		}
-	}
-	
-	public get type(): TrackTypes {
-		return this._type.value;
-	}
-	
-	public set type(value: TrackTypes) {
-		this._type.value = value;
-	}
-	
-	public get envelope(): ADSRType {
-		return this._envelope.value;
-	}
 	
 	public get middlewares(): UniversalEffect[] {
 		return this._middlewares.value;
 	}
-	
-	public get source(): AbstractSource {
+
+    public get source(): RNBOSource | LegacySource {
 		return this._source;
 	}
-	
-	public set source(newSource: AbstractSource) {
+
+    public set source(newSource: RNBOSource | LegacySource) {
 		this._source = newSource;
 	}
 	
@@ -112,21 +83,12 @@ export class Track {
 		if (this._meta.value.size === 0) {
 			const keys = new Set([
 				...Object.keys(this._source.get()),
-				'filter',
-				'filterEnvelope',
 			]);
 			const meta = new Map<string, string>();
-			let originalOptions: unknown = this._source.get();
+        const originalOptions = this._source.get();
 			
 			keys.forEach((key) => {
-				if (key === 'filter') {
-					originalOptions = {filter: this._source.filter.get()};
-				}
-				if (key === 'filterEnvelope') {
-					originalOptions = {filterEnvelope: this._source.filterEnvelope.get()};
-				}
-				
-				meta.set(key, Object.entries(originalOptions as Record<string, string>).find(([k]) => k === key)?.[1] as string);
+          meta.set(key, Object.entries(originalOptions).find(([k]) => k === key)?.[1] as string);
 			});
 			
 			this._meta.value = meta;
@@ -172,14 +134,14 @@ export class Track {
 	}
 	
 	public static async importFrom(trackOptions: TrackExportOptions): Promise<Track> {
-		const source = new AbstractSource(trackOptions.source)
+      const source = createNewSource(trackOptions)
+
 		await source.init();
 		
 		const newTrack = new Track({
 			name: trackOptions.name,
-			volume: trackOptions.volume,
 			source,
-			type: trackOptions.type,
+        sourceType: trackOptions.sourceType,
 		});
 		
 		newTrack._length.value = trackOptions.length;
@@ -191,8 +153,8 @@ export class Track {
 		trackOptions.loops.forEach((loop) => {
 			newTrack.addLoop(loop);
 		});
-		
-		return newTrack;
+
+      return newTrack;
 	}
 	
 	public removeLoop(loop: PolyrhythmLoop): void {
@@ -237,8 +199,8 @@ export class Track {
 				middleware.effect = effect;
 				
 			} else if (middleware.name !== 'AutoDuck') {
+          // CUSTOM LOGIC ON DISTORTION (distortion type)
 				if (middleware.name === 'Distortion') {
-					// @ts-ignore
 					middleware.effect = new DistortionModule({...middleware.options});
 				} else {
 					// EFFECT IS ANY OTHER EFFECT
@@ -262,16 +224,21 @@ export class Track {
 			Tone.Destination
 		);
 	}
-	
-	public setToSource(keyOrObject: string | Object, value?: any): void {
+
+    public setToSource(keyOrObject: string | Object, value?: any, time: number = 0): void {
+        if (time === 0) {
+            // TODO precise timing?? or we just use 0??
+            time = Tone.now() + 0.1;
+        }
+		
 		if (typeof keyOrObject === 'object') {
 			const entries = Object.entries(keyOrObject);
 			entries.forEach((key) => {
-				this._source.set({[key[0]]: key[1]});
+          this._source.set({[key[0]]: key[1]}, time);
 				this._meta.value.set(key[0], key[1]);
 			});
 		} else {
-			this._source.set({[keyOrObject]: value});
+        this._source.set({[keyOrObject]: value}, time);
 			this._meta.value.set(keyOrObject, value);
 		}
 	}
@@ -318,19 +285,17 @@ export class Track {
 	public export(): TrackExportOptions {
 		return {
 			name: this.name,
-			volume: this.volume,
 			source: this.source.export(),
-			type: this.type,
 			middlewares: this.middlewares.map(_ => ({
 				name: _.name,
 				options: {..._.options, ..._.effect.get()},
 				effect: undefined,
 			})) as UniversalEffect[],
-			envelope: this.envelope,
 			length: this.length,
 			loops: this._loops.value.map((loop) => ({
 				...loop.export()
 			})),
+        sourceType: this.sourceType
 		}
 	}
 	
@@ -341,4 +306,40 @@ export class Track {
 		const trackNumber = seq.soundEngine.tracks.value.findIndex((t) => t.name === this.name) + 1;
 		seq.updatePartDuration(trackNumber, length);
 	}
+
+    public async setTrackType(type: TRACK_TYPES): Promise<void> {
+        this.sourceType = type;
+        try {
+            this._source = createNewSource({
+                sourceType: type,
+                source:
+                    type === TRACK_TYPES.legacyMono || type === TRACK_TYPES.sampler
+                        ? {
+                            synth: {
+                                oscillator: {
+                                    type: 'pulse'
+                                },
+                                envelope: {
+                                    attack: 0.01,
+                                    decay: 0.42,
+                                    sustain: 0.01,
+                                    release: 0.25
+                                },
+                                filterEnvelope: {
+                                    attack: 0.001,
+                                    decay: 0.1,
+                                    sustain: 0.5,
+                                },
+                                volume: -6
+                            }
+                        }
+                        : type,
+            });
+
+            await this._source.init();
+            this.reconnectMiddlewares();
+        } catch (e) {
+            console.error(e);
+        }
+    }
 }

@@ -11,9 +11,14 @@ export type ADSRType = {
   release: number
 }
 
-export enum TrackTypes {
-  'synth' = 'synth',
-  'sample' = 'sample'
+export enum TRACK_TYPES {
+  'legacyMono' = 'legacyMono',
+  'sampler' = 'sampler',
+  'RNBO_Sub' = 'sub',
+  'RNBO_Drone' = 'drone',
+  'RNBO_Synth' = 'synth',
+  'RNBO_Acid' = 'acid',
+  'RNBO_Additive' = 'additive',
 }
 
 export class SoundEngine {

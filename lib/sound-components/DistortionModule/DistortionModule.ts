@@ -9,7 +9,6 @@ import {Distortion, optionsFromArguments} from "tone/Tone";
 import {DISTORTION_ALGORITHMS} from "./DistortionModule.utils";
 
 export type DistortionModuleOptions = Tone.DistortionOptions & { type: string };
-
 export default class DistortionModule extends Distortion {
   private _algorithmFn: Function | null = null;
 
@@ -70,7 +69,6 @@ export default class DistortionModule extends Distortion {
     // @ts-ignore
     const fn = this._algorithmFn(this._distortion);
     // @ts-ignore
-    
     this._shaper.setMap(fn);
   }
 }

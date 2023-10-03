@@ -58,7 +58,6 @@ import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
-import {TrackTypes} from "~/lib/SoundEngine";
 import {AVAILABLE_EFFECTS, GRID_COLS, GRID_ROWS} from "@/constants";
 import {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
@@ -68,11 +67,11 @@ import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import * as Tone from "tone/Tone";
 import {GridCell} from "~/lib/GridCell";
-import AbstractSource from "~/lib/AbstractSource";
 import {Trash as DeleteIcon} from "@vicons/ionicons5";
 
 import {useDialog} from 'naive-ui'
 import {useGridEditorStore} from "@/stores/gridEditor";
+import RNBOSource from "~/lib/sources/RNBOSource";
 
 const dialog = useDialog()
 
@@ -264,33 +263,13 @@ const onAddTrack = async () => {
     throw new Error('Maximum number of tracks reached')
   }
 
-  const abstractSourceSynth = new AbstractSource({
-    synth: {
-      oscillator: {
-        type: 'pulse'
-      },
-      envelope: {
-        attack: 0.01,
-        decay: 0.42,
-        sustain: 0.01,
-        release: 0.25
-      },
-      filterEnvelope: {
-        attack: 0.001,
-        decay: 0.1,
-        sustain: 0.5,
-      },
-      volume: -6
-    }
-  })
+  const abstractSourceSynth = new RNBOSource("sub")
 
   await abstractSourceSynth.init();
 
   sequencer.soundEngine.addTrack(new Track({
-    volume: -6,
     name: 'Tone #' + (sequencer.soundEngine.tracks.value.length + 1),
     source: abstractSourceSynth,
-    type: TrackTypes.synth
   }))
 }
 </script>
