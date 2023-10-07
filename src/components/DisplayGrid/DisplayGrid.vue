@@ -57,6 +57,18 @@
               :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.slide)" class="fx-indicator">
             <span>sld</span>
           </span>
+
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.reverse)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.reverse)" class="fx-indicator">
+            <span>rvs</span>
+          </span>
+
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.playbackRate)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.playbackRate)" class="fx-indicator">
+            <span>rat</span>
+          </span>
         </span>
       </button>
     </div>
@@ -274,6 +286,7 @@ import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {cloneDeep} from "lodash";
 import {useContextMenu} from "@/components/DisplayGrid/useContextMenu";
+import {SOURCE_TYPES} from "~/lib/SoundEngine";
 
 const sequencer = Sequencer.getInstance()
 
@@ -638,8 +651,15 @@ const handleMouseLeave = () => {
 }
 
 const getNoteText = (gridCell: GridCell) => {
+  const track = sequencer.soundEngine.tracks.value[gridCell.row - 1]
+
+  if (!track) return Tone.Frequency(gridCell.notes[0]).toNote()
+
   return gridCell.notes.length > 1 ? 'Arp' :
-      gridCell.notes.length === 1 ? gridCell.notes[0] :
+      gridCell.notes.length === 1 ?
+          track.sourceType.value === SOURCE_TYPES.SMPLR_Drum ?
+              track.source.convertNoteToDrum(Tone.Frequency(gridCell.notes[0]).toMidi()) :
+              Tone.Frequency(gridCell.notes[0]).toNote() :
           'Rst'
 
 }

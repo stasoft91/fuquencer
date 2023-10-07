@@ -26,21 +26,25 @@ export enum GridCellModifierTypes {
 	probability = 'probability', // probability of the note being played
 	skip = 'skip',
 	slide = 'slide', // portamento of monophonic
-	
-	// reverse = 'reverse', // TODO: research if possible
+	reverse = 'reverse',
+	playbackRate = 'playbackRate',
 	// instrumentSpecific = 'instrumentSpecific' // TODO: research if possible
 }
 
-export type GridCellModifier = (SwingParams | FlamParams | ProbabilityParams | SkipParams | SlideParams) & {
+export type GridCellModifier = {
+	type: GridCellModifierTypes
 	swing?: number
 	subdivision?: Tone.Unit.Time
+
 	roll?: number
 	velocity?: number
 	increaseVelocityFrom?: number
+	
 	probability?: number
 	skip?: number
 	timesTriggered?: number
 	slide?: number
+	playbackRate?: number
 }
 
 export type SwingParams = {

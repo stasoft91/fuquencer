@@ -64,7 +64,7 @@ class RNBODevice {
 
     /** @hidden */
     messageDevice(tag: string, payload: any, time: number) {
-        const unsafeTime = (time * 1000) - (Tone.context.lookAhead * 1000)
+        const unsafeTime = (time * 1000) - (Tone.getContext().lookAhead * 1000)
         const safeTime = unsafeTime < 0 ? 0 : unsafeTime
         const message = new MessageEvent(safeTime, tag, [payload]);
         console.log('message', message)

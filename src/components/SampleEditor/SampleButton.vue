@@ -1,14 +1,14 @@
 <template>
   <button :style="{'--bg-color': bgcolor ?? 'hsl(81, 60%, 69%)', width}" class="ghost-button" @click="onClick">
-    <!--    <DisplayWaveform-->
-    <!--        id="sample-editor-button"-->
-    <!--        :height="64"-->
-    <!--        :normalize="false"-->
-    <!--        :sample-name="track.name"-->
-    <!--        :url="props.sampleUrl ?? track.meta.get('urls')[DEFAULT_NOTE] ?? ''"-->
-    <!--        :wave-color="color"-->
-    <!--        class="waveform"-->
-    <!--    />-->
+    <DisplayWaveform
+        id="sample-editor-button"
+        :height="64"
+        :normalize="false"
+        :sample-name="track.name"
+        :url="sampleUrl ?? ''"
+        :wave-color="color"
+        class="waveform"
+    />
     <slot></slot>
     <input ref="file" style="display:none" type="file"/>
   </button>
@@ -16,44 +16,52 @@
 
 <script lang="ts" setup>
 import type {Track} from "~/lib/Track";
-import {ref} from "vue";
+import {ref, watch} from "vue";
+import {DEFAULT_NOTE} from "~/lib/Sequencer";
+import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
+import {SOURCE_TYPES} from "~/lib/SoundEngine";
 
-defineProps<{
+const file = ref<HTMLInputElement | null>(null)
+
+const props = defineProps<{
   track: Track
   color: string,
   bgcolor?: string,
   width?: string,
-  sampleUrl?: string
 }>()
 
 const onClick = async () => {
+  URL.revokeObjectURL(sampleUrl.value)
   getFile()
 }
 
-const file = ref<HTMLInputElement | null>(null)
 
-function getFile() {
+const sampleUrl = ref('')
+
+watch(props.track.isSourceInitialized, () => {
+  if (props.track.isSourceInitialized.value && props.track.meta.has('urls')) {
+    sampleUrl.value = props.track.meta.get('urls')[DEFAULT_NOTE] ?? ''
+  }
+})
+
+const getFile = () => {
   if (file.value === null) {
     return
   }
 
-  file.value.onchange = () => {
-    if (file.value?.files !== null && file.value?.files.length && file.value?.files.length > 0) {
-      throw new Error('Not implemented');
+  file.value.onchange = async () => {
+    const clonedFile = file.value?.files?.item(0)
 
-      // const url = URL.createObjectURL(file.value.files[0])
-
-      // SoundEngine.createSampler(url, '').then((sampler) => {
-      //   props.track.source.dispose();
-      //   // eslint-disable-next-line vue/no-mutating-props
-      //   props.track.source = sampler;
-      //
-      //   props.track.meta.set('urls', {[DEFAULT_NOTE]: url})
-      // }).catch((e) => {
-      //   console.error(e)
-      // })
+    if (!clonedFile) {
+      return
     }
-  };
+
+    const url = URL.createObjectURL(clonedFile)
+    sampleUrl.value = url
+    props.track.meta.set('urls', {[DEFAULT_NOTE]: url})
+    await props.track.setTrackType(SOURCE_TYPES.sampler, url)
+  }
+
 
   file.value.click();
 }

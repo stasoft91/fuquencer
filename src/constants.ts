@@ -4,7 +4,7 @@ import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
 
-export const VERSION = '0.8.5'
+export const VERSION = '0.9.0'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;
@@ -205,12 +205,17 @@ export const DELAY_OPTIONS_LONG: string[] = [
 	(4 * Tone.Time('1n').toSeconds()).toString(),
 ].reverse()
 
-export const AVAILABLE_CELL_MODIFIERS: GridCellModifierTypes[] = [
+export const GLOBAL_CELL_MODIFIERS: GridCellModifierTypes[] = [
 	GridCellModifierTypes.probability,
 	GridCellModifierTypes.skip,
-	GridCellModifierTypes.slide,
 	GridCellModifierTypes.swing,
-	GridCellModifierTypes.flam
+	GridCellModifierTypes.flam,
+]
+
+export const OPTIONAL_CELL_MODIFIERS: GridCellModifierTypes[] = [
+	GridCellModifierTypes.slide,
+	GridCellModifierTypes.reverse,
+	GridCellModifierTypes.playbackRate
 ]
 
 export const AVAILABLE_ARPEGGIATOR_TYPES: PatternName[] = ["up", "down", "upDown", "downUp", "alternateUp", "alternateDown", "random", "randomOnce", "randomWalk"];

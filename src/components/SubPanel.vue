@@ -5,55 +5,77 @@
         <n-tab-pane name="instrument" tab="INSTRUMENT">
           <div class="select-instrument">
             <select
-                :value="props.track.sourceType"
+                :value="props.track.sourceType.value"
                 class="select"
-                @change="props.track.setTrackType($event.target?.value ?? TRACK_TYPES.legacyMono)"
+                @change="props.track.setTrackType($event.target?.value ?? SOURCE_TYPES.legacyMono)"
             >
-              <option v-for="(instrument, i) in Object.keys(TRACK_TYPES)" :key="instrument"
-                      :value="Object.values(TRACK_TYPES)[i]">{{
+              <option v-for="(instrument, i) in Object.keys(SOURCE_TYPES)" :key="instrument"
+                      :value="Object.values(SOURCE_TYPES)[i]">{{
                   instrument
                 }}
               </option>
             </select>
           </div>
-          <div class="primary-faders">
-            <RichFaderInput
-                :default-value="75"
-                :max="120"
-                :min="0"
-                :model-value="volumeLogToPercent(parseFloat(track.meta.get('volume') as string))"
-                class="constrained-width"
-                label="Volume"
-                @update:model-value="onUpdateVolume(volumePercentToLog($event))"
-                @click:link="onLinkVolume"
-            />
-
-            <RichFaderInput
-                :default-value="100"
-                :max="100"
-                :min="1"
-                :model-value="herzToPercent(track.meta.get('filterEnvelope')?.baseFrequency) || herzToPercent(20434)"
-                class="constrained-width"
-                label="Filter"
-                @update:model-value="onUpdateFilter(percentToHerz($event as number))"
-                @click:link="onLinkFilter"
-            />
-
-            <RichFaderInput
-                :default-value="0.707"
-                :max="25"
-                :min="0"
-                :model-value="reverseScaleLogarithmically(track.meta.get('filter')?.q) || 0.707"
-                :step="0.001"
-
-                class="constrained-width"
-                label="Filter Q"
-                @update:model-value="onUpdateQ(scaleLogarithmically($event as number))"
-                @click:link="onLinkQ"
-            />
-
-            <ADSRForm :track="track"/>
+          <div v-if="isInstrumentKitsAvailable" class="select-instrument">
+            <select
+                :value="(props.track.source as SmplrSource).get().instrument"
+                class="select"
+                @change="props.track.setTrackType(props.track.sourceType.value, $event.target?.value)"
+            >
+              <option v-for="(instrument) in instrumentKits" :key="instrument"
+                      :value="instrument">{{
+                  instrument
+                }}
+              </option>
+            </select>
           </div>
+
+          <div v-if="isSampler" class="sampler-kit-builder">
+            <SampleButton
+                :track="track"
+                color="white"
+            >
+              Change sample
+            </SampleButton>
+          </div>
+          <!--          <div class="primary-faders">-->
+          <!--            <RichFaderInput-->
+          <!--                :default-value="75"-->
+          <!--                :max="120"-->
+          <!--                :min="0"-->
+          <!--                :model-value="volumeLogToPercent(parseFloat(track.meta.get('volume') as string))"-->
+          <!--                class="constrained-width"-->
+          <!--                label="Volume"-->
+          <!--                @update:model-value="onUpdateVolume(volumePercentToLog($event))"-->
+          <!--                @click:link="onLinkVolume"-->
+          <!--            />-->
+
+          <!--            <RichFaderInput-->
+          <!--                :default-value="100"-->
+          <!--                :max="100"-->
+          <!--                :min="1"-->
+          <!--                :model-value="herzToPercent(track.meta.get('filterEnvelope')?.baseFrequency) || herzToPercent(20434)"-->
+          <!--                class="constrained-width"-->
+          <!--                label="Filter"-->
+          <!--                @update:model-value="onUpdateFilter(percentToHerz($event as number))"-->
+          <!--                @click:link="onLinkFilter"-->
+          <!--            />-->
+
+          <!--            <RichFaderInput-->
+          <!--                :default-value="0.707"-->
+          <!--                :max="25"-->
+          <!--                :min="0"-->
+          <!--                :model-value="reverseScaleLogarithmically(track.meta.get('filter')?.q) || 0.707"-->
+          <!--                :step="0.001"-->
+
+          <!--                class="constrained-width"-->
+          <!--                label="Filter Q"-->
+          <!--                @update:model-value="onUpdateQ(scaleLogarithmically($event as number))"-->
+          <!--                @click:link="onLinkQ"-->
+          <!--            />-->
+
+          <!--&lt;!&ndash;            <ADSRForm :track="track"/>&ndash;&gt;-->
+          <!--          </div>-->
         </n-tab-pane>
 
         <n-tab-pane name="effects" tab="EFFECTS">
@@ -82,7 +104,10 @@
               <span>Note</span>
               <div class="width100px">
                 <select :value="loop.note" class="select" @change="onLoopUpdate(loop, 'note', $event)">
-                  <option v-for="note in AVAILABLE_NOTES" :key="note" :value="note">{{ note }}</option>
+                  <option v-for="note in generateListOfAvailableNotes(track)" :key="note" :value="note">{{
+                      note
+                    }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -173,20 +198,21 @@
 
 <script lang="ts" setup>
 import {NCard, NSwitch, NTabPane, NTabs} from 'naive-ui';
-import ADSRForm from '@/components/ADSRForm/ADSRForm.vue'
 import BeatDisplay from '@/components/ui/BeatDisplay.vue'
 import {computed} from "vue";
 import type {Track} from "~/lib/Track";
 import EffectsChainComposer from "@/components/EffectsChainComposer.vue";
-import RichFaderInput from "@/components/ui/RichFaderInput.vue";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
-import {AVAILABLE_NOTES, Sequencer} from "~/lib/Sequencer";
+import {generateListOfAvailableNotes, Sequencer} from "~/lib/Sequencer";
 import {DELAY_OPTIONS, DELAY_OPTIONS_WITH_ZERO} from "@/constants";
 import type {LoopOptions, PolyrhythmLoop} from "~/lib/PolyrhythmLoop";
 import * as Tone from "tone/Tone";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 import {toMeasure} from "~/lib/utils/toMeasure";
-import {TRACK_TYPES} from "~/lib/SoundEngine";
+import {SOURCE_TYPES} from "~/lib/SoundEngine";
+import {getDrumMachineNames, getSoundfontNames} from 'smplr'
+import type {SmplrSource} from "~/lib/sources/SmplrSource";
+import SampleButton from "@/components/SampleEditor/SampleButton.vue";
 
 const props = defineProps<{
   track: Track,
@@ -336,6 +362,18 @@ const onLinkQ = () => {
     title: `${props.track.name} / Q`,
   })
 }
+
+const instrumentKits = computed(() => {
+  return props.track.sourceType.value === SOURCE_TYPES.SMPLR_Instrument ? getSoundfontNames() : getDrumMachineNames()
+})
+
+const isInstrumentKitsAvailable = computed(() => {
+  return props.track.sourceType.value === SOURCE_TYPES.SMPLR_Instrument || props.track.sourceType.value === SOURCE_TYPES.SMPLR_Drum
+})
+
+const isSampler = computed(() => {
+  return props.track.sourceType.value === SOURCE_TYPES.sampler
+})
 </script>
 
 <style lang="scss" scoped>

@@ -1,0 +1,3 @@
+[submodule "modules/tonejs-smplr"]
+	path = modules/tonejs-smplr
+	url = git@github.com:stasoft91/tonejs-smplr.git

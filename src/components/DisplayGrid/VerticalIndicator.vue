@@ -11,13 +11,6 @@
     >
       {{ rowCaptions && rowCaptions[rowIndex] ? rowCaptions[rowIndex] : `Track ${row}` }}
       {{ polyrhythms && polyrhythms[rowIndex] ? `(+${polyrhythms[rowIndex]})` : '' }}
-      <DisplayWaveform
-          v-if="shouldDisplayWaveform(rowIndex)"
-          :id="`vertical-indicator-${rowIndex}`"
-          :url="tracks[rowIndex].meta.get('urls')[DEFAULT_NOTE] ?? ''"
-          :wave-color="rowIndex === selectedRow ? '#edf2f7' : '#a0aec0'"
-          :normalize="true"
-      ></DisplayWaveform>
     </div>
 
     <div
@@ -91,10 +84,8 @@
 </style>
 
 <script setup lang="ts">
-import DisplayWaveform from "@/components/DisplayWaveform/DisplayWaveform.vue";
 import type {Track} from "~/lib/Track";
 import {computed} from "vue";
-import {DEFAULT_NOTE} from "~/lib/Sequencer";
 import {GRID_ROWS} from "@/constants";
 import {AddOutline as AddIcon} from "@vicons/ionicons5";
 import {NDropdown, NIcon} from "naive-ui";
@@ -111,11 +102,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['selectRow', 'addTrack', 'removeTrack'])
+const emit = defineEmits(['selectRow', 'addTrack', 'removeTrack', 'renameTrack'])
 
 const {onClickoutside, y, x, isDropdownOpened, handleContextMenu, selectedItem} = useContextMenu()
 
 const dropdownOptions = [
+  {
+    label: 'Change Name',
+    key: 'rename-track'
+  },
   {
     label: 'Remove',
     key: 'remove-track'
@@ -129,10 +124,6 @@ const getStyleForCell = (rowNumber: number, columnNumber: number) => {
   }
 }
 
-const shouldDisplayWaveform = (rowIndex: number) => {
-  return props.tracks.find(t => t.name === rowCaptions.value[rowIndex])?.type === 'sample'
-}
-
 const rowCaptions = computed(() => {
   return props.tracks.map(t => t.name)
 })
@@ -142,6 +133,10 @@ const handleSelect = (key: string) => {
 
   if (key === 'remove-track') {
     emit('removeTrack', selectedItem.value)
+  }
+
+  if (key === 'rename-track') {
+    emit('renameTrack', selectedItem.value)
   }
 }
 </script>

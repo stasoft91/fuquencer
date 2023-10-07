@@ -11,6 +11,7 @@
           @select-row="onSelectTrack"
           @add-track="onAddTrack"
           @remove-track="onRemoveTrack"
+          @rename-track="onRenameTrack"
       />
       <div class="flex-auto">
         <DisplayGrid
@@ -20,6 +21,7 @@
             :items="sequencer.sequenceGrid.value"
             :rows="GRID_ROWS"
             :is-visualizer-active="gridEditorStore.isVisualizerActive"
+            :key="sequencer.soundEngine.tracks.value.map(_ => _.isSourceInitialized.value).join('_')"
             @click="changeCellState"
             @wheel="onNoteWheel"
             @ctrl-wheel="onNoteWheel"
@@ -39,6 +41,7 @@
         v-if="sequencer.soundEngine.tracks.value[selectedTrackIndex]"
         :effects-chain="sequencer.soundEngine.tracks.value[selectedTrackIndex].middlewares"
         :track="sequencer.soundEngine.tracks.value[selectedTrackIndex]"
+        :key="subpanelRenderKey"
         @update:envelope="onEnvelopeUpdate"
 
         @update:chain="onUpdateEffects"
@@ -52,12 +55,13 @@
 <script setup lang="ts">
 import {computed, h} from 'vue'
 
-import {AVAILABLE_NOTES, Sequencer} from '~/lib/Sequencer'
+import {generateListOfAvailableNotes, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
 import DisplayGrid from '@/components/DisplayGrid/DisplayGrid.vue'
 import VerticalIndicator from '@/components/DisplayGrid/VerticalIndicator.vue'
 
 import type {ADSRType} from '~/lib/SoundEngine'
+import {SOURCE_TYPES} from "~/lib/SoundEngine";
 import {AVAILABLE_EFFECTS, GRID_COLS, GRID_ROWS} from "@/constants";
 import {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
@@ -71,7 +75,7 @@ import {Trash as DeleteIcon} from "@vicons/ionicons5";
 
 import {useDialog} from 'naive-ui'
 import {useGridEditorStore} from "@/stores/gridEditor";
-import RNBOSource from "~/lib/sources/RNBOSource";
+import LegacySource from "~/lib/sources/LegacySource";
 
 const dialog = useDialog()
 
@@ -101,6 +105,8 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
   event.stopPropagation()
 
   const newCell = new GridCell(cell)
+  const trackOfCell = sequencer.soundEngine.tracks.value[cell.row]
+  const AVAILABLE_NOTES = generateListOfAvailableNotes(trackOfCell)
 
   const noteIndex = AVAILABLE_NOTES.indexOf(newCell.notes[0])
 
@@ -174,7 +180,7 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
 
 const changeCellState = (row: number, column: number) => {
   const cell = sequencer.readCell(row, column)
-  const trackLength = sequencer.soundEngine.tracks.value[selectedTrackIndex.value].length
+  const trackLength = sequencer.soundEngine.tracks.value[selectedTrackIndex.value]?.length
   if (trackLength < column) {
     return
   }
@@ -193,14 +199,6 @@ const play = async () => {
   if (sequencer.isPlaying) {
     sequencer.stop()
     return
-  }
-
-  if (!sequencer.sequenceGrid.value.find(cell => cell.velocity > 0)) {
-    sequencer.regenerateSequence(5, ['C2', 'B2', 'E2', 'F2'])
-
-    sequencer.sequenceGrid.value.filter(cell => cell.row === 1 && cell.column % 4 === 1).forEach(cell => {
-      cell.velocity = 100;
-    })
   }
 
   await sequencer.play()
@@ -257,21 +255,46 @@ const onRemoveTrack = (trackIndex: number) => {
   })
 }
 
+const onRenameTrack = (trackIndex: number) => {
+  const track = sequencer.soundEngine.tracks.value[trackIndex]
+
+  track?.name && (track.name = prompt('New name', track.name) || track.name)
+}
+
 const onAddTrack = async () => {
   // TODO!!!!!!
   if (sequencer.soundEngine.tracks.value.length >= 8) {
     throw new Error('Maximum number of tracks reached')
   }
 
-  const abstractSourceSynth = new RNBOSource("sub")
+  const abstractSourceSynth = new LegacySource({
+    synth: {
+      oscillator: {
+        type: 'pulse',
+        width: 0.33
+      },
+      envelope: {
+        attack: 0.01,
+        decay: 0.1,
+        sustain: 0.5,
+        release: 0.5
+      }
+    }
+  })
 
   await abstractSourceSynth.init();
 
   sequencer.soundEngine.addTrack(new Track({
+    sourceType: SOURCE_TYPES.legacyMono,
     name: 'Tone #' + (sequencer.soundEngine.tracks.value.length + 1),
     source: abstractSourceSynth,
   }))
 }
+
+const subpanelRenderKey = computed(() => {
+  const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
+  return '' + selectedTrack.name + sequencer.isPlaying + selectedTrack.sourceType.value
+})
 </script>
 
 <style scoped lang="scss">

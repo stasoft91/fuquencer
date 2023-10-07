@@ -1,13 +1,12 @@
 import type {Ref, ShallowRef} from 'vue'
 import {ref, shallowRef, triggerRef} from 'vue'
 import * as Tone from 'tone/Tone'
-import {SoundEngine, TRACK_TYPES} from '~/lib/SoundEngine'
+import {SoundEngine, SOURCE_TYPES} from '~/lib/SoundEngine'
 import {Track} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 import {LFO, type LFOOptions} from "~/lib/LFO";
-import LegacySource from "~/lib/sources/LegacySource";
 import type {
   FlamParams,
   GridCellArpeggiator,
@@ -27,23 +26,31 @@ import {cloneDeep} from "lodash";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
-import RNBOSource from "~/lib/sources/RNBOSource";
 
 export const DEFAULT_NOTE = 'C4'
 
 export const SAMPLES = ['kick.wav', 'clap.wav', 'hat1.wav', 'hat2.wav']
 
-export function generateListOfAvailableNotes(): string[] {
+export function generateListOfAvailableNotes(track?: Track): string[] {
   const notes: string[] = []
   const octaves = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-
-  octaves.forEach((octave) => {
-    noteNames.forEach((noteName) => {
-      notes.push(`${noteName}${octave}`)
+  
+  if (track?.sourceType.value === SOURCE_TYPES.SMPLR_Drum) {
+    track.source.drumMap.size && track.source.drumMap.forEach((name, freq) => {
+      notes.push(
+        Tone.Frequency(freq, 'midi').toNote()
+      )
     })
-  })
-
+  } else {
+    octaves.forEach((octave) => {
+      noteNames.forEach((noteName) => {
+        notes.push(`${noteName}${octave}`)
+      })
+    })
+  }
+  
+  console.log('generateListOfAvailableNotes', notes)
   return notes
 }
 
@@ -57,8 +64,6 @@ export type PartEvent = {
   row: number
   arpeggiator?: GridCellArpeggiator
 }
-
-export const AVAILABLE_NOTES = generateListOfAvailableNotes()
 
 export class Sequencer {
   private static instance: Sequencer;
@@ -342,82 +347,84 @@ export class Sequencer {
    */
   public async initTracksDemoLegacy(): Promise<void> {
     this.soundEngine.clearTracks()
-
-    for (let i = 0; i < SAMPLES.length; i++) {
-      const abstractSourceSampler = new LegacySource({
-        sampler: {
-          volume: -6,
-          urls: {
-            [DEFAULT_NOTE]: SAMPLES[i]
-          },
-          release: 1,
-          baseUrl: '/samples/',
-        }
-      })
-
-      await abstractSourceSampler.init();
-
-      this.soundEngine.addTrack(
-        new Track({
-          name: SAMPLES[i],
-          source: abstractSourceSampler,
-          sourceType: TRACK_TYPES.sampler,
-        })
-      ).meta.set('urls', {
-        [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
-      })
-    }
-
-    const abstractSourceSynth = new RNBOSource(TRACK_TYPES.RNBO_Sub)
-
-    await abstractSourceSynth.init();
-
-    this.soundEngine.addTrack(new Track({
-      name: 'Bass',
-      source: abstractSourceSynth,
-      sourceType: TRACK_TYPES.RNBO_Sub,
-    }))
-
-    const abstractSourceSynth2 = new LegacySource({
-      synth: {
-        oscillator: {
-          type: 'pulse'
-        },
-        envelope: {
-          attack: 0.01,
-          decay: 0.42,
-          sustain: 0.01,
-          release: 0.25
-        },
-        filterEnvelope: {
-          attack: 0.001,
-          decay: 0.1,
-          sustain: 0.5,
-        },
-        volume: -6
-      }
-    })
-
-    await abstractSourceSynth2.init();
-
-    this.soundEngine.addTrack(new Track({
-      name: 'Bass 2',
-      source: abstractSourceSynth2,
-      sourceType: TRACK_TYPES.legacyMono,
-    }))
-
-    const abstractSourceSynth3 = new RNBOSource(TRACK_TYPES.RNBO_Synth)
-
-    await abstractSourceSynth3.init();
-
-    this.soundEngine.addTrack(new Track({
-      name: 'Arp 1',
-      source: abstractSourceSynth3,
-      sourceType: TRACK_TYPES.RNBO_Synth
-    }))
+    
+    // for (let i = 0; i < SAMPLES.length; i++) {
+    //   const abstractSourceSampler = new LegacySource({
+    //     sampler: {
+    //       volume: -6,
+    //       urls: {
+    //         [DEFAULT_NOTE]: SAMPLES[i]
+    //       },
+    //       release: 1,
+    //       baseUrl: '/samples/',
+    //     }
+    //   })
+    //
+    //   await abstractSourceSampler.init();
+    //
+    //   this.soundEngine.addTrack(
+    //     new Track({
+    //       name: SAMPLES[i],
+    //       source: abstractSourceSampler,
+    //       sourceType: TRACK_TYPES.sampler,
+    //     })
+    //   ).meta.set('urls', {
+    //     [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
+    //   })
+    // }
+    //
+    // const abstractSourceSynth = new RNBOSource(TRACK_TYPES.RNBO_Sub)
+    //
+    // await abstractSourceSynth.init();
+    //
+    // this.soundEngine.addTrack(new Track({
+    //   name: 'Bass',
+    //   source: abstractSourceSynth,
+    //   sourceType: TRACK_TYPES.RNBO_Sub,
+    // }))
+    //
+    // const abstractSourceSynth2 = new LegacySource({
+    //   synth: {
+    //     oscillator: {
+    //       type: 'pulse'
+    //     },
+    //     envelope: {
+    //       attack: 0.01,
+    //       decay: 0.42,
+    //       sustain: 0.01,
+    //       release: 0.25
+    //     },
+    //     filterEnvelope: {
+    //       attack: 0.001,
+    //       decay: 0.1,
+    //       sustain: 0.5,
+    //     },
+    //     volume: -6
+    //   }
+    // })
+    //
+    // await abstractSourceSynth2.init();
+    //
+    // this.soundEngine.addTrack(new Track({
+    //   name: 'Bass 2',
+    //   source: abstractSourceSynth2,
+    //   sourceType: TRACK_TYPES.legacyMono,
+    // }))
+    //
+    // const abstractSourceSynth3 = new RNBOSource(TRACK_TYPES.RNBO_Synth)
+    //
+    // await abstractSourceSynth3.init();
+    //
+    // this.soundEngine.addTrack(new Track({
+    //   name: 'Arp 1',
+    //   source: abstractSourceSynth3,
+    //   sourceType: TRACK_TYPES.RNBO_Synth
+    // }))
   }
   
   public stop() {
+    this._isPlaying.value = false;
+
     Tone.Transport.stop()
     this._mainLoop?.stop()
     
@@ -429,15 +436,12 @@ export class Sequencer {
     
     this.soundEngine.tracks.value.forEach((_, trackIndex) => {
       this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
-        this.indicatorMatrix.value[trackIndex][columnIndex] = false
+        this.toggleIndicator(trackIndex + 1, columnIndex + 1, false)
       })
-      
-      this.toggleIndicator(trackIndex + 1, 0, true)
     })
     
     this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
-    this._isPlaying.value = false;
   }
   
   public toggleIndicator(row: number, column: number, value: boolean): void {
@@ -523,15 +527,15 @@ export class Sequencer {
           }
           
           // Reset portamento
-          track.source.set({slide: 0}, 0)
+          track.setToSource({slide: 0})
           
           if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
             const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
             
             if (slideParams.slide) {
-              track.source.set({slide: slideParams.slide / 1000}, 0) //TODO are we really sure its /1000?
+              track.source.set({slide: slideParams.slide / 1000}) //TODO are we really sure its /1000?
             } else {
-              track.source.set({slide: 0}, 0)
+              track.source.set({slide: 0})
             }
           }
           
@@ -572,6 +576,20 @@ export class Sequencer {
             return
           }
           
+          if (partEvent.modifiers.has(GridCellModifierTypes.playbackRate)) {
+            const playbackRateParams = partEvent.modifiers.get(GridCellModifierTypes.playbackRate)
+            
+            track.setToSource({playbackRate: playbackRateParams!.playbackRate})
+          } else {
+            track.setToSource({playbackRate: 1})
+          }
+          
+          if (partEvent.modifiers.has(GridCellModifierTypes.reverse)) {
+            track.setToSource({reverse: true})
+          } else {
+            track.setToSource({reverse: false})
+          }
+          
           // ARP SECTION
           if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
             const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
@@ -599,9 +617,6 @@ export class Sequencer {
                 }
               }
               
-              track.source.releaseAll(time + arpMicroTime) ||
-              track.source.triggerRelease(undefined, time + arpMicroTime)
-              
               track.source.triggerAttackRelease(
                 partEvent.notes[patternNoteIndex.next().value],
                 gate,
@@ -614,8 +629,12 @@ export class Sequencer {
               console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has more than 1 note but no arpeggiator, playing only the first note`)
             }
             
-            track.source
-              .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
+            try {
+              track.source
+                .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
+            } catch (e) {
+              console.error(e)
+            }
           }
         }),
         [
@@ -665,20 +684,7 @@ export class Sequencer {
     this.soundEngine.tracks.value.forEach((track, trackIndex) => {
       if (!this.indicatorLoops[trackIndex]) {
         this.indicatorLoops.push(
-          new Tone.Loop((time) => {
-            Tone.Draw.schedule(() => {
-              const columnOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
-              
-              this.indicatorMatrix.value[trackIndex].forEach(() => {
-                this.indicatorMatrix.value[trackIndex][columnOfEnabledIndicator] = false
-              })
-              
-              let columnOfNextStep = columnOfEnabledIndicator + 1
-              columnOfNextStep >= track.length && (columnOfNextStep = 0)
-              
-              this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
-            }, time)
-          }, durationOf16n.toSeconds())
+          new Tone.Loop(this.indicatorDrawCallback(trackIndex, track.length), durationOf16n.toSeconds())
         )
       } else {
         this.indicatorLoops[trackIndex].set({
@@ -697,9 +703,17 @@ export class Sequencer {
   }
   
   private processDisplayIndicatorTick(trackIndex: number, trackLength: number): (time: number) => void {
-    return (time: number) => Tone.Draw.schedule(() => {
+    return (time: number) => Tone.Draw.schedule(this.indicatorDrawCallback(trackIndex, trackLength), time)
+  }
+  
+  private indicatorDrawCallback(trackIndex: number, trackLength: number): () => void {
+    return () => {
+      if (!this.isPlaying) {
+        return
+      }
+
       const columnOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
-      
+
       this.indicatorMatrix.value[trackIndex].forEach(() => {
         this.indicatorMatrix.value[trackIndex][columnOfEnabledIndicator] = false
       })
@@ -708,8 +722,9 @@ export class Sequencer {
       columnOfNextStep >= trackLength && (columnOfNextStep = 0)
       
       this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
-    }, time)
+    }
   }
+  
   
   public export(): string {
     const data = {

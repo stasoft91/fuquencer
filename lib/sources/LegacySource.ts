@@ -23,6 +23,8 @@ export default class LegacySource extends AbstractSource {
 
 	private _options!: AbstractSourceOptions;
 	
+	public AVAILABLE_SETTINGS: string[] = ['slide'];
+	
 	constructor(options: AbstractSourceOptions) {
 		super();
 		
@@ -80,12 +82,20 @@ export default class LegacySource extends AbstractSource {
 			rejectFunc = reject;
 		});
 		
+		const isString = (str: any) => {
+			return typeof str === 'string' || str instanceof String;
+		}
+		
+		const hasHttpInUrl = this._options.sampler?.urls &&
+			isString(this._options.sampler.urls[DEFAULT_NOTE]) &&
+			(this._options.sampler.urls[DEFAULT_NOTE] as string).includes('http')
+		
 		if (this._options.sampler) {
 			this._sampler = new Tone.Sampler({
 				volume: -6,
 				release: 1,
 				urls: this._options.sampler.urls,
-				baseUrl: '/samples/',
+				baseUrl: hasHttpInUrl ? '' : '/samples/',
 				onload: () => {
 					this._sampler!.connect(this._filter)
 					resolveFunc(true)

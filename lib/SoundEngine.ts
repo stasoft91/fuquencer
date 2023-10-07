@@ -11,14 +11,15 @@ export type ADSRType = {
   release: number
 }
 
-export enum TRACK_TYPES {
+export enum SOURCE_TYPES {
   'legacyMono' = 'legacyMono',
   'sampler' = 'sampler',
   'RNBO_Sub' = 'sub',
-  'RNBO_Drone' = 'drone',
   'RNBO_Synth' = 'synth',
   'RNBO_Acid' = 'acid',
-  'RNBO_Additive' = 'additive',
+  'SMPLR_Instrument' = 'smplr_instrument',
+  'SMPLR_Drum' = 'smplr_drum',
+  // 'TINYSYNTH' = 'tinysynth',
 }
 
 export class SoundEngine {

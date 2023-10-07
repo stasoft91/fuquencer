@@ -67,6 +67,10 @@ export class GridCell implements GridCellOptions {
 				return {type, skip: 1, timesTriggered: 0}
 			case GridCellModifierTypes.slide:
 				return {type, slide: 0}
+			case GridCellModifierTypes.reverse:
+				return {type}
+			case GridCellModifierTypes.playbackRate:
+				return {type, playbackRate: 1}
 		}
 	}
 }

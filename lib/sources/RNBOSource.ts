@@ -5,17 +5,24 @@ import type BaseSynth from "~/lib/rnbo/BaseSynth";
 import {getParameters, SynthFactory, type VoiceType} from "~/lib/rnbo/data";
 import {AbstractSource} from "~/lib/sources/AbstractSource";
 
+export type RNBOSourceOptions = {
+	voiceType: VoiceType
+}
+
 export default class RNBOSource extends AbstractSource {
     public parameters!: string[];
-    private _voice: BaseSynth;
-    private _voiceType: VoiceType
+	AVAILABLE_SETTINGS: string[] = ['slide'];
+	protected _voice: BaseSynth;
+	private _options!: RNBOSourceOptions;
 
     constructor(voiceType: VoiceType) {
         super()
         this._voice = SynthFactory.create(voiceType) as BaseSynth;
-        this._voiceType = voiceType;
-
-        this.parameters = getParameters(this._voiceType)
+	    this._options = {
+		    voiceType
+	    }
+	    
+	    this.parameters = getParameters(this._options.voiceType)
     }
 
     public async init(): Promise<void> {
@@ -26,12 +33,12 @@ export default class RNBOSource extends AbstractSource {
     public get(): Dictionary {
         return this._voice.state.value
     }
-
-    public set(options: Dictionary<string | number>, time: number): void {
+	
+	public set(options: Dictionary<string | number>, time?: number): void {
         this._voice.set({
             ...this._voice.state.value,
             ...options
-        }, time)
+        }, time ?? 0)
     }
 
     public disconnect(): this {
@@ -91,10 +98,8 @@ export default class RNBOSource extends AbstractSource {
         }, time as number)
         return this
     }
-
-    public export(): Dictionary {
-        return {
-            type: this._voiceType
-        };
+	
+	public export(): RNBOSourceOptions {
+		return this._options;
     }
 }

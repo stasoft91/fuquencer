@@ -53,6 +53,9 @@
       <div class="row">
         <label for="">Notes</label>
         <chord-editor :value="selectedCell?.notes ?? _internalState.cell.notes"
+                      :key="chordEditorReactiveKey"
+                      :is-drum="isDrumKit"
+                      :track="trackOfSelectedCell"
                       @update:value="onUpdateNotes"></chord-editor>
 
         <label for="">Duration</label>
@@ -75,7 +78,7 @@
 
         <label for="">Mods</label>
 
-        <div v-for="key in AVAILABLE_CELL_MODIFIERS" :key="key" class="row full-size">
+        <div v-for="key in availableCellModifiers" :key="key" class="row full-size">
           <label for="">
             <n-switch :value="cell.modifiers.has(key)" @update:value="setModifier(key)"/>
             {{ key.toLocaleUpperCase() }}
@@ -164,7 +167,7 @@
                   @change="onCellModifierUpdate(key, 'skip', $event)">
             </label>
 
-            <label v-if="key === GridCellModifierTypes.slide" for="">
+            <label v-if="isSlideAvailable(key)" for="">
               Portamento (ms)
               <input
                   v-if="key === GridCellModifierTypes.slide"
@@ -185,9 +188,9 @@
 
 <script lang="ts" setup>
 import {NCard, NSwitch} from "naive-ui";
-import {computed, onUpdated, reactive} from "vue";
+import {computed, type ComputedRef, onUpdated, reactive} from "vue";
 import {Sequencer} from "~/lib/Sequencer";
-import {AVAILABLE_ARPEGGIATOR_TYPES, AVAILABLE_CELL_MODIFIERS} from "@/constants";
+import {AVAILABLE_ARPEGGIATOR_TYPES, GLOBAL_CELL_MODIFIERS, OPTIONAL_CELL_MODIFIERS} from "@/constants";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import type {GridCellModifier} from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
@@ -197,6 +200,8 @@ import * as Tone from "tone/Tone";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import {cloneDeep} from "lodash";
 import EuclideanRhythmDisplay from "@/components/ui/EuclideanRhythmDisplay.vue";
+import {SOURCE_TYPES} from "~/lib/SoundEngine";
+import type {Track} from "~/lib/Track";
 
 const gridEditorStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()
@@ -222,7 +227,7 @@ const selectedCell = computed(() => {
   return gridEditorStore.selectedGridCell
 })
 
-const trackOfSelectedCell = computed(() => {
+const trackOfSelectedCell: ComputedRef<Track | undefined> = computed(() => {
   return sequencer.soundEngine.tracks.value[(selectedCell.value?.row ?? 0) - 1]
 })
 
@@ -233,6 +238,25 @@ const isArpeggio = computed(() => {
 const selectedCellDurationSec = computed(() => {
   return Tone.Time(_internalState.cell.duration).toSeconds()
 })
+
+const availableCellModifiers = computed(() => {
+  return GLOBAL_CELL_MODIFIERS.concat(OPTIONAL_CELL_MODIFIERS.filter(key => {
+    return trackOfSelectedCell.value?.source.AVAILABLE_SETTINGS.includes(key)
+  }))
+})
+
+const isDrumKit = computed(() => {
+  return trackOfSelectedCell.value?.sourceType.value === SOURCE_TYPES.SMPLR_Drum ?? false
+})
+
+const chordEditorReactiveKey = computed(() => {
+  return trackOfSelectedCell.value?.isSourceInitialized.value + '' ?? ''
+})
+
+const isSlideAvailable = (key: GridCellModifierTypes) => {
+  const isSlideAvailable = trackOfSelectedCell?.value?.source.AVAILABLE_SETTINGS.includes('slide')
+  return key === GridCellModifierTypes.slide && isSlideAvailable
+}
 
 function handleUpdateCell() {
   if (selectedCell.value === null) {
@@ -258,11 +282,11 @@ function handleClose() {
 }
 
 function getTitleForCard() {
-  if (selectedCell.value === null) {
+  if (selectedCell.value === null || !trackOfSelectedCell?.value) {
     return 'Step jobs'
   }
 
-  return `${trackOfSelectedCell.value.name}: [${selectedCell.value?.column}]`
+  return `${trackOfSelectedCell?.value.name}: [${selectedCell.value?.column}]`
 }
 
 function setModifier(key: GridCellModifierTypes) {
@@ -296,9 +320,9 @@ function onUpdateNotes(updatedNotes: string[]) {
       if (!_internalState.cell.arpeggiator) {
         _internalState.cell.arpeggiator = {
           gate: Tone.Time('16n').toSeconds() as Tone.Unit.Time,
-          type: 'downUp',
-          pulses: 4,
-          parts: 9,
+          type: "upDown",
+          pulses: 16,
+          parts: 32,
           shift: 0,
         }
       }
