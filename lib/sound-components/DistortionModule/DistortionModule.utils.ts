@@ -1,10 +1,8 @@
 /**
  * COPIED FROM Razz21/vue-synth
  * ORIGINAL: https://github.com/Razz21/vue-synth
- * THIS FILE IS UNDER MIT LICENSE ACCORDING TO ORIGINAL AUTHOR
+ * Original License: MIT
  */
-
-"use-strict";
 
 export function clamp(x: number, min: number, max: number) {
   return Math.min(Math.max(x, min), max);
