@@ -3,7 +3,7 @@
   "sequenceGrid": [
     {
       "notes": [
-        "C4"
+        "A4"
       ],
       "velocity": 100,
       "row": 1,
@@ -43,13 +43,22 @@
     },
     {
       "notes": [
-        "C4"
+        "D#5"
       ],
-      "velocity": 0,
+      "velocity": 100,
       "row": 1,
       "column": 5,
       "duration": 0.125,
-      "modifiers": []
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 5,
+            "timesTriggered": 2
+          }
+        ]
+      ]
     },
     {
       "notes": [
@@ -63,7 +72,7 @@
     },
     {
       "notes": [
-        "C4"
+        "A4"
       ],
       "velocity": 100,
       "row": 1,
@@ -83,13 +92,22 @@
     },
     {
       "notes": [
-        "C4"
+        "A4"
       ],
-      "velocity": 0,
+      "velocity": 100,
       "row": 1,
       "column": 9,
       "duration": 0.125,
-      "modifiers": []
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3,
+            "timesTriggered": 1
+          }
+        ]
+      ]
     },
     {
       "notes": [
@@ -105,7 +123,7 @@
       "notes": [
         "C4"
       ],
-      "velocity": 100,
+      "velocity": 0,
       "row": 1,
       "column": 11,
       "duration": 0.125,
@@ -123,9 +141,9 @@
     },
     {
       "notes": [
-        "C4"
+        "A4"
       ],
-      "velocity": 0,
+      "velocity": 100,
       "row": 1,
       "column": 13,
       "duration": 0.125,
@@ -135,7 +153,7 @@
       "notes": [
         "C4"
       ],
-      "velocity": 100,
+      "velocity": 0,
       "row": 1,
       "column": 14,
       "duration": 0.125,
@@ -143,23 +161,57 @@
     },
     {
       "notes": [
-        "C4"
+        "F4"
       ],
-      "velocity": 0,
+      "velocity": 10,
       "row": 1,
       "column": 15,
       "duration": 0.125,
-      "modifiers": []
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4,
+            "timesTriggered": 0
+          }
+        ],
+        [
+          "flam",
+          {
+            "type": "flam",
+            "roll": 4,
+            "velocity": 0.1,
+            "increaseVelocityFrom": 0
+          }
+        ]
+      ]
     },
     {
       "notes": [
-        "C4"
+        "B4"
       ],
-      "velocity": 0,
+      "velocity": 30,
       "row": 1,
       "column": 16,
       "duration": 0.125,
-      "modifiers": []
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 2,
+            "timesTriggered": 0
+          }
+        ]
+      ]
     },
     {
       "notes": [
@@ -294,7 +346,7 @@
           {
             "type": "skip",
             "skip": 4,
-            "timesTriggered": 0
+            "timesTriggered": 2
           }
         ]
       ]
@@ -333,7 +385,7 @@
           {
             "type": "skip",
             "skip": "4",
-            "timesTriggered": 3
+            "timesTriggered": 0
           }
         ]
       ]
@@ -400,7 +452,7 @@
           {
             "type": "skip",
             "skip": "6",
-            "timesTriggered": 1
+            "timesTriggered": 5
           }
         ]
       ]
@@ -697,7 +749,7 @@
     },
     {
       "notes": [
-        "C1"
+        "C3"
       ],
       "velocity": 60,
       "row": 5,
@@ -781,7 +833,7 @@
     },
     {
       "notes": [
-        "C1"
+        "C3"
       ],
       "velocity": 60,
       "row": 5,
@@ -888,7 +940,7 @@
     },
     {
       "notes": [
-        "B1"
+        "B3"
       ],
       "velocity": 60,
       "row": 5,
@@ -953,7 +1005,7 @@
     },
     {
       "notes": [
-        "C2"
+        "C3"
       ],
       "velocity": 100,
       "row": 6,
@@ -982,7 +1034,7 @@
     },
     {
       "notes": [
-        "B1"
+        "E3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1035,7 +1087,7 @@
     },
     {
       "notes": [
-        "B2"
+        "C4"
       ],
       "velocity": 100,
       "row": 6,
@@ -1045,7 +1097,7 @@
     },
     {
       "notes": [
-        "F2"
+        "F3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1064,7 +1116,7 @@
           {
             "type": "skip",
             "skip": 4,
-            "timesTriggered": 3
+            "timesTriggered": 1
           }
         ],
         [
@@ -1103,7 +1155,7 @@
     },
     {
       "notes": [
-        "C2"
+        "C3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1161,7 +1213,7 @@
     },
     {
       "notes": [
-        "F2"
+        "F3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1189,7 +1241,7 @@
     },
     {
       "notes": [
-        "B3"
+        "B4"
       ],
       "velocity": 100,
       "row": 6,
@@ -1201,14 +1253,14 @@
           {
             "type": "skip",
             "skip": 4,
-            "timesTriggered": 1
+            "timesTriggered": 3
           }
         ]
       ]
     },
     {
       "notes": [
-        "A2"
+        "A3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1220,14 +1272,14 @@
           {
             "type": "skip",
             "skip": 4,
-            "timesTriggered": 1
+            "timesTriggered": 2
           }
         ]
       ]
     },
     {
       "notes": [
-        "G#2"
+        "G#3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1237,7 +1289,7 @@
     },
     {
       "notes": [
-        "G2"
+        "G3"
       ],
       "velocity": 100,
       "row": 6,
@@ -1249,7 +1301,7 @@
           {
             "type": "skip",
             "skip": 3,
-            "timesTriggered": 0
+            "timesTriggered": 2
           }
         ]
       ]
@@ -1263,7 +1315,7 @@
         "F5",
         "E6"
       ],
-      "velocity": 20,
+      "velocity": 100,
       "row": 7,
       "column": 1,
       "duration": 2,
@@ -1604,59 +1656,27 @@
   ],
   "tracks": [
     {
-      "name": "kick.wav",
-      "sourceType": "sampler",
+      "name": "TR-808",
       "source": {
-        "sampler": {
-          "volume": -0.20951065931760424,
-          "urls": {
-            "C4": "kick.wav"
-          },
-          "release": 1,
-          "baseUrl": "/samples/",
-          "portamento": 0,
-          "envelope": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0,
-            "release": 1
-          },
-          "attack": 0
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.01,
-          "attackCurve": "linear",
-          "decay": 0.01,
-          "decayCurve": "exponential",
-          "release": 0.1,
-          "releaseCurve": "exponential",
-          "sustain": 0,
-          "baseFrequency": 20000,
-          "exponent": 1,
-          "octaves": 4
+        "instrument": "TR-808"
+      },
+      "middlewares": [
+        {
+          "name": "Distortion",
+          "options": {
+            "distortion": 0.715,
+            "oversample": "none",
+            "type": "GLOUBIBOULGA",
+            "wet": 1
+          }
         }
-      },
-      "middlewares": [],
-      "envelope": {
-        "attack": 0,
-        "decay": 0,
-        "sustain": 0,
-        "release": 1
-      },
+      ],
       "length": 16,
-      "loops": []
+      "loops": [],
+      "sourceType": "smplr_drum"
     },
     {
       "name": "clap.wav",
-      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -6,
@@ -1672,7 +1692,8 @@
             "release": 1
           },
           "attack": 0,
-          "portamento": 0
+          "portamento": 0,
+          "slide": 0
         },
         "filter": {
           "Q": 1,
@@ -1705,18 +1726,12 @@
           }
         }
       ],
-      "envelope": {
-        "attack": 0,
-        "decay": 0,
-        "sustain": 0,
-        "release": 1
-      },
       "length": 16,
-      "loops": []
+      "loops": [],
+      "sourceType": "sampler"
     },
     {
       "name": "hat1.wav",
-      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -19.04907011423125,
@@ -1732,7 +1747,8 @@
             "release": 1
           },
           "attack": 0,
-          "portamento": 0
+          "portamento": 0,
+          "slide": 0
         },
         "filter": {
           "Q": 1,
@@ -1756,18 +1772,12 @@
         }
       },
       "middlewares": [],
-      "envelope": {
-        "attack": 0,
-        "decay": 0,
-        "sustain": 0,
-        "release": 1
-      },
       "length": 6,
-      "loops": []
+      "loops": [],
+      "sourceType": "sampler"
     },
     {
       "name": "hat2.wav",
-      "sourceType": "sampler",
       "source": {
         "sampler": {
           "volume": -10.928558077299847,
@@ -1807,153 +1817,34 @@
         }
       },
       "middlewares": [],
-      "envelope": {
-        "attack": 0,
-        "decay": 0,
-        "sustain": 0,
-        "release": 1
-      },
       "length": 16,
-      "loops": []
+      "loops": [],
+      "sourceType": "sampler"
+    },
+    {
+      "name": "Banjo",
+      "source": {
+        "instrument": "banjo"
+      },
+      "middlewares": [],
+      "length": 16,
+      "loops": [],
+      "sourceType": "smplr_instrument"
     },
     {
       "name": "Bass",
-      "sourceType": "legacyMono",
       "source": {
-        "synth": {
-          "oscillator": {
-            "type": "pulse"
-          },
-          "envelope": {
-            "attack": 0.01,
-            "attackCurve": "linear",
-            "decay": 0.42,
-            "decayCurve": "exponential",
-            "release": 0.634,
-            "releaseCurve": "exponential",
-            "sustain": 0.271
-          },
-          "filterEnvelope": {
-            "attack": 0.001,
-            "decay": 0.1,
-            "sustain": 0.5
-          },
-          "volume": -11.718006927720415,
-          "portamento": 0,
-          "attack": 0.01,
-          "release": 0.25
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.01,
-          "attackCurve": "linear",
-          "decay": 0.48700000000000004,
-          "decayCurve": "exponential",
-          "release": 0.594,
-          "releaseCurve": "exponential",
-          "sustain": 1,
-          "baseFrequency": 20433.59717856944,
-          "exponent": 1,
-          "octaves": 4
-        }
+        "voiceType": "sub"
       },
-      "middlewares": [
-        {
-          "name": "AutoDuck",
-          "options": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0.42,
-            "release": 0.1,
-            "mute": false,
-            "volume": 0
-          }
-        }
-      ],
-      "envelope": {
-        "attack": 0.01,
-        "decay": 0.42,
-        "sustain": 0.271,
-        "release": 0.634
-      },
+      "middlewares": [],
       "length": 16,
-      "loops": []
+      "loops": [],
+      "sourceType": "sub"
     },
     {
-      "name": "Bass 2",
-      "sourceType": "sub",
-      "source": "sub",
-      "middlewares": [
-        {
-          "name": "AutoDuck",
-          "options": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0.42,
-            "release": 0.1,
-            "mute": false,
-            "volume": 0
-          }
-        }
-      ],
-      "envelope": {
-        "attack": 0.01,
-        "decay": 0.42,
-        "sustain": 0.01,
-        "release": 0.25
-      },
-      "length": 16,
-      "loops": []
-    },
-    {
-      "name": "Tone #7",
-      "sourceType": "legacyMono",
+      "name": "Violin",
       "source": {
-        "synth": {
-          "oscillator": {
-            "type": "pulse"
-          },
-          "envelope": {
-            "attack": 0.01,
-            "decay": 0.42,
-            "sustain": 0.01,
-            "release": 0.25
-          },
-          "filterEnvelope": {
-            "attack": 0.001,
-            "decay": 0.1,
-            "sustain": 0.5
-          },
-          "volume": -6,
-          "portamento": 0.071
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.01,
-          "attackCurve": "linear",
-          "decay": 0.01,
-          "decayCurve": "exponential",
-          "release": 0.1,
-          "releaseCurve": "exponential",
-          "sustain": 0,
-          "baseFrequency": 20000,
-          "exponent": 1,
-          "octaves": 4
-        }
+        "instrument": "viola"
       },
       "middlewares": [
         {
@@ -1972,27 +1863,11 @@
             "preDelay": 0.14800000000000002,
             "wet": 0.298
           }
-        },
-        {
-          "name": "AutoDuck",
-          "options": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0.42,
-            "release": 0.1,
-            "mute": false,
-            "volume": 0
-          }
         }
       ],
-      "envelope": {
-        "attack": 0.01,
-        "decay": 0.42,
-        "sustain": 0.01,
-        "release": 0.25
-      },
       "length": 16,
-      "loops": []
+      "loops": [],
+      "sourceType": "smplr_instrument"
     }
   ],
   "lfos": []

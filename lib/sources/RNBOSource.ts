@@ -35,10 +35,14 @@ export default class RNBOSource extends AbstractSource {
     }
 	
 	public set(options: Dictionary<string | number>, time?: number): void {
-        this._voice.set({
-            ...this._voice.state.value,
-            ...options
-        }, time ?? 0)
+      try {
+          this._voice.set({
+              ...this._voice.state.value,
+              ...options
+          }, time ?? 0)
+      } catch (e) {
+          console.error(e)
+      }
     }
 
     public disconnect(): this {

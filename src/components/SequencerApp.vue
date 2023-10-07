@@ -65,7 +65,6 @@ import {SOURCE_TYPES} from "~/lib/SoundEngine";
 import {AVAILABLE_EFFECTS, GRID_COLS, GRID_ROWS} from "@/constants";
 import {Track} from "~/lib/Track";
 import type {UniversalEffect} from "~/lib/Effects.types";
-import {jsonCopy} from "~/lib/utils/jsonCopy";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import MixerDisplay from "@/components/MixerDisplay.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
@@ -76,6 +75,7 @@ import {Trash as DeleteIcon} from "@vicons/ionicons5";
 import {useDialog} from 'naive-ui'
 import {useGridEditorStore} from "@/stores/gridEditor";
 import LegacySource from "~/lib/sources/LegacySource";
+import {cloneDeep} from "lodash";
 
 const dialog = useDialog()
 
@@ -229,7 +229,7 @@ const onUpdateEffects = (chain: string[]) => {
       return effect as UniversalEffect
     }
 
-    return jsonCopy(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
+    return cloneDeep(AVAILABLE_EFFECTS.find(_ => _.name === effectName) as UniversalEffect)
   }
 
   const effects: UniversalEffect[] = chain.map(newEffectByName)
