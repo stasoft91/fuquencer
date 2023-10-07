@@ -36,4 +36,6 @@ Huge thanksies:
 
 - [Tone.js](https://tonejs.github.io/): like, everything, haha
 - [vue-synth](https://github.com/Razz21/vue-synth): distortion effect
-- [RNBO](https://rnbo.cycling74.com/learn/welcome-to-rnbo): 3rd party synths
+- [RNBO](https://rnbo.cycling74.com/learn/welcome-to-rnbo), [ct-synth](https://github.com/cephasteom/ct-synths) : RNBO
+  synths
+- [smplr](https://github.com/danigb/smplr): soundfont player
