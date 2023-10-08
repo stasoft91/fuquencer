@@ -222,11 +222,6 @@ export class Track {
     }
 
     public setToSource(keyOrObject: string | Object, value?: any, time: number = 0): void {
-        if (time === 0) {
-            // TODO precise timing?? or we just use 0??
-            time = Tone.now() + 0.1;
-        }
-        
         const set = (keyOrObject: string, value: string, time?: number) => {
             if (this._source.AVAILABLE_SETTINGS.includes(keyOrObject as string)) {
                 this._source.set({[keyOrObject]: value}, time);
@@ -370,6 +365,13 @@ export class Track {
             });
 
             await this._source.init();
+	        
+	        const seq = Sequencer.getInstance();
+	        
+	        // architecure is a bit weird here, but we need to trigger the track ref to update the sequencer
+	        // TODO: maybe we should refactor everything to use SoundEngine to access tracks instead of
+	        // accessing the Tracks directly from the sequencer
+	        seq.soundEngine.triggerTracksUpdated()
             this.isSourceInitialized.value = true;
             this.reconnectMiddlewares();
         } catch (e) {

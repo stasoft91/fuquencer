@@ -14,23 +14,26 @@ yarn install
 
 ### Features
 
-- [x] Complex 16 step sequencer with conditional steps and probability
-- [x] Per-step midi effects like flam, slide(portamento) and swing
+- [x] 16 step sequencer with conditional steps and probability
+- [x] Per-step midi effects like flam, swing, velocity, etc
 - [x] Euclidean Arpeggiator
-- [x] Basic mono synth track
-- [x] Basic sampler track
-- [x] Melody auto generation for synth tracks
+- [x] Basic mono synth
+- [x] Basic sampler
+- [x] Basic Auto Improvisation
 - [x] Per-track Effects
-- [x] Additional per-track polyrhythmyc one-note loops
-- [x] Oneshot \ LFO automations for some of the properties of the instruments and ~~effects~~ (soon)
+- [x] Additional per-track polyrhythmyc one-note loops (why not)
 - [x] Keyboard Piano
 - [x] Save \ Load
 - [x] Basic Undo \ Redo
-- [ ] More instruments
+- [x] Copy \ Paste Cells
+- [X] Instruments \ DrumMachines Presets
+- [x] Track Mute \ Unmute with quantization (for live performance and stuff)
+- [ ] MORE instruments
 - [ ] More effects
+- [ ] Oneshot \ LFO automations for some of the properties of the instruments and ~~effects~~ (soon)
 - [ ] Chokes on sampler
 - [ ] Export .wav
-- [ ] MIDI in \ out
+- [ ] MIDI in \ out (maybe)
 
 Huge thanksies:
 

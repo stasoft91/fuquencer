@@ -100,7 +100,10 @@ export class SoundEngine {
   public stopFFTAnalyzer(): void {
     this.FFTUpdateLoop = this.noOp
     this.FFT.dispose()
-    this.FFT = new Tone.FFT(32);
+    this.FFT = new Tone.FFT({
+      smoothing: 0,
+      size: 64
+    });
   }
   
   private FFTUpdateLoop = () => {
@@ -114,5 +117,9 @@ export class SoundEngine {
       requestAnimationFrame(this.FFTUpdateLoop);
       this.FFTValues.value = this.FFT.getValue();
     }, 1000 / 20);
+  }
+  
+  public triggerTracksUpdated(): void {
+    triggerRef(this.tracks)
   }
 }

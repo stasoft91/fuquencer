@@ -40,11 +40,16 @@
 
       <div class="row full-size">
         <SimpleButton class="big" @click="onFillTrack()">Clear</SimpleButton>
-        <SimpleButton class="big" @click="onHumanizeTrack">Humanize</SimpleButton>
+        <SimpleButton class="big" @click="onHumanizeTrack">Volume Rnd</SimpleButton>
       </div>
 
-      <div v-if="selectedTrack?.type === SOURCE_TYPES.synth" class="">
+      <div class="row full-size">
         <SimpleButton class="big" @click="onGenerateBassline">Improvise</SimpleButton>
+      </div>
+
+      <div class="row full-size">
+        <SimpleButton class="big" @click="onOctDown">Oct -</SimpleButton>
+        <SimpleButton class="big" @click="onOctUp">Oct +</SimpleButton>
       </div>
 
       <div class="row full-size">
@@ -79,7 +84,6 @@
 
 <script lang="ts" setup>
 import {DEFAULT_NOTE, Sequencer} from "~/lib/Sequencer";
-import {SOURCE_TYPES} from "~/lib/SoundEngine";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import {computed, ref} from "vue";
@@ -137,6 +141,32 @@ const onGenerateBassline = () => {
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
   sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
+}
+
+const onOctUp = () => {
+  changeOct(12)
+}
+
+const onOctDown = () => {
+  changeOct(-12)
+}
+
+/**
+ *
+ * @param interval - number of semitones to transpose
+ */
+const changeOct = (interval: number): void => {
+  const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
+
+  const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
+
+  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+    const newCell = new GridCell({
+      ...cellPosition,
+      notes: cellPosition.notes.map(note => Tone.Frequency(note).transpose(interval).toNote()),
+    })
+    sequencer.writeCell(newCell)
+  })
 }
 
 const selectedSampleUrl = computed(() => {
@@ -198,7 +228,11 @@ const onHumanizeTrack = () => {
 }
 
 const onPartLengthChange = (event: Event) => {
-  const selectedTrack = sequencer.soundEngine.tracks.value[gridStore.selectedGridCell?.row ?? 1 - 1]
+  const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
+
+  if (!selectedTrack) {
+    return
+  }
 
   selectedTrack.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
 }

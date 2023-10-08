@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import SequencerApp from './components/SequencerApp.vue'
-import {NIcon, useDialog} from 'naive-ui'
+import {NIcon, useDialog, useLoadingBar} from 'naive-ui'
 import TrackJobs from "@/components/AvailableSides/TrackJobs.vue";
 import LFOJobs from "@/components/AvailableSides/LFOJobs.vue";
 import {
@@ -33,6 +33,8 @@ const gridStore = useGridEditorStore()
 
 const sequencer = Sequencer.getInstance() // the creation is supposed to be done only once - here
 
+const loadingBar = useLoadingBar()
+
 const isSettingsOpen = ref(false);
 
 const onShowOptions = () => {
@@ -46,13 +48,7 @@ const showInfo = (() => {
     closeOnEsc: false,
     async onClose() {
       await Tone.start()
-    },
-    async onAfterLeave() {
-      // TODO: this is a hack to make sure the instruments are loaded before playing, should be done better
-      if (sequencer.soundEngine.tracks.value.length === 0) {
-        await sequencer.initTracksDemoLegacy()
-      }
-    },
+    }
   })
 })
 
@@ -109,10 +105,24 @@ const handleImport = async () => {
       return;
     }
     const reader = new FileReader();
+
     reader.onload = async (event) => {
-      importData = event.target?.result as string;
-      await Sequencer.importFrom(importData);
-      input.remove();
+      loadingBar.start()
+      try {
+        importData = event.target?.result as string;
+        await Sequencer.importFrom(importData);
+        input.remove();
+      } catch (e) {
+        loadingBar.error()
+
+        console.error(e)
+        dialog.error({
+          title: 'Error',
+          content: 'Could not import file',
+        })
+      } finally {
+        loadingBar.finish()
+      }
     };
     reader.readAsText(file);
   };
@@ -121,8 +131,24 @@ const handleImport = async () => {
 }
 
 const handleDemo = async () => {
-  await fetch('./demo_1.json').then(res => res.text()).then(importData => Sequencer.importFrom(importData))
+  loadingBar.start()
+  await fetch('./demo_1.json')
+      .then(res => res.text())
+      .then(importData => Sequencer.importFrom(importData))
+      .then(() => {
+        loadingBar.finish()
+      }).catch(() => {
+        loadingBar.error()
+      })
 }
+
+/**
+ * Update StepJobs component when the selected cell changes
+ */
+const stepJobsReactiveKey = computed(() => {
+  const selectedCell = gridStore.selectedGridCell
+  return selectedCell?.id ?? Math.random().toString(36).substring(7)
+})
 
 </script>
 
@@ -171,7 +197,7 @@ const handleDemo = async () => {
     <aside>
       <TrackJobs v-if="!hasCellInEdit" :key="selectedCell?.id"></TrackJobs>
       <StepJobs v-if="selectedCell !== null && hasCellInEdit"
-                :key="selectedCell.id"
+                :key="stepJobsReactiveKey"
                 :cell="selectedCell"
       ></StepJobs>
     </aside>

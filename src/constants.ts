@@ -4,7 +4,7 @@ import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
 
-export const VERSION = '0.9.0'
+export const VERSION = '0.9.1'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;
@@ -252,7 +252,7 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 	] as EffectParametersDescriptor<'BitCrusher'>[],
 	
 	Chebyshev: [
-		{name: 'order', min: 1, max: 100},
+		{name: 'order', min: 1, max: 100, step: 1},
 		{name: 'oversample', enum: ['none', '2x', '4x']},
 		{name: 'wet'}
 	] as EffectParametersDescriptor<'Chebyshev'>[],

@@ -18,13 +18,16 @@
       >
         <span class="left-side">
           <span :class="getClassForPolyrhythmIndicator(gridCell)" class="button-indicator"></span>
+          <span :class="getClassForVolumeIndicator(gridCell)" class="volume-indicator-wrapper">
+            <span :style="getStyleForVolumeIndicator(gridCell)" class="volume-indicator"></span>
+          </span>
         </span>
 
         <span v-if="gridCell.velocity > 0" class="display-grid__cell__content">
           <span class="display-grid__cell__content__note">
             <span class="display-grid__cell__content__note__name">{{ getNoteText(gridCell) }}</span>
           </span>
-          <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>
+          <!--          <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>-->
           <span class="display-grid__cell__content__duration">{{ toMeasure(gridCell.duration) }}</span>
         </span>
 
@@ -236,7 +239,9 @@ button.inactive {
 
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 2px;
+
+  align-items: center;
 }
 
 .right-side {
@@ -245,7 +250,6 @@ button.inactive {
 }
 
 .fx-indicator {
-
   height: 0.5rem;
   color: lighten($color-green, 95%);
   background-color: darken($color-green, 5%);
@@ -267,6 +271,29 @@ button.inactive {
     color: $color-grey-700;
     display: none;
   }
+}
+
+.volume-indicator-wrapper {
+  height: 100%;
+  margin-bottom: 2px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.1rem;
+  width: 8px;
+  background-color: $color-grey-500;
+  align-items: center;
+  border-radius: 2px;
+
+  &.disabled {
+    display: none;
+  }
+}
+
+.volume-indicator {
+  width: 8px;
+  height: 100%;
+  background-color: $color-grey-500;
+  border-radius: 2px;
 }
 </style>
 
@@ -324,6 +351,16 @@ const dropdownOptions = [
     label: 'Skip',
     key: 'add-skip'
   },
+
+  {
+    label: 'Copy',
+    key: 'step-copy'
+  },
+  {
+    label: 'Paste',
+    key: 'step-paste'
+  },
+
   {
     label: 'Edit Step',
     key: 'edit-step'
@@ -412,6 +449,14 @@ const handleSelect = (key: string) => {
       slide: slide,
     })
     sequencer.writeCell(new GridCell({...cellOfContextMenu.value, modifiers}))
+  }
+
+  if (key === 'step-copy') {
+    gridEditor.setCopiedGridCell(cellOfContextMenu.value)
+  }
+
+  if (key === 'step-paste') {
+    gridEditor.pasteCopiedGridCellTo(cellOfContextMenu.value)
   }
 
   if (key === 'edit-step') {
@@ -686,6 +731,25 @@ const getClassForPolyrhythmIndicator = (gridCell: GridCell) => {
   return {
     active: isActive,
     disabled: gridCell.column > props.tracks[gridCell.row - 1]?.length
+  }
+}
+
+const getClassForVolumeIndicator = (gridCell: GridCell) => {
+  const track = sequencer.soundEngine.tracks.value[gridCell.row - 1]
+  if (!track) return {disabled: true}
+
+  return {
+    disabled: (
+        gridCell.column > props.tracks[gridCell.row - 1]?.length ||
+        gridCell.velocity === 0
+    )
+  }
+}
+
+const getStyleForVolumeIndicator = (gridCell: GridCell) => {
+  return {
+    height: `${gridCell.velocity}%`,
+    backgroundColor: `hsl(${(210 - gridCell.velocity / 1.1)}, 70%, 66%)`
   }
 }
 </script>
