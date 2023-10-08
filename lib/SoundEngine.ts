@@ -101,7 +101,7 @@ export class SoundEngine {
     this.FFTUpdateLoop = this.noOp
     this.FFT.dispose()
     this.FFT = new Tone.FFT({
-      smoothing: 0,
+      smoothing: 0.2,
       size: 64
     });
   }
