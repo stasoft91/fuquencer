@@ -424,9 +424,6 @@ export class Sequencer {
   
   public stop() {
     this._isPlaying.value = false;
-
-    Tone.Transport.stop()
-    this._mainLoop?.stop()
     
     this._parts.forEach((part) => part.cancel().stop().dispose())
     this._parts = []
@@ -442,6 +439,8 @@ export class Sequencer {
     
     this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
+    Tone.Transport.stop()
+    this._mainLoop?.stop()
   }
   
   public toggleIndicator(row: number, column: number, value: boolean): void {
@@ -711,15 +710,17 @@ export class Sequencer {
       if (!this.isPlaying) {
         return
       }
-
-      const columnOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
+      
+      const cellIndexOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
 
       this.indicatorMatrix.value[trackIndex].forEach(() => {
-        this.indicatorMatrix.value[trackIndex][columnOfEnabledIndicator] = false
+        this.indicatorMatrix.value[trackIndex][cellIndexOfEnabledIndicator] = false
       })
       
-      let columnOfNextStep = columnOfEnabledIndicator + 1
-      columnOfNextStep >= trackLength && (columnOfNextStep = 0)
+      let columnOfNextStep = cellIndexOfEnabledIndicator + 1
+      if (columnOfNextStep >= trackLength) {
+        columnOfNextStep = 0
+      }
       
       this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
     }
