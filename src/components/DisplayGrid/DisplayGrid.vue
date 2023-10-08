@@ -213,11 +213,8 @@ button.inactive {
 }
 
 .button-indicator {
-  //position: absolute;
-  //top: 2px;
-  //left: 2px;
   width: 0.5rem;
-  height: 0.5rem;
+  min-height: 0.5rem;
   border-radius: 2px;
   background-color: $color-grey-500;
 
@@ -278,8 +275,7 @@ button.inactive {
   margin-bottom: 2px;
   display: flex;
   flex-direction: column-reverse;
-  gap: 0.1rem;
-  width: 8px;
+  width: 0.5rem;
   background-color: $color-grey-500;
   align-items: center;
   border-radius: 2px;
