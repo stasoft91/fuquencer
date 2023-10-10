@@ -18,8 +18,8 @@ yarn install
 - [x] Per-step midi effects like flam, swing, velocity, etc
 - [x] Euclidean Arpeggiator
 - [x] Basic mono synth
-- [x] Basic sampler
-- [x] Basic Auto Improvisation
+- [x] Basic sample player
+- [x] Melody Generation \ Improvisation
 - [x] Per-track Effects
 - [x] Additional per-track polyrhythmyc one-note loops (why not)
 - [x] Keyboard Piano

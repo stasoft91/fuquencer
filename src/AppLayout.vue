@@ -22,6 +22,7 @@ import {useGridEditorStore} from "@/stores/gridEditor";
 
 import StepJobs from "@/components/AvailableSides/StepJobs.vue";
 import {GridCell} from "~/lib/GridCell";
+import ImproviseSettings from "@/components/AvailableSides/ImproviseSettings.vue";
 
 const dialog = useDialog()
 
@@ -36,6 +37,7 @@ const sequencer = Sequencer.getInstance() // the creation is supposed to be done
 const loadingBar = useLoadingBar()
 
 const isSettingsOpen = ref(false);
+const isImproviseSettingsOpen = ref(false);
 
 const onShowOptions = () => {
   isSettingsOpen.value = true
@@ -195,7 +197,11 @@ const stepJobsReactiveKey = computed(() => {
 
   <div class="grid">
     <aside>
-      <TrackJobs v-if="!hasCellInEdit" :key="selectedCell?.id"></TrackJobs>
+      <TrackJobs
+          v-if="!hasCellInEdit" :key="selectedCell?.id"
+          :is-open="isImproviseSettingsOpen"
+          @update:is-open="value => isImproviseSettingsOpen = value"
+      ></TrackJobs>
       <StepJobs v-if="selectedCell !== null && hasCellInEdit"
                 :key="stepJobsReactiveKey"
                 :cell="selectedCell"
@@ -208,6 +214,10 @@ const stepJobsReactiveKey = computed(() => {
 
     <aside>
       <LFOJobs v-if="sequencer.LFOs.value.length" :key="sequencer.LFOs.value.length"></LFOJobs>
+      <ImproviseSettings
+          v-if="isImproviseSettingsOpen"
+          @update:is-open="value => isImproviseSettingsOpen = value"
+      ></ImproviseSettings>
     </aside>
   </div>
 

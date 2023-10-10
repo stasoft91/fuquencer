@@ -198,6 +198,7 @@ export class LFO {
 	}
 	
 	private setLfo(): void {
+        // TODO: check if it is still necessary after implementing new voice types
 		// By default, the filter is overridden by the filter envelope,
 		// we need to disable that to control the filter frequency with our own LFO
 		// eslint-disable-next-line vue/no-mutating-props

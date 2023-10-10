@@ -29,6 +29,20 @@
               </option>
             </select>
           </div>
+          <div v-if="isPresetsAvailable" class="select-instrument">
+            <select
+                :value="props.track.selectedPreset"
+                class="select"
+                @change="props.track.setPreset($event.target?.value)"
+            >
+              <option v-for="(instrument) in props.track.getPresets()" :key="instrument"
+                      :value="instrument">{{
+                  instrument
+                }}
+              </option>
+            </select>
+          </div>
+
 
           <div v-if="isSampler" class="sampler-kit-builder">
             <SampleButton
@@ -369,6 +383,10 @@ const instrumentKits = computed(() => {
 
 const isInstrumentKitsAvailable = computed(() => {
   return props.track.sourceType.value === SOURCE_TYPES.SMPLR_Instrument || props.track.sourceType.value === SOURCE_TYPES.SMPLR_Drum
+})
+
+const isPresetsAvailable = computed(() => {
+  return props.track.getPresets().length > 0
 })
 
 const isSampler = computed(() => {

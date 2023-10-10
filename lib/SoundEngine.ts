@@ -19,6 +19,7 @@ export enum SOURCE_TYPES {
   'RNBO_Acid' = 'acid',
   'SMPLR_Instrument' = 'smplr_instrument',
   'SMPLR_Drum' = 'smplr_drum',
+  'PulseqMono' = 'PulseqMono'
   // 'TINYSYNTH' = 'tinysynth',
 }
 

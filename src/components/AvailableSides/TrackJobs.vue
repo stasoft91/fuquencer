@@ -13,6 +13,11 @@
 .full-size {
   width: 100%;
 }
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
 </style>
 
 <template>
@@ -44,7 +49,19 @@
       </div>
 
       <div class="row full-size">
-        <SimpleButton class="big" @click="onGenerateBassline">Improvise</SimpleButton>
+        <SimpleButton class="big" @click="onGenerateBassline">
+          <NIcon :component="Dice" size="24px"></NIcon>
+          Improvise
+        </SimpleButton>
+        <SimpleButton
+            :value="props.isOpen"
+            class="big"
+            style="--indicator-false-color: grey; --indicator-false-color-shadow: darkgrey;"
+            @click="emits('update:is-open', !props.isOpen)"
+        >
+          <NIcon :component="Sparkles" size="24px"></NIcon>
+          Improvise+
+        </SimpleButton>
       </div>
 
       <div class="row full-size">
@@ -67,17 +84,6 @@
         <SimpleButton class="big" @click="onSwingTrack(25)">Swing 25%</SimpleButton>
         <SimpleButton class="big" @click="onSwingTrack(50)">Swing 50%</SimpleButton>
       </div>
-
-      <!--      <div v-if="selectedTrack?.type === TrackTypes.sample" class="full-size">-->
-      <!--        <SampleEditorButton-->
-      <!--            :sampleUrl="selectedSampleUrl"-->
-      <!--            :track="selectedTrack"-->
-      <!--            color="rgba(26, 32, 44, 1)"-->
-      <!--            width="100%"-->
-      <!--        >-->
-      <!--          Change-->
-      <!--        </SampleEditorButton>-->
-      <!--      </div>-->
     </div>
   </n-card>
 </template>
@@ -88,16 +94,23 @@ import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {useSelectedTrackNumber} from "@/stores/trackParameters";
 import {computed, ref} from "vue";
 import * as Tone from "tone/Tone";
-import {NCard} from "naive-ui";
+import {NCard, NIcon} from "naive-ui";
 import {GridCell} from "~/lib/GridCell";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DELAY_OPTIONS} from "@/constants";
 import {toMeasure} from "~/lib/utils/toMeasure";
 import {useGridEditorStore} from "@/stores/gridEditor";
+import {DiceSharp as Dice, SparklesSharp as Sparkles} from "@vicons/ionicons5";
 
 const selectedTrackNumberStore = useSelectedTrackNumber()
 const gridStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()
+
+const emits = defineEmits(['update:is-open'])
+
+const props = defineProps({
+  isOpen: Boolean,
+})
 
 const swingSubdivision = ref('8n')
 
@@ -140,7 +153,7 @@ const onGenerateBassline = () => {
 
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   //['C2', 'B2', 'E2', 'F2'], ['D2', 'A2', 'C2', 'B2']
-  sequencer.regenerateSequence(trackIndex, ['C2', 'B2', 'E2', 'F2', 'B1'])
+  sequencer.regenerateSequence(trackIndex)
 }
 
 const onOctUp = () => {
@@ -168,16 +181,6 @@ const changeOct = (interval: number): void => {
     sequencer.writeCell(newCell)
   })
 }
-
-const selectedSampleUrl = computed(() => {
-  if (!selectedTrackNumberStore.selectedTrackIndex) {
-    return ''
-  }
-
-  const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
-
-  return selectedTrack.meta.get('urls')[DEFAULT_NOTE] || (selectedTrack.source.get() as Tone.SamplerOptions).urls[DEFAULT_NOTE]
-})
 
 const onShiftTrackLeft = () => {
   const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
@@ -258,4 +261,5 @@ const onSwingTrack = (swingPercentage: number) => {
     sequencer.writeCell(cell)
   })
 }
+
 </script>

@@ -303,11 +303,19 @@ export class Track {
         seq.updatePartDuration(trackNumber, length);
     }
     
+    public get selectedPreset(): string {
+        return this.source.selectedPreset.value
+    }
+
+    public set selectedPreset(newValue: string) {
+        this.source.selectedPreset.value = newValue
+    }
+
     public async setTrackType(type: SOURCE_TYPES, subtype?: string): Promise<void> {
         this.isSourceInitialized.value = false;
         this.sourceType.value = type;
         let source: TrackExportOptions['source'];
-        
+
         switch (type) {
             case SOURCE_TYPES.legacyMono:
                 source = {
@@ -339,25 +347,29 @@ export class Track {
                     }
                 }
                 break;
-            
+
             case SOURCE_TYPES.SMPLR_Instrument:
                 source = {
                     instrument: subtype ?? "acoustic_grand_piano"
                 } as SoundfontOptions
                 break;
-            
+
             case SOURCE_TYPES.SMPLR_Drum:
                 source = {
                     instrument: subtype ?? "TR-808"
                 } as SoundfontOptions
                 break;
-            
+
+            case SOURCE_TYPES.PulseqMono:
+                source = {}
+                break;
+
             default:
                 source = {voiceType: type as VoiceType} as RNBOSourceOptions
                 break;
-            
+
         }
-        
+
         try {
             this._source = createNewSource({
                 sourceType: type,
@@ -365,9 +377,10 @@ export class Track {
             });
 
             await this._source.init();
-	        
-	        const seq = Sequencer.getInstance();
-	        
+
+
+            const seq = Sequencer.getInstance();
+
 	        // architecure is a bit weird here, but we need to trigger the track ref to update the sequencer
 	        // TODO: maybe we should refactor everything to use SoundEngine to access tracks instead of
 	        // accessing the Tracks directly from the sequencer
@@ -377,5 +390,14 @@ export class Track {
         } catch (e) {
             console.error(e);
         }
+    }
+
+    public getPresets(): string[] {
+        return this.source.getPresets()
+    }
+
+    public async setPreset(preset: string): Promise<void> {
+        this.source.setPreset(preset)
+        this.selectedPreset = preset
     }
 }

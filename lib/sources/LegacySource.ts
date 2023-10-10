@@ -22,8 +22,10 @@ export default class LegacySource extends AbstractSource {
 	private readonly _filterEnvelope: Tone.FrequencyEnvelope;
 
 	private _options!: AbstractSourceOptions;
-	
-	public AVAILABLE_SETTINGS: string[] = ['slide'];
+
+	public get AVAILABLE_SETTINGS(): string[] {
+		return this.isSampler ? [] : ['slide'];
+	} ;
 	
 	constructor(options: AbstractSourceOptions) {
 		super();
@@ -174,6 +176,8 @@ export default class LegacySource extends AbstractSource {
 			
 			return this._sampler!.triggerAttackRelease(note, duration, time, velocity);
 		} else {
+			this._synth!.portamento = 0;
+			
 			this._filterEnvelope.triggerAttackRelease(duration, time, velocity)
 			
 			return this._synth!.triggerAttackRelease(note, duration, time, velocity);
@@ -216,6 +220,22 @@ export default class LegacySource extends AbstractSource {
 			return this._sampler!.triggerAttack(note, time, velocity);
 		} else {
 			return this._synth!.triggerAttack(note, time, velocity);
+		}
+	}
+
+	public slideTo(note: Tone.Unit.Frequency, velocity: number, time: Tone.Unit.Time, duration: Tone.Unit.Time): void {
+		if (this.isSampler) {
+			this._filterEnvelope.triggerAttackRelease(duration, time, velocity)
+
+			this._sampler!.triggerAttackRelease(note, duration, time, velocity);
+		} else {
+			const durationInSeconds = Tone.Time(duration).toSeconds()
+
+			this._filterEnvelope.triggerAttackRelease(durationInSeconds, time, velocity)
+
+			this._synth!.portamento = durationInSeconds
+
+			this._synth!.triggerAttackRelease(note, durationInSeconds, time, velocity);
 		}
 	}
 	

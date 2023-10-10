@@ -202,6 +202,7 @@ import {cloneDeep} from "lodash";
 import EuclideanRhythmDisplay from "@/components/ui/EuclideanRhythmDisplay.vue";
 import {SOURCE_TYPES} from "~/lib/SoundEngine";
 import type {Track} from "~/lib/Track";
+import {getDefaultValueForModifier} from "~/lib/utils/getDefaultValueForModifier";
 
 const gridEditorStore = useGridEditorStore()
 const sequencer = Sequencer.getInstance()
@@ -299,7 +300,7 @@ function setModifier(key: GridCellModifierTypes) {
   if (modifiers.has(key)) {
     modifiers.delete(key)
   } else {
-    modifiers.set(key, GridCell.getDefaultValueForModifier(key))
+    modifiers.set(key, getDefaultValueForModifier(key))
   }
 
   const newGridCell = new GridCell({

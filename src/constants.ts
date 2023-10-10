@@ -4,7 +4,7 @@ import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
 
-export const VERSION = '0.9.1'
+export const VERSION = '0.9.2'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;
@@ -360,4 +360,71 @@ export const EFFECTS_OPTIONS: Record<AvailableEffectNames | string, EffectParame
 		{name: 'sustain'},
 		{name: 'release'},
 	] as EffectParametersDescriptor<'AutoDuck'>[],
+}
+
+
+export const DEFAULT_PULSEQ_PARAMS: {
+    synthState: Record<string, any>
+} = {
+    synthState: {
+        "synth-amplifier-gain": 1,
+        "synth-amplifier-mod-input": "[none]",
+        "synth-amplifier-mod-value": 0,
+        "synth-envelope-attack": 0.2,
+        "synth-envelope-decay": 0.2,
+        "synth-envelope-release": 2,
+        "synth-envelope-sustain": 1,
+        "synth-envelope-type": "exponential",
+        "synth-filter-frequency": 1,
+        "synth-filter-mod-input": "[none]",
+        "synth-filter-mod-value": 0,
+        "synth-filter-quality": 0,
+        "synth-filter-type": "[none]",
+        "synth-fx-amount": 0.5,
+        "synth-fx-rate": 0.5,
+        "synth-fx-sync": false,
+        "synth-fx-type": "[none]",
+        "synth-fx-wet": 0.5,
+        "synth-glide": 1,
+        "synth-lfo1-frequency": 0,
+        "synth-lfo1-sync": false,
+        "synth-lfo1-type": "[none]",
+        "synth-lfo2-frequency": 0,
+        "synth-lfo2-type": "[none]",
+        "synth-mod-envelope-attack": 6,
+        "synth-mod-envelope-decay": 6,
+        "synth-mod-envelope-release": 6,
+        "synth-mod-envelope-sustain": 0,
+        "synth-mod-envelope-type": "[none]",
+        "synth-noise-level": 0,
+        "synth-noise-type": "[none]",
+        "synth-osc1-detune": 0,
+        "synth-osc1-level": 1,
+        "synth-osc1-mod-input": "[none]",
+        "synth-osc1-mod-value": 0,
+        "synth-osc1-octave": 0,
+        "synth-osc1-type": "triangle",
+        "synth-osc2-detune": 0,
+        "synth-osc2-level": 0,
+        "synth-osc2-mod-input": "[none]",
+        "synth-osc2-mod-value": 0,
+        "synth-osc2-octave": 0,
+        "synth-osc2-type": "[none]",
+        "synth-osc3-detune": 0,
+        "synth-osc3-level": 0,
+        "synth-osc3-octave": 0,
+        "synth-osc3-type": "[none]",
+        "synth-pan": 0,
+    }
+};
+
+export const IMPROVISATOR_DEFAULTS = {
+    notesInKey: ['C2', 'B2', 'E2', 'F2', 'B1'],
+    probabilityModProbability: 0.25,
+    skipModProbability: 0.35,
+    flamModeProbability: 0.15,
+    slideModProbability: 0.25,
+    columnMutationMod: 3,
+    columnMutationProbability: 0.25,
+    columnMuteProbability: 0.35,
 }

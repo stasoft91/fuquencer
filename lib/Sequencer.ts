@@ -26,6 +26,7 @@ import {cloneDeep} from "lodash";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
+import LegacySource from "~/lib/sources/LegacySource";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -63,6 +64,17 @@ export type PartEvent = {
   column: number
   row: number
   arpeggiator?: GridCellArpeggiator
+}
+
+export type ImproviseOptions = {
+  notesInKey: string[],
+  probabilityModProbability?: number,
+  skipModProbability?: number,
+  flamModeProbability?: number,
+  slideModProbability?: number,
+  columnMutationMod?: number,
+  columnMutationProbability?: number,
+  columnMuteProbability?: number,
 }
 
 export class Sequencer {
@@ -248,35 +260,52 @@ export class Sequencer {
     this._bpm.value = value
     Tone.Transport.bpm.value = value
   }
-  
-  public regenerateSequence(trackNumber: number, notesInKey: string[]): void {
+
+  public regenerateSequence(trackNumber: number): void {
+    const {
+      notesInKey,
+      probabilityModProbability,
+      skipModProbability,
+      flamModeProbability,
+      slideModProbability,
+      columnMutationMod,
+      columnMutationProbability,
+      columnMuteProbability
+      // we are sure they will be present in store
+    }: Required<ImproviseOptions> = useGridEditorStore().improviseOptions as unknown as Required<ImproviseOptions>
+    
     this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
       cell.velocity = cell.column % 2 === 1 ? 100 : 0;
-      
-      Math.random() > 0.75 ?
+
+      Math.random() > (1 - probabilityModProbability) ?
         cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 50}) :
         cell.modifiers.delete(GridCellModifierTypes.probability)
-      
-      Math.random() > 0.65 ?
+
+      Math.random() > (1 - skipModProbability) ?
         cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
         cell.modifiers.delete(GridCellModifierTypes.skip)
-      
-      Math.random() > 0.85 ?
+
+      Math.random() > (1 - flamModeProbability) ?
         cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
         cell.modifiers.delete(GridCellModifierTypes.flam)
-      
-      Math.random() > 0.75 ?
-        cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 120}) :
+
+      Math.random() > (1 - slideModProbability) ?
+          cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 20}) :
         cell.modifiers.delete(GridCellModifierTypes.slide)
-      
-      if (cell.column % 3 === 0 && Math.random() > 0.75) {
+
+      let columnMutationModFinal = columnMutationMod;
+      if (!columnMutationModFinal) {
+        columnMutationModFinal = Math.random() > 0.5 ? 2 : 3
+      }
+
+      if (cell.column % columnMutationModFinal === 0 && Math.random() > (1 - columnMutationProbability)) {
         cell.velocity = 100;
         this.writeCell(cell)
         
         return
       }
-      
-      if (cell.velocity === 100 && Math.random() > 0.65) {
+
+      if (cell.velocity === 100 && Math.random() > (1 - columnMuteProbability)) {
         cell.velocity = 0;
         this.writeCell(cell)
         
@@ -347,30 +376,36 @@ export class Sequencer {
    */
   public async initTracksDemoLegacy(): Promise<void> {
     this.soundEngine.clearTracks()
+
+    const urls = {
+      'C4': 'samples/kick.wav',
+      'C#4': 'samples/clap.wav',
+      'D4': 'samples/hat1.wav',
+      'D#4': 'samples/hat2.wav',
+      'E4': 'samples/kick2.wav',
+    }
+
+    const abstractSourceSampler = new LegacySource({
+      sampler: {
+        volume: -6,
+        urls,
+        release: 1,
+        baseUrl: '/',
+      }
+    })
+
+    await abstractSourceSampler.init();
+
+    this.soundEngine.addTrack(
+        new Track({
+          name: 'Sampler',
+          source: abstractSourceSampler,
+          sourceType: SOURCE_TYPES.sampler,
+        })
+    ).meta.set('urls', urls)
     
     // for (let i = 0; i < SAMPLES.length; i++) {
-    //   const abstractSourceSampler = new LegacySource({
-    //     sampler: {
-    //       volume: -6,
-    //       urls: {
-    //         [DEFAULT_NOTE]: SAMPLES[i]
-    //       },
-    //       release: 1,
-    //       baseUrl: '/samples/',
-    //     }
-    //   })
     //
-    //   await abstractSourceSampler.init();
-    //
-    //   this.soundEngine.addTrack(
-    //     new Track({
-    //       name: SAMPLES[i],
-    //       source: abstractSourceSampler,
-    //       sourceType: TRACK_TYPES.sampler,
-    //     })
-    //   ).meta.set('urls', {
-    //     [DEFAULT_NOTE]: 'samples/' + SAMPLES[i]
-    //   })
     // }
     //
     // const abstractSourceSynth = new RNBOSource(TRACK_TYPES.RNBO_Sub)
@@ -525,19 +560,6 @@ export class Sequencer {
             time = Tone.Time(time).quantize(swingParams.subdivision, swingParams.swing / 100)
           }
           
-          // Reset portamento
-          track.setToSource({slide: 0})
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
-            const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
-            
-            if (slideParams.slide) {
-              track.source.set({slide: slideParams.slide / 1000}) //TODO are we really sure its /1000?
-            } else {
-              track.source.set({slide: 0})
-            }
-          }
-          
           const flamParams = partEvent.modifiers.get(GridCellModifierTypes.flam) as FlamParams | undefined
           
           if (partEvent.modifiers.has(GridCellModifierTypes.flam) && flamParams && flamParams.roll > 1) {
@@ -629,6 +651,15 @@ export class Sequencer {
             }
             
             try {
+              if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
+                const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
+                // Only if it's a slde and it's an instrument that supports slide
+                if (slideParams.slide && track.source.AVAILABLE_SETTINGS.includes('slide')) {
+                  track.source.slideTo(partEvent.notes[0], partEvent.velocity, time, slideParams.slide / 100)
+                  return;
+                }
+              }
+              
               track.source
                 .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
             } catch (e) {

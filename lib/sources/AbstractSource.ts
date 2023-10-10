@@ -1,10 +1,14 @@
 import * as Tone from 'tone/Tone';
 import type {Dictionary} from "~/lib/typescript.types";
+import type {Ref} from "vue";
+import {ref} from "vue";
 
 export abstract class AbstractSource {
 	protected _isInitialized: boolean = false;
 	public abstract AVAILABLE_SETTINGS: string[]
 	public drumMap: Map<Tone.Unit.Frequency, string> = new Map()
+	public selectedPreset: Ref<string> = ref('')
+
 	protected _voice: any;
 
 	constructor() {
@@ -34,5 +38,18 @@ export abstract class AbstractSource {
 	
 	public convertNoteToDrum(note: Tone.Unit.Frequency): any {
 		return Tone.Frequency(note, 'midi').toNote()
+	}
+
+	public slideTo(note: Tone.Unit.Frequency, volumeMod: number, time: Tone.Unit.Time, duration: Tone.Unit.Time): void {
+		console.warn('glideTo not implemented for this source, triggering as usual', note, volumeMod, time, duration);
+		this.triggerAttackRelease(note, duration, time, volumeMod);
+	}
+
+	public getPresets(): string[] {
+		return []
+	}
+
+	public setPreset(preset: string): void {
+		console.warn('setPreset not implemented for this source', preset);
 	}
 }

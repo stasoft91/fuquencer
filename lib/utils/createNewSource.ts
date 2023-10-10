@@ -7,8 +7,16 @@ import {TinySource} from "~/lib/sources/TinySource";
 import type {DrumMachineOptions} from "~/modules/tonejs-smplr/src";
 import {type SoundfontOptions} from "~/modules/tonejs-smplr/src";
 import {SmplrDrumSource} from "~/lib/sources/SmplrDrumSource";
+import {PulseqMonoSource} from "~/lib/sources/PulseqMonoSource";
 
-export type SourceType = LegacySource | RNBOSource | SmplrSource | SmplrDrumSource | TinySource;
+export type SourceType =
+    LegacySource |
+    RNBOSource |
+    SmplrSource |
+    SmplrDrumSource |
+    TinySource |
+    PulseqMonoSource;
+
 export type SourceOptions = Pick<TrackExportOptions, 'sourceType' | 'source'>
 
 export function createNewSource(sourceOptions: Pick<TrackExportOptions, 'sourceType' | 'source'>): SourceType {
@@ -33,6 +41,11 @@ export function createNewSource(sourceOptions: Pick<TrackExportOptions, 'sourceT
 		case SOURCE_TYPES.SMPLR_Drum:
 			source = new SmplrDrumSource(sourceOptions.source as DrumMachineOptions)
 			break;
+
+
+        case SOURCE_TYPES.PulseqMono:
+            source = new PulseqMonoSource(sourceOptions.source as PulseqMonoSource)
+            break;
 
 		default:
 			throw new Error(`Unknown source type ${sourceOptions.sourceType}`);

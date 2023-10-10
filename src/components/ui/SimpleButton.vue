@@ -52,8 +52,8 @@
   position: absolute;
   top: 2px;
   right: 2px;
-  background-color: $color-green;
-  box-shadow: 0 0 2px 2px $color-green-lighter100;
+  background-color: var(--indicator-true-color, $color-green);
+  box-shadow: 0 0 2px 2px var(--indicator-true-color-shadow, $color-green-lighter100);
 
   width: 0.5rem;
   height: 0.5rem;
@@ -61,9 +61,8 @@
 }
 
 .indicator.disabled {
-  background-color: $color-red;
-  box-shadow: inset 0 0 1px 1px $color-red-lighter100;
-
+  background-color: var(--indicator-false-color, $color-red);
+  box-shadow: inset 0 0 1px 1px var(--indicator-false-color-shadow, $color-red-lighter100);
 }
 </style>
 
