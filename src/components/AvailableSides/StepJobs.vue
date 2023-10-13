@@ -335,6 +335,11 @@ function onUpdateNotes(updatedNotes: string[]) {
   if (selectedCell.value) {
     _internalState.cell.notes = updatedNotes
 
+    if (updatedNotes.length === 1) {
+      _internalState.cell.mode = undefined
+      _internalState.cell.arpeggiator = undefined
+    }
+
     handleUpdateCell()
   }
 }
