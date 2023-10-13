@@ -4,7 +4,7 @@ import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
 
-export const VERSION = '0.9.2'
+export const VERSION = '0.9.3'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;

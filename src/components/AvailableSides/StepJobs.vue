@@ -2,7 +2,7 @@
   <n-card :title="getTitleForCard()" class="step-jobs-wrapper" closable @close="handleClose">
     <div class="row">
 
-      <div v-if="isArpeggio && _internalState.cell.arpeggiator" class="row">
+      <div v-if="hasMultipleNotes && _internalState.cell.arpeggiator" class="row">
         <div class="row">
           <euclidean-rhythm-display
               :parts="_internalState.cell.arpeggiator.parts"
@@ -10,34 +10,36 @@
               :shift="_internalState.cell.arpeggiator.shift"
           ></euclidean-rhythm-display>
 
-          <label for="">Arpeggiator type</label>
-          <select
-              id="arpeggiator-type"
-              v-model="_internalState.cell.arpeggiator.type"
-              class="full-size big"
-              @change="handleUpdateCell"
-          >
-            <option v-for="arpType in AVAILABLE_ARPEGGIATOR_TYPES" :key="arpType" :value="arpType">
-              {{ arpType }}
-            </option>
-          </select>
+          <label for="">Arpeggiator type
+            <select
+                id="arpeggiator-type"
+                v-model="_internalState.cell.arpeggiator.type"
+                class="full-size big"
+                @change="handleUpdateCell"
+            >
+              <option v-for="arpType in AVAILABLE_ARPEGGIATOR_TYPES" :key="arpType" :value="arpType">
+                {{ arpType }}
+              </option>
+            </select>
+          </label>
 
-          <label for="">Pulses</label>
+          <label for="">Pulses
           <input v-model="_internalState.cell.arpeggiator.pulses" class="full-size big" type="number"
                  @change="handleUpdateCell"
           >
+          </label>
 
-          <label for="">Parts</label>
+          <label for="">Parts
           <input v-model="_internalState.cell.arpeggiator.parts" class="full-size big" type="number"
                  @change="handleUpdateCell"
-          >
+          ></label>
 
-          <label for="">Shift</label>
+          <label for="">Shift
           <input v-model="_internalState.cell.arpeggiator.shift" class="full-size big" type="number"
                  @change="handleUpdateCell"
-          >
+          ></label>
 
-          <label for="">Gate</label>
+          <label for="">Gate
           <select
               id="gate"
               :value="Tone.Time(_internalState.cell.arpeggiator.gate).toSeconds()"
@@ -46,8 +48,23 @@
             <option v-for="measure in ['1m', '2n', '4n', '8n', '16n', '16n.', '32n', '32n.', '64n']" :key="measure"
                     :value="Tone.Time(measure).toSeconds()">{{ toMeasure(measure) }}
             </option>
-          </select>
+          </select></label>
         </div>
+      </div>
+
+      <div v-if="hasMultipleNotes" class="row full-size">
+        <label for="">Note mode
+          <select
+              id="mode"
+              :value="_internalState.cell.mode"
+              class="full-size big capitalize"
+              @change="onUpdateMode">
+            <option :selected="_internalState.cell.mode===undefined" value="">first</option>
+            <option v-for="mode in Object.keys(GridCellNoteModeEnum)" :key="mode"
+                    :value="mode">{{ mode }}
+            </option>
+          </select>
+        </label>
       </div>
 
       <div class="row">
@@ -58,7 +75,7 @@
                       :track="trackOfSelectedCell"
                       @update:value="onUpdateNotes"></chord-editor>
 
-        <label for="">Duration</label>
+        <label for="">Duration
         <select id="gate"
                 :value="Tone.Time(_internalState.cell.duration).toSeconds()"
                 class="full-size big"
@@ -72,9 +89,11 @@
           </option>
           <option :value="selectedCellDurationSec">{{ toMeasure(selectedCellDurationSec) }}</option>
         </select>
+        </label>
 
-        <label for="">Velocity</label>
+        <label for="">Velocity
         <input :value="cell.velocity" class="full-size big" type="number" @change="onVelocityChange">
+        </label>
 
         <label for="">Mods</label>
 
@@ -194,7 +213,7 @@ import {AVAILABLE_ARPEGGIATOR_TYPES, GLOBAL_CELL_MODIFIERS, OPTIONAL_CELL_MODIFI
 import {useGridEditorStore} from "@/stores/gridEditor";
 import type {GridCellModifier} from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
-import {GridCell} from "~/lib/GridCell";
+import {GridCell, GridCellNoteModeEnum} from "~/lib/GridCell";
 import ChordEditor from "@/components/ui/ChordEditor.vue";
 import * as Tone from "tone/Tone";
 import {toMeasure} from "~/lib/utils/toMeasure";
@@ -232,7 +251,7 @@ const trackOfSelectedCell: ComputedRef<Track | undefined> = computed(() => {
   return sequencer.soundEngine.tracks.value[(selectedCell.value?.row ?? 0) - 1]
 })
 
-const isArpeggio = computed(() => {
+const hasMultipleNotes = computed(() => {
   return (selectedCell.value?.notes.length || 0) > 1
 })
 
@@ -313,12 +332,19 @@ function setModifier(key: GridCellModifierTypes) {
 }
 
 function onUpdateNotes(updatedNotes: string[]) {
-  console.log('updatedNotes', updatedNotes)
-
   if (selectedCell.value) {
     _internalState.cell.notes = updatedNotes
-    if (updatedNotes.length > 1) {
-      if (!_internalState.cell.arpeggiator) {
+
+    handleUpdateCell()
+  }
+}
+
+function onUpdateMode(mode: Event) {
+  if (selectedCell.value) {
+    _internalState.cell.mode = (mode.target as HTMLInputElement).value as GridCellNoteModeEnum
+
+    switch (_internalState.cell.mode) {
+      case GridCellNoteModeEnum.arpeggio:
         _internalState.cell.arpeggiator = {
           gate: Tone.Time('16n').toSeconds() as Tone.Unit.Time,
           type: "upDown",
@@ -326,9 +352,15 @@ function onUpdateNotes(updatedNotes: string[]) {
           parts: 32,
           shift: 0,
         }
-      }
-    } else {
-      _internalState.cell.arpeggiator = undefined
+        break;
+      case GridCellNoteModeEnum.chord:
+        _internalState.cell.arpeggiator = undefined
+        break;
+      case GridCellNoteModeEnum.random:
+        _internalState.cell.arpeggiator = undefined
+        break;
+      default:
+        _internalState.cell.arpeggiator = undefined
     }
 
     handleUpdateCell()
@@ -427,5 +459,9 @@ button.close {
 
 label {
   width: 100%;
+}
+
+.capitalize {
+  text-transform: capitalize;
 }
 </style>

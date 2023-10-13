@@ -1,5 +1,6 @@
 import type {PatternName} from "~/lib/PatternGenerator";
 import * as Tone from "tone/Tone";
+import type {GridCellNoteModeEnum} from "~/lib/GridCell";
 
 export interface GridCellArpeggiator {
 	pulses: number,
@@ -18,6 +19,7 @@ export interface GridCellOptions {
 	duration: Tone.Unit.Time
 	modifiers: Map<GridCellModifierTypes, GridCellModifier>
 	arpeggiator?: GridCellArpeggiator
+	mode?: GridCellNoteModeEnum
 }
 
 export enum GridCellModifierTypes {

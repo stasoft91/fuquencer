@@ -17,7 +17,7 @@ import type {
   SwingParams
 } from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
-import {GridCell} from "~/lib/GridCell";
+import {GridCell, GridCellNoteModeEnum} from "~/lib/GridCell";
 import {createEuclideanRhythmVector} from "~/lib/utils/createEuclideanRhythmVector";
 import {PatternGenerator} from "~/lib/PatternGenerator";
 import {useGridEditorStore} from "@/stores/gridEditor";
@@ -64,6 +64,7 @@ export type PartEvent = {
   column: number
   row: number
   arpeggiator?: GridCellArpeggiator
+  mode?: GridCellNoteModeEnum
 }
 
 export type ImproviseOptions = {
@@ -220,7 +221,8 @@ export class Sequencer {
         modifiers: newCell.modifiers,
         column: newCell.column,
         row: newCell.row,
-        arpeggiator: newCell.arpeggiator
+        arpeggiator: newCell.arpeggiator,
+        mode: newCell.mode
       } as PartEvent)
     }
     
@@ -229,16 +231,10 @@ export class Sequencer {
       
       originalCell && this.historyManager.push(
         new GridCell({
-          ...originalCell,
-          modifiers: (originalCell.modifiers),
-          notes: (originalCell.notes),
-          arpeggiator: (originalCell.arpeggiator)
+          ...originalCell
         }),
         new GridCell({
-          ...newCell,
-          modifiers: newCell.modifiers,
-          notes: newCell.notes,
-          arpeggiator: newCell.arpeggiator
+          ...newCell
         })
       )
     }
@@ -612,7 +608,7 @@ export class Sequencer {
           }
           
           // ARP SECTION
-          if (partEvent.notes.length > 1 && partEvent.arpeggiator) {
+          if (partEvent.notes.length > 1 && partEvent.arpeggiator && partEvent.mode === GridCellNoteModeEnum.arpeggio) {
             const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
             
             const shiftedEuclideanRhythmVector = createEuclideanRhythmVector(pulses, parts, shift)
@@ -646,12 +642,12 @@ export class Sequencer {
               )
             })
           } else {
-            if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
-              console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has more than 1 note but no arpeggiator, playing only the first note`)
-            }
-            
             try {
               if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
+                if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
+                  console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has multiple notes, slide, and no arpeggiator, playing only the first note`)
+                }
+                
                 const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
                 // Only if it's a slde and it's an instrument that supports slide
                 if (slideParams.slide && track.source.AVAILABLE_SETTINGS.includes('slide')) {
@@ -660,8 +656,33 @@ export class Sequencer {
                 }
               }
               
-              track.source
-                .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
+              switch (partEvent.mode) {
+                case GridCellNoteModeEnum.random:
+                  track.source.triggerAttackRelease(
+                    partEvent.notes[Math.floor(Math.random() * partEvent.notes.length)],
+                    partEvent.duration,
+                    time,
+                    partEvent.velocity
+                  )
+                  break;
+                
+                case GridCellNoteModeEnum.arpeggio: // it's handled above, ignoring
+                case GridCellNoteModeEnum.chord:
+                  partEvent.notes.forEach((note) => {
+                    track.source.triggerAttackRelease(
+                      note,
+                      partEvent.duration,
+                      time,
+                      partEvent.velocity
+                    )
+                  })
+                  break;
+                
+                default:
+                  track.source
+                    .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
+              }
+              
             } catch (e) {
               console.error(e)
             }
@@ -679,7 +700,8 @@ export class Sequencer {
               modifiers: _.modifiers,
               column: _.column,
               row: _.row,
-              arpeggiator: _.arpeggiator
+              arpeggiator: _.arpeggiator,
+              mode: _.mode
             } as PartEvent
           })
         ]

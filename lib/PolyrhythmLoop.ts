@@ -122,7 +122,7 @@ export class PolyrhythmLoop {
 		}
 		
 		this._track.source.releaseAll(time)
-		this._track.source.triggerAttackRelease(this.note, this.duration, time)
+		this._track.source.triggerAttackRelease(this.note, this.duration, time, 1)
 	}
 	
 	public export(): LoopExportOptions {

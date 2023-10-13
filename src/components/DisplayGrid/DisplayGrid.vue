@@ -27,7 +27,6 @@
           <span class="display-grid__cell__content__note">
             <span class="display-grid__cell__content__note__name">{{ getNoteText(gridCell) }}</span>
           </span>
-          <!--          <span class="display-grid__cell__content__velocity">{{ gridCell.velocity }}</span>-->
           <span class="display-grid__cell__content__duration">{{ toMeasure(gridCell.duration) }}</span>
         </span>
 
@@ -297,7 +296,7 @@ button.inactive {
 import {GRID_ROWS} from "@/constants";
 import type {SkipParams} from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
-import {GridCell} from "~/lib/GridCell";
+import {GridCell, GridCellNoteModeEnum} from "~/lib/GridCell";
 import {Sequencer} from "~/lib/Sequencer";
 import type {Ref} from "vue";
 import {computed, nextTick, ref} from "vue";
@@ -696,12 +695,31 @@ const getNoteText = (gridCell: GridCell) => {
 
   if (!track) return Tone.Frequency(gridCell.notes[0]).toNote()
 
-  return gridCell.notes.length > 1 ? 'Arp' :
-      gridCell.notes.length === 1 ?
-          track.sourceType.value === SOURCE_TYPES.SMPLR_Drum ?
-              track.source.convertNoteToDrum(Tone.Frequency(gridCell.notes[0]).toMidi()) :
-              Tone.Frequency(gridCell.notes[0]).toNote() :
-          'Rst'
+  // return gridCell.notes.length > 1 ? 'Arp' :
+  //     gridCell.notes.length === 1 ?
+  //         track.sourceType.value === SOURCE_TYPES.SMPLR_Drum ?
+  //             track.source.convertNoteToDrum(Tone.Frequency(gridCell.notes[0]).toMidi()) :
+  //             Tone.Frequency(gridCell.notes[0]).toNote() :
+  //         'Rst'
+
+  if (gridCell.mode === undefined) {
+    return track.sourceType.value === SOURCE_TYPES.SMPLR_Drum ?
+        track.source.convertNoteToDrum(Tone.Frequency(gridCell.notes[0]).toMidi()) :
+        Tone.Frequency(gridCell.notes[0]).toNote()
+  }
+
+  if (gridCell.mode === GridCellNoteModeEnum.arpeggio) {
+    return 'Arp'
+  }
+
+  if (gridCell.mode === GridCellNoteModeEnum.chord) {
+    return 'Chd'
+  }
+
+
+  if (gridCell.mode === GridCellNoteModeEnum.random) {
+    return 'Rnd'
+  }
 
 }
 

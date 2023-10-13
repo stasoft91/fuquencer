@@ -4,6 +4,11 @@ import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {toRaw} from "vue";
 import {cloneDeep} from "lodash";
 
+export enum GridCellNoteModeEnum {
+	'chord' = 'chord',
+	'arpeggio' = 'arpeggio',
+	'random' = 'random'
+}
 export class GridCell implements GridCellOptions {
 	public notes: string[] = []
 	public velocity: number = 0
@@ -12,6 +17,7 @@ export class GridCell implements GridCellOptions {
 	public duration: Tone.Unit.Time = Tone.Time('16n').toSeconds()
 	public modifiers: Map<GridCellModifierTypes, GridCellModifier> = new Map()
 	public arpeggiator?: GridCellArpeggiator
+	public mode?: GridCellNoteModeEnum
 	
 	constructor(params: Partial<GridCell>) {
         const {
@@ -38,6 +44,7 @@ export class GridCell implements GridCellOptions {
 		
 		this.modifiers = (rawModifiers instanceof Map ? rawModifiers : new Map(rawModifiers)) ?? new Map()
 		this.arpeggiator = toRaw(arpeggiator) ?? undefined
+		this.mode = params.mode ?? undefined
 	}
 	
 	public get id(): string {
