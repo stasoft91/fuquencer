@@ -3,7 +3,7 @@
   "sequenceGrid": [
     {
       "notes": [
-        "A4"
+        "C4"
       ],
       "velocity": 100,
       "row": 1,
@@ -43,22 +43,13 @@
     },
     {
       "notes": [
-        "D#5"
+        "C4"
       ],
       "velocity": 100,
       "row": 1,
       "column": 5,
       "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 5,
-            "timesTriggered": 2
-          }
-        ]
-      ]
+      "modifiers": []
     },
     {
       "notes": [
@@ -72,9 +63,9 @@
     },
     {
       "notes": [
-        "A4"
+        "C4"
       ],
-      "velocity": 100,
+      "velocity": 0,
       "row": 1,
       "column": 7,
       "duration": 0.125,
@@ -92,18 +83,238 @@
     },
     {
       "notes": [
-        "A4"
+        "C4"
       ],
       "velocity": 100,
       "row": 1,
       "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 1,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 2,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 100,
+      "row": 2,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "F4"
+      ],
+      "velocity": 100,
+      "row": 2,
+      "column": 15,
       "duration": 0.125,
       "modifiers": [
         [
           "skip",
           {
             "type": "skip",
-            "skip": 3,
+            "skip": 4,
             "timesTriggered": 1
           }
         ]
@@ -114,310 +325,23 @@
         "C4"
       ],
       "velocity": 0,
-      "row": 1,
-      "column": 10,
+      "row": 2,
+      "column": 16,
       "duration": 0.125,
       "modifiers": []
     },
     {
       "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 1,
-      "column": 11,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 1,
-      "column": 12,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "A4"
+        "C4",
+        "D4",
+        "G4"
       ],
       "velocity": 100,
-      "row": 1,
-      "column": 13,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 1,
-      "column": 14,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "F4"
-      ],
-      "velocity": 10,
-      "row": 1,
-      "column": 15,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4,
-            "timesTriggered": 0
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 4,
-            "velocity": 0.1,
-            "increaseVelocityFrom": 0
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B4"
-      ],
-      "velocity": 30,
-      "row": 1,
-      "column": 16,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "probability",
-          {
-            "type": "probability",
-            "probability": 50
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 2,
-            "timesTriggered": 0
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 1,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 2,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 3,
-      "duration": 0.03125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 4,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 70,
-      "row": 2,
-      "column": 5,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 6,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 7,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 8,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 9,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 10,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 11,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 20,
-      "row": 2,
-      "column": 12,
-      "duration": 0.21875,
-      "modifiers": [
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": "3",
-            "velocity": 0.3,
-            "increaseVelocityFrom": 0.1
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4,
-            "timesTriggered": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 70,
-      "row": 2,
-      "column": 13,
-      "duration": 0.09375,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 14,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 30,
-      "row": 2,
-      "column": 15,
-      "duration": 0.03125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": "4",
-            "timesTriggered": 0
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 0,
-      "row": 2,
-      "column": 16,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C4"
-      ],
-      "velocity": 70,
       "row": 3,
       "column": 1,
-      "duration": 0.03125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 2,
-            "timesTriggered": 0
-          }
-        ]
-      ]
+      "duration": 2,
+      "modifiers": [],
+      "mode": "chord"
     },
     {
       "notes": [
@@ -431,31 +355,13 @@
     },
     {
       "notes": [
-        "C0"
+        "C4"
       ],
-      "velocity": 10,
+      "velocity": 0,
       "row": 3,
       "column": 3,
-      "duration": 0.34375,
-      "modifiers": [
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": "4",
-            "velocity": 0.3,
-            "increaseVelocityFrom": 0.1
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": "6",
-            "timesTriggered": 5
-          }
-        ]
-      ]
+      "duration": 0.125,
+      "modifiers": []
     },
     {
       "notes": [
@@ -589,13 +495,23 @@
     },
     {
       "notes": [
-        "C4"
+        "C4",
+        "D4",
+        "G4"
       ],
-      "velocity": 0,
+      "velocity": 100,
       "row": 4,
       "column": 1,
-      "duration": 0.125,
-      "modifiers": []
+      "duration": 2,
+      "modifiers": [],
+      "arpeggiator": {
+        "gate": 0.125,
+        "type": "upDown",
+        "pulses": 16,
+        "parts": 32,
+        "shift": 0
+      },
+      "mode": "arpeggio"
     },
     {
       "notes": [
@@ -744,6 +660,16 @@
       "velocity": 0,
       "row": 4,
       "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "G3"
+      ],
+      "velocity": 100,
+      "row": 5,
+      "column": 1,
       "duration": 0.125,
       "modifiers": []
     },
@@ -751,83 +677,19 @@
       "notes": [
         "C3"
       ],
-      "velocity": 60,
-      "row": 5,
-      "column": 1,
-      "duration": 0.75,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "C2"
-      ],
       "velocity": 0,
       "row": 5,
       "column": 2,
       "duration": 0.125,
-      "modifiers": [
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 4
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 3,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 3
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "F2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 4,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "E2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 5,
-      "duration": 0.875,
       "modifiers": []
     },
     {
       "notes": [
-        "F2"
+        "D4"
       ],
       "velocity": 0,
       "row": 5,
-      "column": 6,
+      "column": 3,
       "duration": 0.125,
       "modifiers": []
     },
@@ -835,417 +697,47 @@
       "notes": [
         "C3"
       ],
-      "velocity": 60,
-      "row": 5,
-      "column": 7,
-      "duration": 0.75,
-      "modifiers": [
-        [
-          "probability",
-          {
-            "type": "probability",
-            "probability": 50
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B1"
-      ],
       "velocity": 0,
       "row": 5,
-      "column": 8,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 3
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "E2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 9,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 3
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 10,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "F2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 11,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "B1"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 12,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B3"
-      ],
-      "velocity": 60,
-      "row": 5,
-      "column": 13,
-      "duration": 0.5,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 2,
-            "timesTriggered": 1
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 14,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "F2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 15,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "B2"
-      ],
-      "velocity": 0,
-      "row": 5,
-      "column": 16,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C3"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 1,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 3,
-            "timesTriggered": 0
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B1"
-      ],
-      "velocity": 0,
-      "row": 6,
-      "column": 2,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "E3"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 3,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "F2"
-      ],
-      "velocity": 0,
-      "row": 6,
       "column": 4,
       "duration": 0.125,
-      "modifiers": [
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 4
-          }
-        ]
-      ]
+      "modifiers": []
     },
     {
       "notes": [
-        "B2"
+        "C4"
       ],
       "velocity": 0,
-      "row": 6,
+      "row": 5,
       "column": 5,
       "duration": 0.125,
-      "modifiers": [
-        [
-          "probability",
-          {
-            "type": "probability",
-            "probability": 50
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 4
-          }
-        ]
-      ]
+      "modifiers": []
     },
     {
       "notes": [
         "C4"
       ],
       "velocity": 100,
-      "row": 6,
+      "row": 5,
       "column": 6,
       "duration": 0.125,
-      "modifiers": []
+      "modifiers": [
+        [
+          "probability",
+          {
+            "type": "probability",
+            "probability": 50
+          }
+        ]
+      ]
     },
     {
       "notes": [
-        "F3"
+        "D4"
       ],
       "velocity": 100,
-      "row": 6,
+      "row": 5,
       "column": 7,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4,
-            "timesTriggered": 1
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 3
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "F2"
-      ],
-      "velocity": 0,
-      "row": 6,
-      "column": 8,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "probability",
-          {
-            "type": "probability",
-            "probability": 50
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "C3"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 9,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "probability",
-          {
-            "type": "probability",
-            "probability": 50
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4,
-            "timesTriggered": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "E2"
-      ],
-      "velocity": 0,
-      "row": 6,
-      "column": 10,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ],
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 3
-          }
-        ],
-        [
-          "flam",
-          {
-            "type": "flam",
-            "roll": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "F3"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 11,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": 120
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "B1"
-      ],
-      "velocity": 0,
-      "row": 6,
-      "column": 12,
-      "duration": 0.125,
-      "modifiers": []
-    },
-    {
-      "notes": [
-        "B4"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 13,
       "duration": 0.125,
       "modifiers": [
         [
@@ -1260,88 +752,295 @@
     },
     {
       "notes": [
-        "A3"
+        "D3"
       ],
-      "velocity": 100,
-      "row": 6,
-      "column": 14,
-      "duration": 0.125,
-      "modifiers": [
-        [
-          "skip",
-          {
-            "type": "skip",
-            "skip": 4,
-            "timesTriggered": 2
-          }
-        ]
-      ]
-    },
-    {
-      "notes": [
-        "G#3"
-      ],
-      "velocity": 100,
-      "row": 6,
-      "column": 15,
+      "velocity": 0,
+      "row": 5,
+      "column": 8,
       "duration": 0.125,
       "modifiers": []
     },
     {
       "notes": [
-        "G3"
+        "G4"
       ],
       "velocity": 100,
-      "row": 6,
-      "column": 16,
+      "row": 5,
+      "column": 9,
       "duration": 0.125,
       "modifiers": [
         [
           "skip",
           {
             "type": "skip",
-            "skip": 3,
-            "timesTriggered": 2
+            "skip": 2,
+            "timesTriggered": 1
           }
         ]
       ]
     },
     {
       "notes": [
-        "C5",
-        "E5",
-        "F4",
-        "C6",
-        "F5",
-        "E6"
+        "C3"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "D3"
       ],
       "velocity": 100,
-      "row": 7,
-      "column": 1,
-      "duration": 2,
+      "row": 5,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C3"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C3"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 13,
+      "duration": 0.125,
       "modifiers": [
-        [
-          "slide",
-          {
-            "type": "slide",
-            "slide": "71"
-          }
-        ],
         [
           "probability",
           {
             "type": "probability",
-            "probability": "42"
+            "probability": 50
+          }
+        ],
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 4
           }
         ]
+      ]
+    },
+    {
+      "notes": [
+        "C3"
       ],
-      "arpeggiator": {
-        "gate": 0.03125,
-        "type": "randomWalk",
-        "pulses": 16,
-        "parts": 31,
-        "shift": 0
-      }
+      "velocity": 0,
+      "row": 5,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C3"
+      ],
+      "velocity": 100,
+      "row": 5,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": [
+        [
+          "skip",
+          {
+            "type": "skip",
+            "skip": 3
+          }
+        ]
+      ]
+    },
+    {
+      "notes": [
+        "D3"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 2,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 3,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 4,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 5,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 6,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 7,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 8,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 9,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 10,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 11,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 12,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 13,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 14,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 15,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 1,
+      "duration": 0.125,
+      "modifiers": []
     },
     {
       "notes": [
@@ -1650,224 +1349,1377 @@
       "velocity": 0,
       "row": 8,
       "column": 16,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 1,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 2,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4",
+        "G4",
+        "D#4"
+      ],
+      "velocity": 100,
+      "row": 3,
+      "column": 17,
+      "duration": 2,
+      "modifiers": [],
+      "mode": "chord"
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 3,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4",
+        "G4",
+        "D#4"
+      ],
+      "velocity": 100,
+      "row": 4,
+      "column": 17,
+      "duration": 2,
+      "modifiers": [],
+      "arpeggiator": {
+        "gate": 0.125,
+        "type": "upDown",
+        "pulses": 16,
+        "parts": 32,
+        "shift": 0
+      },
+      "mode": "arpeggio"
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 4,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 5,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 6,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 7,
+      "column": 32,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 17,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 18,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 19,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 20,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 21,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 22,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 23,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 24,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 25,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 26,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 27,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 28,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 29,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 30,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 31,
+      "duration": 0.125,
+      "modifiers": []
+    },
+    {
+      "notes": [
+        "C4"
+      ],
+      "velocity": 0,
+      "row": 8,
+      "column": 32,
       "duration": 0.125,
       "modifiers": []
     }
   ],
   "tracks": [
     {
-      "name": "TR-808",
+      "name": "Kick",
+      "source": {
+        "sampler": {
+          "urls": {
+            "C4": "kick.wav"
+          }
+        },
+        "filter": {
+          "Q": 1,
+          "detune": 0,
+          "frequency": 0,
+          "gain": 0,
+          "rolloff": -12,
+          "type": "lowpass"
+        },
+        "filterEnvelope": {
+          "attack": 0.01,
+          "attackCurve": "linear",
+          "decay": 0.01,
+          "decayCurve": "exponential",
+          "release": 0.1,
+          "releaseCurve": "exponential",
+          "sustain": 0,
+          "baseFrequency": 20000,
+          "exponent": 1,
+          "octaves": 4
+        }
+      },
+      "middlewares": [],
+      "length": 16,
+      "loops": [],
+      "sourceType": "sampler"
+    },
+    {
+      "name": "808 kit",
       "source": {
         "instrument": "TR-808"
       },
-      "middlewares": [
-        {
-          "name": "Distortion",
-          "options": {
-            "distortion": 0.715,
-            "oversample": "none",
-            "type": "GLOUBIBOULGA",
-            "wet": 1
-          }
-        }
-      ],
+      "middlewares": [],
       "length": 16,
       "loops": [],
       "sourceType": "smplr_drum"
     },
     {
-      "name": "clap.wav",
+      "name": "Horn",
       "source": {
-        "sampler": {
-          "volume": -6,
-          "urls": {
-            "C4": "clap.wav"
-          },
-          "release": 0.287,
-          "baseUrl": "/samples/",
-          "envelope": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0,
-            "release": 1
-          },
-          "attack": 0,
-          "portamento": 0,
-          "slide": 0
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.01,
-          "attackCurve": "linear",
-          "decay": 0.01,
-          "decayCurve": "exponential",
-          "release": 0.1,
-          "releaseCurve": "exponential",
-          "sustain": 0,
-          "baseFrequency": 20000,
-          "exponent": 1,
-          "octaves": 4
-        }
-      },
-      "middlewares": [
-        {
-          "name": "Freeverb",
-          "options": {
-            "roomSize": 0.72,
-            "dampening": 3000,
-            "wet": 0.057
-          }
-        }
-      ],
-      "length": 16,
-      "loops": [],
-      "sourceType": "sampler"
-    },
-    {
-      "name": "hat1.wav",
-      "source": {
-        "sampler": {
-          "volume": -19.04907011423125,
-          "urls": {
-            "C4": "hat1.wav"
-          },
-          "release": 0.212,
-          "baseUrl": "/samples/",
-          "envelope": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0,
-            "release": 1
-          },
-          "attack": 0,
-          "portamento": 0,
-          "slide": 0
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.054000000000000006,
-          "attackCurve": "linear",
-          "decay": 0.01,
-          "decayCurve": "exponential",
-          "release": 0.1,
-          "releaseCurve": "exponential",
-          "sustain": 0,
-          "baseFrequency": 1333.521432163324,
-          "exponent": 1,
-          "octaves": 4
-        }
+        "instrument": "french_horn"
       },
       "middlewares": [],
-      "length": 6,
+      "length": 32,
       "loops": [],
-      "sourceType": "sampler"
+      "sourceType": "smplr_instrument"
     },
     {
-      "name": "hat2.wav",
+      "name": "Sitar Arp",
       "source": {
-        "sampler": {
-          "volume": -10.928558077299847,
-          "urls": {
-            "C4": "hat2.wav"
-          },
-          "release": 1,
-          "baseUrl": "/samples/",
-          "envelope": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0,
-            "release": 1
-          },
-          "attack": 0,
-          "portamento": 0
-        },
-        "filter": {
-          "Q": 1,
-          "detune": 0,
-          "frequency": 0,
-          "gain": 0,
-          "rolloff": -12,
-          "type": "lowpass"
-        },
-        "filterEnvelope": {
-          "attack": 0.01,
-          "attackCurve": "linear",
-          "decay": 0.01,
-          "decayCurve": "exponential",
-          "release": 0.1,
-          "releaseCurve": "exponential",
-          "sustain": 0,
-          "baseFrequency": 20000,
-          "exponent": 1,
-          "octaves": 4
-        }
+        "instrument": "sitar"
       },
       "middlewares": [],
-      "length": 16,
-      "loops": [],
-      "sourceType": "sampler"
-    },
-    {
-      "name": "Banjo",
-      "source": {
-        "instrument": "banjo"
-      },
-      "middlewares": [],
-      "length": 16,
+      "length": 32,
       "loops": [],
       "sourceType": "smplr_instrument"
     },
     {
       "name": "Bass",
       "source": {
-        "voiceType": "sub"
+        "selectedPreset": "x-mod bass"
       },
       "middlewares": [],
-      "length": 16,
+      "length": 10,
       "loops": [],
-      "sourceType": "sub"
-    },
-    {
-      "name": "Violin",
-      "source": {
-        "instrument": "viola"
-      },
-      "middlewares": [
-        {
-          "name": "PingPongDelay",
-          "options": {
-            "wet": 0.25,
-            "delayTime": 0.375,
-            "feedback": 0.22,
-            "maxDelay": 1
-          }
-        },
-        {
-          "name": "Reverb",
-          "options": {
-            "decay": 0.354,
-            "preDelay": 0.14800000000000002,
-            "wet": 0.298
-          }
-        }
-      ],
-      "length": 16,
-      "loops": [],
-      "sourceType": "smplr_instrument"
+      "sourceType": "PulseqMono"
     }
   ],
   "lfos": []

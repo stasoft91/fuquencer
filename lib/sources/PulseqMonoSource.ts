@@ -7,7 +7,9 @@ import {PULSEQ_SYNTH_PRESETS} from "~/modules/pulseq/presets.constants";
 import {DEFAULT_PULSEQ_PARAMS} from "@/constants";
 import {ref} from "vue";
 
-export type PulseqOptions = {}
+export type PulseqOptions = {
+	selectedPreset: string
+}
 
 export class PulseqMonoSource extends AbstractSource {
 	AVAILABLE_SETTINGS: string[] = [
@@ -23,6 +25,8 @@ export class PulseqMonoSource extends AbstractSource {
 		this.options = options
 		this.output = new Tone.Gain();
 		this._voice = new PulseqSynth(this.output)
+		
+		this.setPreset(this.options.selectedPreset)
 	}
 
 	public async init(): Promise<void> {
@@ -101,6 +105,9 @@ export class PulseqMonoSource extends AbstractSource {
 			}).forEach((preset) => {
 				synthParamApply(preset[0], preset[1], this._voice)
 			})
+			
+			this.options.selectedPreset = preset
+			this.selectedPreset.value = preset
 		}
 	}
 }

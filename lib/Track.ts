@@ -12,6 +12,7 @@ import {type RNBOSourceOptions} from "~/lib/sources/RNBOSource";
 import {createNewSource, type SourceType} from "~/lib/utils/createNewSource";
 import type {VoiceType} from "~/lib/rnbo/data";
 import type {SoundfontOptions} from "smplr";
+import type {PulseqOptions} from "~/lib/sources/PulseqMonoSource";
 
 export type TrackOptions = {
     name: string,
@@ -21,7 +22,7 @@ export type TrackOptions = {
 
 export type TrackExportOptions = Omit<TrackOptions, 'source'> & {
     sourceType: SOURCE_TYPES,
-    source: RNBOSourceOptions | AbstractSourceOptions | SoundfontOptions,
+    source: RNBOSourceOptions | AbstractSourceOptions | SoundfontOptions | PulseqOptions,
     middlewares: UniversalEffect[],
     length: number,
     loops: Omit<LoopOptions, 'track'>[],

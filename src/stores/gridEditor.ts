@@ -38,6 +38,7 @@ export const useGridEditorStore = defineStore('gridEditorStore', () => {
 		target.notes = copiedGridCell.value.notes
 		target.modifiers = copiedGridCell.value.modifiers
 		target.arpeggiator = copiedGridCell.value.arpeggiator ?? undefined
+		target.mode = copiedGridCell.value.mode ?? undefined
 		
 		const seq = Sequencer.getInstance()
 		seq.writeCell(target)

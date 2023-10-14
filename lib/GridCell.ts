@@ -27,7 +27,8 @@ export class GridCell implements GridCellOptions {
             column,
             duration,
             arpeggiator,
-            modifiers
+	        modifiers,
+	        mode
         } = cloneDeep(params)
 		
 		if (!row || !column) {
@@ -44,7 +45,7 @@ export class GridCell implements GridCellOptions {
 		
 		this.modifiers = (rawModifiers instanceof Map ? rawModifiers : new Map(rawModifiers)) ?? new Map()
 		this.arpeggiator = toRaw(arpeggiator) ?? undefined
-		this.mode = params.mode ?? undefined
+		this.mode = mode ?? undefined
 	}
 	
 	public get id(): string {

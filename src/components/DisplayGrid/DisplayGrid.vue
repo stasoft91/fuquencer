@@ -533,11 +533,12 @@ const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: To
 
   const isGridColumnEndLong = !gridEditorStore.isVisualizerActive && doesCellHaveVelocity
 
+  columnNumber = columnNumber > 16 ? columnNumber - 16 : columnNumber
   return {
-    gridRow: rowNumber % 16,
-    gridColumn: columnNumber % 16,
+    gridRow: rowNumber,
+    gridColumn: columnNumber,
     gridRowEnd: 'auto',
-    gridColumnEnd: isGridColumnEndLong ? 'span ' + calculateRealSpan(rowNumber % 16, columnNumber % 16, noteLength) : 'auto',
+    gridColumnEnd: isGridColumnEndLong ? 'span ' + calculateRealSpan(rowNumber, columnNumber, noteLength) : 'auto',
     ...(doesCellHaveVelocity ? hasSpan : {})
   }
 }
