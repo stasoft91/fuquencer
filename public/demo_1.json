@@ -315,7 +315,7 @@
           {
             "type": "skip",
             "skip": 4,
-            "timesTriggered": 1
+            "timesTriggered": 0
           }
         ]
       ]
@@ -2676,7 +2676,17 @@
           "octaves": 4
         }
       },
-      "middlewares": [],
+      "middlewares": [
+        {
+          "name": "Distortion",
+          "options": {
+            "distortion": 0.168,
+            "oversample": "none",
+            "type": "GLOUBIBOULGA",
+            "wet": 0.405
+          }
+        }
+      ],
       "length": 16,
       "loops": [],
       "sourceType": "sampler"
@@ -2706,7 +2716,18 @@
       "source": {
         "instrument": "sitar"
       },
-      "middlewares": [],
+      "middlewares": [
+        {
+          "name": "PitchShift",
+          "options": {
+            "pitch": 12,
+            "windowSize": 0.1,
+            "delayTime": 0.1,
+            "feedback": 0.2,
+            "wet": 0.396
+          }
+        }
+      ],
       "length": 32,
       "loops": [],
       "sourceType": "smplr_instrument"
