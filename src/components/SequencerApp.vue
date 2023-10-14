@@ -18,7 +18,7 @@
             :is-playing="sequencer.isPlaying"
             :columns="GRID_COLS"
             :tracks="sequencer.soundEngine.tracks.value"
-            :items="sequencer.sequenceGrid.value"
+            :items="sequencer.sequenceGridForDisplay(sequencer.currentPage)"
             :rows="GRID_ROWS"
             :is-visualizer-active="gridEditorStore.isVisualizerActive"
             :key="sequencer.soundEngine.tracks.value.map(_ => _.isSourceInitialized.value).join('_')"
@@ -33,6 +33,15 @@
 
     <div class="sequence-control">
       <SimpleButton @click="play">{{ sequencer.isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
+
+      <SimpleButton
+          v-for="page in [1, 2]"
+          :key="page"
+          :value="page === sequencer.currentPage"
+          style="--indicator-false-color: grey; --indicator-false-color-shadow: darkgrey;"
+          @click="onSetPage(page)"
+      >{{ page }}/2
+      </SimpleButton>
     </div>
 
     <MixerDisplay :key="sequencer.isPlaying ? 'playing' : 'stopped'"></MixerDisplay>
@@ -89,7 +98,9 @@ const selectedTrackIndex = computed(() => trackNumberStore.selectedTrackIndex);
 const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 });
-
+const onSetPage = (page: number) => {
+  sequencer.currentPage = page
+}
 const onSelectTrack = (trackIndex: number) => {
   trackNumberStore.setTrackIndex(trackIndex);
   if (gridEditorStore.isVisualizerActive) {

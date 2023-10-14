@@ -3,4 +3,11 @@
  * Bars here is always 0
  * @param step
  */
-export const getBarsBeatsSixteensFromStep = (step: number) => `0:${Math.floor(step / 4)}:${step % 4}`
+export const getBarsBeatsSixteensFromStep = (step: number) => {
+	// `0:${Math.floor(step / 4)}:${step % 4}`
+	const bars = Math.floor(step / 16)
+	const beats = Math.floor(step / 4) % 4
+	const sixteens = step % 4
+	
+	return `${bars}:${beats}:${sixteens}`
+}

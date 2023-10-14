@@ -51,7 +51,6 @@ export function generateListOfAvailableNotes(track?: Track): string[] {
     })
   }
   
-  console.log('generateListOfAvailableNotes', notes)
   return notes
 }
 
@@ -103,9 +102,22 @@ export class Sequencer {
   
   private _isPlaying: Ref<boolean> = ref(false)
   
+  private _currentPage: Ref<number> = ref(1);
+  
   private _lfos: ShallowRef<LFO[]> = shallowRef([]);
   
   private _indicatorLoops: Tone.Loop[] = []
+  
+  public get currentPage(): number {
+    return this._currentPage.value
+  }
+  
+  public set currentPage(value: number) {
+    this._currentPage.value = value
+    if (this._sequenceGrid.value.filter((gridCell) => gridCell.column >= 1 + 16 * (value - 1) && gridCell.column <= 16 * value).length === 0) {
+      this.initGrid(value)
+    }
+  }
 
   public get indicatorLoops(): Tone.Loop[] {
     return this._indicatorLoops
@@ -143,8 +155,6 @@ export class Sequencer {
       return new GridCell({
         ...gridCell,
         modifiers: new Map(gridCell.modifiers),
-        notes: gridCell.notes,
-        arpeggiator: gridCell.arpeggiator
       })
     })
     
@@ -153,6 +163,10 @@ export class Sequencer {
 
   public get sequenceGrid(): Ref<GridCell[]> {
     return this._sequenceGrid
+  }
+  
+  public sequenceGridForDisplay(page: number = 1): GridCell[] {
+    return this._sequenceGrid.value.filter((gridCell) => gridCell.column >= 1 + 16 * (page - 1) && gridCell.column <= 16 * page)
   }
 
   public get currentStep(): number {
@@ -270,7 +284,11 @@ export class Sequencer {
       // we are sure they will be present in store
     }: Required<ImproviseOptions> = useGridEditorStore().improviseOptions as unknown as Required<ImproviseOptions>
     
-    this.sequenceGrid.value.filter(cell => cell.row === trackNumber).map(cell => {
+    this.sequenceGrid.value.filter(cell => cell.row === trackNumber &&
+      cell.column >= 1 + 16 * (this.currentPage - 1) &&
+      cell.column <= 16 * this.currentPage
+    ).map(cell => {
+      
       cell.velocity = cell.column % 2 === 1 ? 100 : 0;
 
       Math.random() > (1 - probabilityModProbability) ?
@@ -325,9 +343,10 @@ export class Sequencer {
     return this._isPlaying
   }
   
-  public initGrid(): void {
+  public initGrid(page: number = 1): void {
     for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
-      for (let j = 1; j <= 16; j++) {
+      // todo either page or 32
+      for (let j = 1 + 16 * (page - 1); j <= 16 * page; j++) {
         this._sequenceGrid.value.push(new GridCell({
           row: i,
           column: j,
@@ -471,7 +490,7 @@ export class Sequencer {
     this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
     Tone.Transport.stop()
-    this._mainLoop?.stop()
+    this._mainLoop?.stop().dispose()
   }
   
   public toggleIndicator(row: number, column: number, value: boolean): void {
@@ -485,17 +504,17 @@ export class Sequencer {
     
     this.setupIndicatorLoops()
     
-    for (let i = 0; i < this.soundEngine.tracks.value.length; i++) {
+    for (let trackIndex = 0; trackIndex < this.soundEngine.tracks.value.length; trackIndex++) {
       const part = new Tone.Part(
         ((time, partEvent: PartEvent) => {
-          const track = this.soundEngine.tracks.value[i]
+          const track = this.soundEngine.tracks.value[trackIndex]
           
           if (partEvent.velocity === 0) {
             return
           }
           
           // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
-          if (i === 0 && !track.meta.get('mute')) {
+          if (trackIndex === 0 && !track.meta.get('mute')) {
             track.sidechainEnvelope?.triggerAttackRelease(partEvent.duration, time)
           }
           
@@ -689,7 +708,7 @@ export class Sequencer {
           }
         }),
         [
-          ...this._sequenceGrid.value.filter(_ => ((_.row === i + 1) && (_.velocity > 0))).map(_ => {
+          ...this._sequenceGrid.value.filter(_ => ((_.row === trackIndex + 1) && (_.velocity > 0))).map(_ => {
             const step = _.column - 1
             
             return {
@@ -708,7 +727,7 @@ export class Sequencer {
       ).start(0).set({
         loop: true,
         loopStart: 0,
-        loopEnd: stepsToLoopLength(this.soundEngine.tracks.value[i].length),
+        loopEnd: stepsToLoopLength(this.soundEngine.tracks.value[trackIndex].length),
       })
       
       this._parts.push(
