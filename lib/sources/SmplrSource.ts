@@ -49,7 +49,6 @@ export class SmplrSource extends AbstractSource {
 	}
 	
 	set(options: SampleStart): void {
-		console.log('set', options)
 		this._playbackOptions = options
 	}
 	
@@ -65,7 +64,6 @@ export class SmplrSource extends AbstractSource {
 	}
 	
 	triggerAttackRelease(note: Tone.Unit.Frequency, duration: Tone.Unit.Time, time: Tone.Unit.Time, velocity?: number): void {
-		console.log('trigger attack release', this._playbackOptions)
 		this._voice.start({
 			note: this.convertNoteToDrum(Tone.Frequency(note).toMidi()),
 			velocity: (velocity ?? 100),

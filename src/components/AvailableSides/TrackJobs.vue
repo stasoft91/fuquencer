@@ -24,11 +24,11 @@
   <n-card v-if="selectedTrack" :title="selectedTrack?.name ?? ''">
     <div class="row">
       <select
-          :value="selectedTrack?.length"
+          :value="selectedTrackLength"
           class="full-size big"
           @change="onPartLengthChange($event)"
       >
-        <option v-for="partLength in Array.from({length: 32}, (_, i) => i + 1)" :key="partLength" :value="partLength">
+        <option v-for="partLength in Array.from({length: 64}, (_, i) => i + 1)" :key="partLength" :value="partLength">
           Part Length: {{ partLength }}
         </option>
       </select>
@@ -143,7 +143,6 @@ const onFillTrack = (repeats?: number) => {
 
   const step = 16 / repeats;
 
-
   for (let i = page * 16 - 15; i <= page * 16; i += step) {
     sequencer.writeCell(new GridCell({
       row: trackNumber,
@@ -153,6 +152,13 @@ const onFillTrack = (repeats?: number) => {
     }))
   }
 }
+
+const selectedTrackLength = computed(() => {
+  return sequencer
+      .patternMemory
+      .byId(sequencer.selectedPatternId.value)
+      .tracksDurationInSteps[selectedTrackNumberStore.selectedTrackIndex]
+})
 
 const onGenerateBassline = () => {
   const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
@@ -179,7 +185,7 @@ const changeOct = (interval: number): void => {
 
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   const page = sequencer.currentPage
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex &&
+  sequencer.sequenceGrid.filter(_ => _.row === trackIndex &&
       _.column >= page * 16 - 15 &&
       _.column <= page * 16
   ).forEach((cellPosition) => {
@@ -198,7 +204,7 @@ const onShiftTrackLeft = () => {
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   const page = sequencer.currentPage
 
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+  sequencer.sequenceGrid.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === page * 16 - 15 ? page * 16 : cellPosition.column - 1
     const newCell = new GridCell({
       ...cellPosition,
@@ -215,7 +221,7 @@ const onShiftTrackRight = () => {
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
   const page = sequencer.currentPage
 
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+  sequencer.sequenceGrid.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const nextCellPosition = cellPosition.column === page * 16 ? page * 16 - 15 : cellPosition.column + 1
     const newCell = new GridCell({
       ...cellPosition,
@@ -230,7 +236,7 @@ const onHumanizeTrack = () => {
 
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+  sequencer.sequenceGrid.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     let newVelocity = Math.ceil(Math.random() * 25) + 75
     newVelocity = newVelocity < 0 ? 0 : newVelocity
     newVelocity = newVelocity > 100 ? 100 : newVelocity
@@ -251,7 +257,7 @@ const onPartLengthChange = (event: Event) => {
     return
   }
 
-  selectedTrack.setLength(parseInt((event.target as HTMLSelectElement).value) || 16)
+  sequencer.updatePartDuration(selectedTrackNumberStore.selectedTrackIndex + 1, parseInt((event.target as HTMLSelectElement).value) || 16)
 }
 
 const onSwingTrack = (swingPercentage: number) => {
@@ -259,14 +265,14 @@ const onSwingTrack = (swingPercentage: number) => {
   const trackRow = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
   if (swingPercentage === 0) {
-    sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
+    sequencer.sequenceGrid.filter(cell => cell.row === trackRow).forEach(cell => {
       cell.modifiers.delete(GridCellModifierTypes.swing)
       sequencer.writeCell(cell)
     })
     return
   }
 
-  sequencer.sequenceGrid.value.filter(cell => cell.row === trackRow).forEach(cell => {
+  sequencer.sequenceGrid.filter(cell => cell.row === trackRow).forEach(cell => {
     cell.modifiers.set(GridCellModifierTypes.swing, {
       type: GridCellModifierTypes.swing,
       swing: swingPercentage,
@@ -276,20 +282,18 @@ const onSwingTrack = (swingPercentage: number) => {
   })
 }
 
-const onClonePage = (newPageNum: number = 2) => {
+const onClonePage = () => {
   const selectedTrack = sequencer.soundEngine.tracks.value[selectedTrackNumberStore.selectedTrackIndex]
 
   const trackIndex = sequencer.soundEngine.tracks.value.findIndex(track => track.name === selectedTrack.name) + 1
 
-  sequencer.sequenceGrid.value.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
+  sequencer.sequenceGrid.filter(_ => _.row === trackIndex).forEach((cellPosition) => {
     const newCell = new GridCell({
       ...cellPosition,
       column: cellPosition.column + 16,
     })
     sequencer.writeCell(newCell)
   })
-
-  selectedTrack.setLength(16 * newPageNum)
 }
 
 </script>

@@ -17,17 +17,21 @@ import * as Tone from "tone/Tone";
  *     prop.setValueAtTime(0, time)
  *     prop.setValueAtTime(0, time + 0.01)
  *   }, afterEnd)
- * @param add
+ * @param addMeasures
  */
-export const getToneTimeNextMeasure = (add: number = 1): Tone.Unit.Time => {
+export const getToneTimeNextMeasure = (addMeasures: number = 1): Tone.Unit.Time => {
 	const position = Tone.Transport.position as Tone.Unit.Time
+	
+	const loopEnd = Tone.Time(Tone.Transport.loopEnd).toSeconds()
+	
 	
 	const part = position.toString().split(':')[0]
 	
-	// console.log('getToneTimeNextMeasure',
-	// 	Tone.Transport.position,
-	// 	Tone.Time(Tone.Time(`${1 + parseInt(part)}:0:0`).toSeconds()).toBarsBeatsSixteenths(),
-	// )
+	const result = Tone.Time(`${addMeasures + parseInt(part)}:0:0`).toSeconds()
 	
-	return Tone.Time(`${add + parseInt(part)}:0:0`).toSeconds() as Tone.Unit.Time
+	if (loopEnd >= result) {
+		return 0
+	}
+	
+	return result as Tone.Unit.Time
 }

@@ -65,33 +65,34 @@ const onUpdate = (value: string | number) => {
   currentValue.value = value
   const soundEngine = SoundEngine.getInstance()
 
-  for (let track = 0; track < soundEngine.tracks.value.length; track++) {
-    const editedEffect = soundEngine.tracks.value[track].middlewares.find(__ => __.name === props.effectName)
+  const track = soundEngine.tracks.value.find(_ => _.name === props.trackName)
 
-    if (!editedEffect || !editedEffect.options || !editedEffect.effect) continue;
+  if (!track) return;
 
-    // @ts-ignore
-    if (editedEffect.options[props.fieldName] === undefined) {
-      console.warn(`Field ${props.fieldName} not found in effect ${props.effectName}`)
-      continue;
-    }
+  const editedEffect = track.middlewares.find(__ => __.name === props.effectName)
 
-    // @ts-ignore
-    editedEffect.options[props.fieldName] = value
+  if (!editedEffect || !editedEffect.options || !editedEffect.effect) return;
 
-    if (editedEffect.name === 'AutoDuck') {
-      soundEngine.sidechainEnvelopeSource?.set({
-        [props.fieldName]: value
-      })
-    } else {
-      editedEffect.effect.set({
-        [props.fieldName]: value
-      })
-    }
-
-    emit(`update:value`, editedEffect as UniversalEffect)
+  // @ts-ignore
+  if (editedEffect.options[props.fieldName] === undefined) {
+    console.warn(`Field ${props.fieldName} not found in effect ${props.effectName}`)
     return;
   }
+
+  // @ts-ignore
+  editedEffect.options[props.fieldName] = value
+
+  if (editedEffect.name === 'AutoDuck') {
+    soundEngine.sidechainEnvelopeSource?.set({
+      [props.fieldName]: value
+    })
+  } else {
+    editedEffect.effect.set({
+      [props.fieldName]: value
+    })
+  }
+
+  emit(`update:value`, editedEffect as UniversalEffect)
 }
 
 onMounted(() => {

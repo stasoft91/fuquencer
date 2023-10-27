@@ -40,7 +40,6 @@ class BaseSynth extends RNBODevice {
         if (n === this.state.value.n) {
             // this.cut(time)
         }
-        console.log('playing', ps, time)
 
         this.setParams(ps, time)
 

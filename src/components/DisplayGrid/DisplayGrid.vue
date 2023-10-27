@@ -509,19 +509,17 @@ const calculateRealSpan = (rowNumber: number, columnNumber: number, noteLength: 
 
   noteSpan = getStepFromBarsBeatsSixteens(Tone.Time(noteLength).toBarsBeatsSixteenths()) - 1
 
-  const maximumSpan = sequencer.soundEngine.tracks.value[rowNumber - 1]?.length - columnNumber + 1;
+  let trackLength = sequencer.patternMemory.byId(sequencer.selectedPatternId.value).tracksDurationInSteps[rowNumber - 1]
 
-  return columnNumber + noteSpan > sequencer.soundEngine.tracks.value[rowNumber - 1]?.length ? maximumSpan : noteSpan
+  trackLength = trackLength > 16 ? trackLength - 16 * (Math.floor(trackLength / 16)) : trackLength
+  trackLength = trackLength === 0 ? 16 : trackLength
+
+  const maximumSpan = trackLength - columnNumber + 1;
+
+  return columnNumber + noteSpan > trackLength ? maximumSpan : noteSpan
 }
 
 const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: Tone.Unit.Time) => {
-  // Colorful background for cells longer than 1/16
-  const hasSpan = !gridEditorStore.isVisualizerActive && calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
-    width: '100%',
-    backgroundColor: `hsl(${(columnNumber * 360 / 16) % 360}, 30%, 80%)`,
-    zIndex: 3,
-  } : {}
-
   const doesCellHaveVelocity = props.items.filter(_ =>
       // we look for an intersection in the row currently hovered
       _.row === rowNumber &&
@@ -533,7 +531,16 @@ const getStyleForCell = (rowNumber: number, columnNumber: number, noteLength: To
 
   const isGridColumnEndLong = !gridEditorStore.isVisualizerActive && doesCellHaveVelocity
 
-  columnNumber = columnNumber > 16 ? columnNumber - 16 : columnNumber
+  columnNumber = columnNumber > 16 ? columnNumber - 16 * (Math.floor(columnNumber / 16)) : columnNumber
+  columnNumber = columnNumber === 0 ? 16 : columnNumber
+
+  // Colorful background for cells longer than 1/16
+  const hasSpan = !gridEditorStore.isVisualizerActive && calculateRealSpan(rowNumber, columnNumber, noteLength) > 1 ? {
+    width: '100%',
+    backgroundColor: `hsl(${(columnNumber * 360 / 16) % 360}, 30%, 80%)`,
+    zIndex: 3,
+  } : {}
+
   return {
     gridRow: rowNumber,
     gridColumn: columnNumber,
@@ -560,11 +567,16 @@ const getClassesForCell = (gridCell: GridCell) => {
     isActive = isActiveForColumn && scale(sequencer.soundEngine.FFTValues.value[gridCell.column - 1] ?? 0) >= 8 - gridCell.row
   }
 
+  const trackLength = sequencer
+      .patternMemory
+      .byId(sequencer.selectedPatternId.value)
+      .tracksDurationInSteps[gridCell.row - 1]
+
   return {
     active: isActive,
     inactive:
         props.tracks[gridCell.row - 1] ?
-            gridCell.column > props.tracks[gridCell.row - 1].length :
+            gridCell.column > trackLength :
             false,
     'is-visualizer': props.isVisualizerActive,
     'first-in-quarter': gridCell.column % 4 === 1, // TODO: maybe this could be done pure css?
@@ -608,7 +620,10 @@ const getClassForFxIndicator = (gridCell: GridCell, effect: GridCellModifierType
   let length = 16
 
   if (props.tracks[gridCell.row - 1]) {
-    length = props.tracks[gridCell.row - 1].length
+    length = sequencer
+        .patternMemory
+        .byId(sequencer.selectedPatternId.value)
+        .tracksDurationInSteps[gridCell.row - 1]
   }
 
   return {
@@ -729,8 +744,9 @@ const indicatorMatrix = computed(() => {
 })
 
 const getClassForPolyrhythmIndicator = (gridCell: GridCell) => {
-  const trackCells = indicatorMatrix.value.value[gridCell.row - 1]
-  let isActive: boolean = trackCells[gridCell.column - 1]
+  const trackIndicators = indicatorMatrix.value.value[gridCell.row - 1]
+
+  let isActive: boolean = trackIndicators[gridCell.column - 1]
 
   const realSpan: number = calculateRealSpan(gridCell.row, gridCell.column, gridCell.duration)
 
@@ -740,12 +756,17 @@ const getClassForPolyrhythmIndicator = (gridCell: GridCell) => {
       activeFor.push(gridCell.column + i)
     }
 
-    isActive = activeFor.includes(trackCells.indexOf(true) + 1)
+    isActive = activeFor.includes(trackIndicators.indexOf(true) + 1)
   }
+
+  const trackLength = sequencer
+      .patternMemory
+      .byId(sequencer.selectedPatternId.value)
+      .tracksDurationInSteps[gridCell.row - 1]
 
   return {
     active: isActive,
-    disabled: gridCell.column > props.tracks[gridCell.row - 1]?.length
+    disabled: gridCell.column > trackLength
   }
 }
 
@@ -753,9 +774,14 @@ const getClassForVolumeIndicator = (gridCell: GridCell) => {
   const track = sequencer.soundEngine.tracks.value[gridCell.row - 1]
   if (!track) return {disabled: true}
 
+  const trackLength = sequencer
+      .patternMemory
+      .byId(sequencer.selectedPatternId.value)
+      .tracksDurationInSteps[gridCell.row - 1]
+
   return {
     disabled: (
-        gridCell.column > props.tracks[gridCell.row - 1]?.length ||
+        gridCell.column > trackLength ||
         gridCell.velocity === 0
     )
   }

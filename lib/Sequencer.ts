@@ -2,31 +2,23 @@ import type {Ref, ShallowRef} from 'vue'
 import {ref, shallowRef, triggerRef} from 'vue'
 import * as Tone from 'tone/Tone'
 import {SoundEngine, SOURCE_TYPES} from '~/lib/SoundEngine'
-import {Track} from "~/lib/Track";
+import {Track, type TrackExportOptions} from "~/lib/Track";
 import {getBarsBeatsSixteensFromStep} from "~/lib/utils/getBarsBeatsSixteensFromStep";
 import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 import {LFO, type LFOOptions} from "~/lib/LFO";
-import type {
-  FlamParams,
-  GridCellArpeggiator,
-  GridCellModifier,
-  ProbabilityParams,
-  SkipParams,
-  SlideParams,
-  SwingParams
-} from "~/lib/GridCell.types";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
-import {GridCell, GridCellNoteModeEnum} from "~/lib/GridCell";
-import {createEuclideanRhythmVector} from "~/lib/utils/createEuclideanRhythmVector";
-import {PatternGenerator} from "~/lib/PatternGenerator";
+import {GridCell} from "~/lib/GridCell";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {HistoryManager} from "~/lib/HistoryManager";
-import {cloneDeep} from "lodash";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
 import type {UniversalEffect} from "~/lib/Effects.types";
 import {getToneTimeNextMeasure} from "~/lib/utils/getToneTimeNextMeasure";
 import LegacySource from "~/lib/sources/LegacySource";
+import {createPartFromData} from "~/lib/utils/createPartFromData";
+import {Pattern, PatternManager} from "~/lib/PatternManager";
+import {patternToTrackData} from "~/lib/utils/patternToTrackData";
+import {type PartEvent, PartsManager} from "~/lib/PartsManager";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -54,18 +46,6 @@ export function generateListOfAvailableNotes(track?: Track): string[] {
   return notes
 }
 
-export type PartEvent = {
-  time: any
-  notes: string[],
-  velocity: number,
-  duration: string,
-  modifiers: Map<GridCellModifierTypes, GridCellModifier>
-  column: number
-  row: number
-  arpeggiator?: GridCellArpeggiator
-  mode?: GridCellNoteModeEnum
-}
-
 export type ImproviseOptions = {
   notesInKey: string[],
   probabilityModProbability?: number,
@@ -84,7 +64,14 @@ export class Sequencer {
   
   private readonly _bpm: Ref<number> = ref(120)
   
-  private readonly _sequenceGrid: Ref<GridCell[]> = ref([])
+  public readonly selectedPatternId: Ref<string> = ref('')
+  /**
+   * patternIds in order of playback
+   */
+  public patternChain: Ref<string[]> = ref([])
+  private readonly _patternMemory: PatternManager = new PatternManager()
+  private _indicatorWatchdog: Tone.Loop<any> | null = null;
+  private partsManager: PartsManager = new PartsManager()
 
   private _currentStep = ref(1)
   
@@ -93,12 +80,37 @@ export class Sequencer {
   public readonly keyboardManager: KeyboardManager = KeyboardManager.getInstance()
   
   private constructor() {
-    this.initGrid()
+    this.patternMemory.set(new Pattern({
+      cells: this.initGrid(1),
+      name: 'Pattern 1',
+    }))
+    this.patternMemory.set(new Pattern({
+      cells: this.initGrid(1),
+      name: 'Pattern 2',
+    }))
+    
+    this.selectedPatternId.value = this.patternMemory.patterns[0].id
+    this.patternChain.value = [this.patternMemory.patterns[0].id]
+  }
+  
+  public get patternMemory(): PatternManager {
+    return this._patternMemory
   }
   
   private _mainLoop: Tone.Loop<any> | null = null;
   
-  private _parts: Tone.Part<PartEvent>[] = []
+  public set currentPage(value: number) {
+    this._currentPage.value = value
+    
+    // If there is no grid cells for this page, populate them
+    if (this.selectedPatternCells.filter((gridCell) => gridCell.column >= 1 + 16 * (value - 1) && gridCell.column <= 16 * value).length === 0) {
+      this.selectedPatternCells.push(...this.initGrid(value))
+    }
+  }
+  
+  public get sequenceGrid(): GridCell[] {
+    return this.selectedPatternCells
+  }
   
   private _isPlaying: Ref<boolean> = ref(false)
   
@@ -112,11 +124,8 @@ export class Sequencer {
     return this._currentPage.value
   }
   
-  public set currentPage(value: number) {
-    this._currentPage.value = value
-    if (this._sequenceGrid.value.filter((gridCell) => gridCell.column >= 1 + 16 * (value - 1) && gridCell.column <= 16 * value).length === 0) {
-      this.initGrid(value)
-    }
+  private get selectedPatternCells(): GridCell[] {
+    return this.patternMemory.byId(this.selectedPatternId.value)?.cells || []
   }
 
   public get indicatorLoops(): Tone.Loop[] {
@@ -128,11 +137,11 @@ export class Sequencer {
   }
   
   public static async importFrom(data: string): Promise<Sequencer> {
-    const parsedData = JSON.parse(data)
+    const parsedData = JSON.parse(data) as SequencerExportData
     
     const sequencer = Sequencer.getInstance()
     
-    sequencer.bpm = parseInt(parsedData.bpm)
+    sequencer.bpm = parseInt(String(parsedData.bpm))
     
     sequencer.soundEngine.clearTracks()
     
@@ -142,7 +151,7 @@ export class Sequencer {
       
       const autoDuck = parsedData.tracks[trackIndex].middlewares.find((middleware: UniversalEffect) => middleware.name === 'AutoDuck')
       if (autoDuck) {
-        const options = autoDuck.options
+        const options = autoDuck.options as any
         sequencer.soundEngine.toggleSidechain(sequencer.soundEngine.tracks.value[0], track, options)
       }
     }
@@ -151,22 +160,46 @@ export class Sequencer {
       sequencer.addLFO(parsedData.lfos[lfoIndex])
     }
     
-    sequencer.sequenceGrid.value = parsedData.sequenceGrid.map((gridCell: GridCell) => {
-      return new GridCell({
-        ...gridCell,
-        modifiers: new Map(gridCell.modifiers),
-      })
+    // sequencer.sequenceGrid = parsedData.sequenceGrid.map((gridCell: GridCell) => {
+    //   return new GridCell({
+    //     ...gridCell,
+    //     modifiers: new Map(gridCell.modifiers),
+    //   })
+    // })
+    
+    sequencer.patternMemory.clear()
+    
+    parsedData.patterns.forEach((pattern: Pattern) => {
+      sequencer.patternMemory.set(new Pattern({
+        cells: pattern.cells.map((gridCell: GridCell) => {
+          const modifiers = Object.keys(gridCell.modifiers).length > 0 ? new Map(gridCell.modifiers) : new Map()
+          
+          return new GridCell({
+            ...gridCell,
+            modifiers: modifiers,
+          })
+        }),
+        name: pattern.name,
+        id: pattern.id,
+        tracksDurationInSteps: pattern.tracksDurationInSteps,
+      }))
     })
+    
+    sequencer.patternChain.value = parsedData.patternChain
+    
+    sequencer.selectedPatternId.value = parsedData.selectedPatternId
+    
+    sequencer.patternMemory.triggerUpdate()
     
     return sequencer
   }
-
-  public get sequenceGrid(): Ref<GridCell[]> {
-    return this._sequenceGrid
+  
+  public selectPatternById(id: string): void {
+    this.selectedPatternId.value = id
   }
   
   public sequenceGridForDisplay(page: number = 1): GridCell[] {
-    return this._sequenceGrid.value.filter((gridCell) => gridCell.column >= 1 + 16 * (page - 1) && gridCell.column <= 16 * page)
+    return this.selectedPatternCells.filter((gridCell) => gridCell.column >= 1 + 16 * (page - 1) && gridCell.column <= 16 * page)
   }
 
   public get currentStep(): number {
@@ -174,11 +207,6 @@ export class Sequencer {
   }
 
   public set currentStep(newValue: number) {
-    if (newValue > GRID_COLS) {
-      this._currentStep.value = 1
-      return
-    }
-    
     this._currentStep.value = newValue
   }
   
@@ -191,9 +219,10 @@ export class Sequencer {
   public set isPlaying(value: boolean) {
     this._isPlaying.value = value
   }
-
-  public getCellIndex(row: number, column: number): number {
-    return this._sequenceGrid.value.findIndex((gridCell) => gridCell.id === `${row}-${column}`)
+  
+  public getCellIndex(row: number, column: number, patternId?: string): number {
+    const pattern = patternId ? this.patternMemory.byId(patternId) : this.patternMemory.byId(this.selectedPatternId.value)
+    return pattern.cells.findIndex((gridCell) => gridCell.id === `${row}-${column}`)
   }
 
   public get history(): HistoryManager<GridCell> {
@@ -208,40 +237,53 @@ export class Sequencer {
     
     return Sequencer.instance;
   }
-
-  public readCell(row: number, column: number): GridCell {
-    const cellIndex = this.getCellIndex(row, column)
+  
+  public readCell(row: number, column: number, patternId?: string): GridCell {
+    const cellIndex = this.getCellIndex(row, column, patternId)
     
-    return <GridCell>({
-      ...this._sequenceGrid.value[cellIndex],
-      modifiers: this._sequenceGrid.value[cellIndex].modifiers,
-      notes: this._sequenceGrid.value[cellIndex].notes,
-      arpeggiator: this._sequenceGrid.value[cellIndex].arpeggiator
-    })
+    if (cellIndex === -1) {
+      throw new Error(`Cell with row ${row} and column ${column} does not exist`)
+    }
+    
+    const pattern = patternId ? this.patternMemory.byId(patternId) : this.patternMemory.byId(this.selectedPatternId.value)
+    
+    return pattern.cells[cellIndex]
   }
   
   public get LFOs(): ShallowRef<LFO[]> {
     return this._lfos
   }
   
-  public writeCell(newCell: GridCell, ignoreHistory?: boolean): void {
+  public writeCell(newCell: GridCell, options?: { ignoreHistory?: boolean, patternId?: string }): void {
     newCell = new GridCell({...newCell})
+    const {ignoreHistory, patternId} = options ?? {}
     
-    if (this._parts[newCell.row - 1]) {
-      this._parts[newCell.row - 1].at(getBarsBeatsSixteensFromStep(newCell.column - 1), {
-        notes: newCell.notes,
-        velocity: (newCell.velocity ?? 0) / 100,
-        duration: newCell.duration,
-        modifiers: newCell.modifiers,
-        column: newCell.column,
-        row: newCell.row,
-        arpeggiator: newCell.arpeggiator,
-        mode: newCell.mode
-      } as PartEvent)
+    const partIndex = newCell.row - 1
+    
+    const safePatternId = patternId ?? this.selectedPatternId.value
+    
+    if (this.partsManager.has(safePatternId) && this.partsManager.get(safePatternId)![partIndex]) {
+      this.partsManager.at({
+        time: getBarsBeatsSixteensFromStep(newCell.column - 1),
+        value: {
+          notes: newCell.notes,
+          velocity: (newCell.velocity ?? 0) / 100,
+          duration: newCell.duration,
+          modifiers: newCell.modifiers,
+          column: newCell.column,
+          row: newCell.row,
+          arpeggiator: newCell.arpeggiator,
+          mode: newCell.mode
+        },
+        patternId: safePatternId,
+        partIndex
+      })
     }
     
+    const targetPattern = this.patternMemory.byId(safePatternId)
+    
     if (!ignoreHistory) {
-      const originalCell = this._sequenceGrid.value.find(_ => _.id === newCell.id) ?? null as GridCell | null
+      const originalCell = targetPattern.cells.find(_ => _.id === newCell.id) ?? null as GridCell | null
       
       originalCell && this.historyManager.push(
         new GridCell({
@@ -252,8 +294,8 @@ export class Sequencer {
         })
       )
     }
-    const cellIndex = this.getCellIndex(newCell.row, newCell.column)
-    this._sequenceGrid.value[cellIndex] = new GridCell({...newCell})
+    const cellIndex = targetPattern.cells.findIndex(_ => _.id === newCell.id) ?? -1
+    targetPattern.cells[cellIndex] = new GridCell({...newCell})
     
     const selectedGridCell = useGridEditorStore().selectedGridCell
     
@@ -264,6 +306,8 @@ export class Sequencer {
         useGridEditorStore().setSelectedGridCell(newCell)
       }
     }
+    
+    this.patternMemory.triggerUpdate();
   }
   
   public set bpm(value: number) {
@@ -284,7 +328,7 @@ export class Sequencer {
       // we are sure they will be present in store
     }: Required<ImproviseOptions> = useGridEditorStore().improviseOptions as unknown as Required<ImproviseOptions>
     
-    this.sequenceGrid.value.filter(cell => cell.row === trackNumber &&
+    this.sequenceGrid.filter(cell => cell.row === trackNumber &&
       cell.column >= 1 + 16 * (this.currentPage - 1) &&
       cell.column <= 16 * this.currentPage
     ).map(cell => {
@@ -343,11 +387,13 @@ export class Sequencer {
     return this._isPlaying
   }
   
-  public initGrid(page: number = 1): void {
-    for (let i = 1; i <= this.soundEngine.tracksCount.value; i++) {
+  public initGrid(page: number = 1): GridCell[] {
+    const result: GridCell[] = []
+    
+    for (let i = 1; i <= GRID_ROWS; i++) {
       // todo either page or 32
       for (let j = 1 + 16 * (page - 1); j <= 16 * page; j++) {
-        this._sequenceGrid.value.push(new GridCell({
+        result.push(new GridCell({
           row: i,
           column: j,
           notes: [DEFAULT_NOTE],
@@ -357,6 +403,7 @@ export class Sequencer {
         }))
       }
     }
+    return result
   }
   
   public removeLFO(lfo: LFO): void {
@@ -370,14 +417,17 @@ export class Sequencer {
     triggerRef(this._lfos)
   }
   
-  public updatePartDuration(trackNumber: number, numOfParts: number): void {
-    if (!this._parts[trackNumber - 1]) {
-      return
+  public updatePartDuration(trackNumber: number, numOfSixteenths: number, patternId?: string): void {
+    const safePatternId = patternId ?? this.selectedPatternId.value
+    
+    if (this.partsManager.has(safePatternId) && this.partsManager.get(safePatternId)![trackNumber - 1]) {
+      this.partsManager.get(safePatternId)![trackNumber - 1].part.loopEnd = stepsToLoopLength(numOfSixteenths)
     }
     
-    this._parts[trackNumber - 1].loopEnd = stepsToLoopLength(numOfParts)
+    this.patternMemory.byId(safePatternId).tracksDurationInSteps[trackNumber - 1] = numOfSixteenths
     
-    this.setupIndicatorLoops()
+    this.setupIndicatorLoops(patternId)
+    this.setupTransport()
   }
   
   public addLFO(lfoOptions: LFOOptions): void {
@@ -474,10 +524,13 @@ export class Sequencer {
   
   public stop() {
     this._isPlaying.value = false;
+    this.currentStep = 1
     
-    this._parts.forEach((part) => part.cancel().stop().dispose())
-    this._parts = []
+    this.partsManager.parts.forEach((_) => _.part.cancel().stop().dispose())
+    this.partsManager = new PartsManager()
     
+    this._indicatorWatchdog?.cancel().stop().dispose()
+    this._indicatorWatchdog = null
     this._indicatorLoops.forEach((loop) => loop.cancel().stop().dispose())
     this._indicatorLoops = []
     
@@ -489,7 +542,7 @@ export class Sequencer {
     
     this.soundEngine.tracks.value.forEach((track) => track.getLoops().value.forEach((loop) => loop.stop()))
     
-    Tone.Transport.stop()
+    Tone.Transport.stop().cancel()
     this._mainLoop?.stop().dispose()
   }
   
@@ -499,282 +552,131 @@ export class Sequencer {
     this._indicatorMatrix.value = matrix
   }
   
+  public setupTransport(): void {
+    let lastPatternEnd: number = 0
+    this.patternChain.value.forEach((patternId, index) => {
+      lastPatternEnd += Tone.Time(this.scheduleNextPattern(patternId, lastPatternEnd)).toSeconds()
+    });
+    
+    Tone.Transport.loopEnd = Tone.Time(lastPatternEnd).toSeconds()
+  }
+  
   public async play() {
     this.currentStep = 1
     
     this.setupIndicatorLoops()
     
-    for (let trackIndex = 0; trackIndex < this.soundEngine.tracks.value.length; trackIndex++) {
-      const part = new Tone.Part(
-        ((time, partEvent: PartEvent) => {
-          const track = this.soundEngine.tracks.value[trackIndex]
-          
-          if (partEvent.velocity === 0) {
-            return
-          }
-          
-          // TODO Why do we suppose the very first channel to always be (only) sidechain source (kick)?..
-          if (trackIndex === 0 && !track.meta.get('mute')) {
-            track.sidechainEnvelope?.triggerAttackRelease(partEvent.duration, time)
-          }
-          
-          // new Promise(() => console.log('PART', i, partEvent.notes, partEvent.velocity, partEvent.duration, Tone.Time(time).toBarsBeatsSixteenths(), partEvent.modifiers, partEvent.arpeggiator))
-          
-          const hasArpEnabled = partEvent.arpeggiator && partEvent.notes.length > 1
-          
-          // Probability
-          // Works differently with Arps (see Arp section)
-          if (partEvent.modifiers.has(GridCellModifierTypes.probability) && !hasArpEnabled) {
-            const probabilityParams = partEvent.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
-            
-            if (Math.random() * 100 > probabilityParams.probability) {
-              return
-            }
-          }
-          
-          const cell = this.readCell(partEvent.row, partEvent.column)
-          const modifiers = new Map(cloneDeep(cell.modifiers))
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.skip)) {
-            const skipParams = partEvent.modifiers.get(GridCellModifierTypes.skip) as SkipParams
-            
-            modifiers.set(GridCellModifierTypes.skip, {
-              type: GridCellModifierTypes.skip,
-              skip: skipParams.skip,
-              timesTriggered: skipParams.timesTriggered ? skipParams.timesTriggered + 1 : 1,
-            })
-            
-            let newGridCell = new GridCell({
-              ...cell,
-              modifiers,
-            })
-            this.writeCell(newGridCell, true)
-            
-            const skipParamsForCell = this.readCell(partEvent.row, partEvent.column).modifiers.get(GridCellModifierTypes.skip) as SkipParams
-            
-            if (skipParamsForCell.timesTriggered && skipParamsForCell.timesTriggered % skipParams.skip !== 0) {
-              return
-            } else {
-              modifiers.set(GridCellModifierTypes.skip, {
-                type: GridCellModifierTypes.skip,
-                skip: skipParams.skip,
-                timesTriggered: 0,
-              })
-            }
-            
-            newGridCell = new GridCell({
-              ...cell,
-              modifiers,
-            })
-            this.writeCell(newGridCell, true)
-          }
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.swing)) {
-            const swingParams = partEvent.modifiers.get(GridCellModifierTypes.swing) as SwingParams
-            
-            time = Tone.Time(time).quantize(swingParams.subdivision, swingParams.swing / 100)
-          }
-          
-          const flamParams = partEvent.modifiers.get(GridCellModifierTypes.flam) as FlamParams | undefined
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.flam) && flamParams && flamParams.roll > 1) {
-            const timeOfOneFullNote = Tone.Time(partEvent.duration).toSeconds()
-            const timeOfOneFlamNote = timeOfOneFullNote / flamParams.roll
-            
-            for (let i = 0; i < flamParams.roll; i++) {
-              track.source.releaseAll(time)
-              
-              let velocity = flamParams.velocity ?? (partEvent.velocity)
-              
-              if (flamParams.increaseVelocityFrom) {
-                velocity = flamParams.increaseVelocityFrom + (velocity - flamParams.increaseVelocityFrom) * (i / flamParams.roll)
-              }
-              
-              let note: string;
-              if (partEvent.notes.length > 1) {
-                // map roll count to note of pattern
-                const noteIndex = Math.floor(i / flamParams.roll * partEvent.notes.length)
-                note = partEvent.notes[noteIndex]
-              } else {
-                note = partEvent.notes[0]
-              }
-              
-              track.source.triggerAttackRelease(
-                note,
-                partEvent.duration,
-                time,
-                velocity
-              )
-              time += timeOfOneFlamNote
-              
-            }
-            
-            return
-          }
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.playbackRate)) {
-            const playbackRateParams = partEvent.modifiers.get(GridCellModifierTypes.playbackRate)
-            
-            track.setToSource({playbackRate: playbackRateParams!.playbackRate})
-          } else {
-            track.setToSource({playbackRate: 1})
-          }
-          
-          if (partEvent.modifiers.has(GridCellModifierTypes.reverse)) {
-            track.setToSource({reverse: true})
-          } else {
-            track.setToSource({reverse: false})
-          }
-          
-          // ARP SECTION
-          if (partEvent.notes.length > 1 && partEvent.arpeggiator && partEvent.mode === GridCellNoteModeEnum.arpeggio) {
-            const {pulses, parts, shift, type, gate} = partEvent.arpeggiator
-            
-            const shiftedEuclideanRhythmVector = createEuclideanRhythmVector(pulses, parts, shift)
-            
-            const timeOfOneRhythmPart = Tone.Time(partEvent.duration).toSeconds() / shiftedEuclideanRhythmVector.length
-            
-            let arpMicroTime = -timeOfOneRhythmPart
-            
-            const patternNoteIndex = PatternGenerator(partEvent.notes.length, type)
-            
-            shiftedEuclideanRhythmVector.forEach((hasPulse) => {
-              arpMicroTime += timeOfOneRhythmPart
-              
-              if (!hasPulse) {
-                return
-              }
-              
-              if (partEvent.modifiers.has(GridCellModifierTypes.probability)) {
-                const probabilityParams = partEvent.modifiers.get(GridCellModifierTypes.probability) as ProbabilityParams
-                
-                if (Math.random() * 100 > probabilityParams.probability) {
-                  return
-                }
-              }
-              
-              track.source.triggerAttackRelease(
-                partEvent.notes[patternNoteIndex.next().value],
-                gate,
-                time + arpMicroTime,
-                partEvent.velocity
-              )
-            })
-          } else {
-            try {
-              if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
-                if (partEvent.notes.length > 1 && !partEvent.arpeggiator) {
-                  console.error(`Row: ${partEvent.row}, Col: ${partEvent.column} has multiple notes, slide, and no arpeggiator, playing only the first note`)
-                }
-                
-                const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
-                // Only if it's a slde and it's an instrument that supports slide
-                if (slideParams.slide && track.source.AVAILABLE_SETTINGS.includes('slide')) {
-                  track.source.slideTo(partEvent.notes[0], partEvent.velocity, time, slideParams.slide / 100)
-                  return;
-                }
-              }
-              
-              switch (partEvent.mode) {
-                case GridCellNoteModeEnum.random:
-                  track.source.triggerAttackRelease(
-                    partEvent.notes[Math.floor(Math.random() * partEvent.notes.length)],
-                    partEvent.duration,
-                    time,
-                    partEvent.velocity
-                  )
-                  break;
-                
-                case GridCellNoteModeEnum.arpeggio: // it's handled above, ignoring
-                case GridCellNoteModeEnum.chord:
-                  partEvent.notes.forEach((note) => {
-                    track.source.triggerAttackRelease(
-                      note,
-                      partEvent.duration,
-                      time,
-                      partEvent.velocity
-                    )
-                  })
-                  break;
-                
-                default:
-                  track.source
-                    .triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
-              }
-              
-            } catch (e) {
-              console.error(e)
-            }
-          }
-        }),
-        [
-          ...this._sequenceGrid.value.filter(_ => ((_.row === trackIndex + 1) && (_.velocity > 0))).map(_ => {
-            const step = _.column - 1
-            
-            return {
-              time: getBarsBeatsSixteensFromStep(step),
-              notes: _.notes,
-              velocity: _.velocity / 100,
-              duration: _.duration,
-              modifiers: _.modifiers,
-              column: _.column,
-              row: _.row,
-              arpeggiator: _.arpeggiator,
-              mode: _.mode
-            } as PartEvent
-          })
-        ]
-      ).start(0).set({
-        loop: true,
-        loopStart: 0,
-        loopEnd: stepsToLoopLength(this.soundEngine.tracks.value[trackIndex].length),
-      })
-      
-      this._parts.push(
-        part
-      )
-    }
+    this.setupTransport()
+    
+    Tone.Transport.loop = true
     
     this._mainLoop = new Tone.Loop((time) => {
       // triggered every eighth note.
       Tone.Draw.schedule(() => {
+        const realPartDurationInSteps = Math.max(...this.patternMemory.byId(this.selectedPatternId.value).tracksDurationInSteps)
         this.currentStep++
+        
+        if (this.currentStep >= realPartDurationInSteps) {
+          this.currentStep = 1
+        }
       }, time);
     }, "16n").start(0);
     
-    this._indicatorLoops.forEach(loop => loop.start(0))
+    this._indicatorWatchdog = new Tone.Loop((time) => {
+      Tone.Draw.schedule(() => {
+        const realPartDurationInSteps = Math.max(...this.patternMemory.byId(this.selectedPatternId.value).tracksDurationInSteps)
+        
+        this.setupIndicatorLoops();
+        if (this.currentStep >= realPartDurationInSteps) {
+          this.currentStep = 1
+        }
+      }, time);
+      
+    }, "1m").start(0);
     
     Tone.Transport.start()
     
     this._isPlaying.value = true;
   }
   
-  public setupIndicatorLoops() {
+  public scheduleNextPattern(patternId: string, time?: Tone.Unit.Time): Tone.Unit.Time {
+    const nextMeasure = time ?? getToneTimeNextMeasure()
+    
+    this.partsManager.get(patternId)?.forEach((part) => part.part.stop(nextMeasure))
+    
+    const partDurationInSteps = Math.max(...this.patternMemory.byId(patternId).tracksDurationInSteps)
+    const partDuration = Tone.Time(stepsToLoopLength(partDurationInSteps)).toSeconds()
+    
+    const parts: Tone.Part<PartEvent>[] = []
+    for (let trackIndex = 0; trackIndex < this.soundEngine.tracks.value.length; trackIndex++) {
+      parts.push(createPartFromData({
+        track: this.soundEngine.tracks.value[trackIndex],
+        trackIndex,
+        trackData: patternToTrackData(this.patternMemory.byId(patternId), trackIndex + 1),
+        patternId,
+        lengthInSteps: this.patternMemory.byId(patternId).tracksDurationInSteps[trackIndex],
+      }).start(time).stop(Tone.Time(time).toSeconds() + partDuration))
+    }
+    
+    this.partsManager.set(patternId, parts.map(part => ({
+      part,
+      startTime: time as number,
+    })))
+    
+    const maxPartDuration = Math.max(...parts.map((part) => part.loopEnd as number))
+    return Tone.Time(maxPartDuration).toSeconds()
+  }
+  
+  public setupIndicatorLoops(patternId?: string): void {
     const durationOf16n = Tone.Time('16n')
+    const safePatternId = patternId ?? this.selectedPatternId.value
     
     this.soundEngine.tracks.value.forEach((track, trackIndex) => {
+      const length = this.patternMemory.byId(safePatternId).tracksDurationInSteps[trackIndex]
+      
       if (!this.indicatorLoops[trackIndex]) {
         this.indicatorLoops.push(
-          new Tone.Loop(this.indicatorDrawCallback(trackIndex, track.length), durationOf16n.toSeconds())
+          new Tone.Loop(this.indicatorDrawCallback(trackIndex, length), durationOf16n.toSeconds())
         )
       } else {
         this.indicatorLoops[trackIndex].set({
-          callback: this.processDisplayIndicatorTick(trackIndex, track.length),
+          callback: this.processDisplayIndicatorTick(trackIndex, length),
+        })
+      }
+      
+      Tone.Draw.schedule(() => {
+        this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
+          this.indicatorMatrix.value[trackIndex][columnIndex] = false
         })
         
-        Tone.Transport.scheduleOnce(() => {
-          this.indicatorMatrix.value[trackIndex].forEach((__, columnIndex) => {
-            this.indicatorMatrix.value[trackIndex][columnIndex] = false
-          })
-          
-          this.toggleIndicator(trackIndex + 1, 1, true)
-        }, getToneTimeNextMeasure())
-      }
+        this.toggleIndicator(trackIndex + 1, 1, true)
+      }, 0)
     })
+    
+    this._indicatorLoops.forEach(loop => loop.start(Tone.getContext().lookAhead))
   }
   
   private processDisplayIndicatorTick(trackIndex: number, trackLength: number): (time: number) => void {
     return (time: number) => Tone.Draw.schedule(this.indicatorDrawCallback(trackIndex, trackLength), time)
+  }
+  
+  public export(): string {
+    const data: SequencerExportData = {
+      bpm: this.bpm,
+      patterns: this.patternMemory.export(),
+      tracks: this.soundEngine.tracks.value.map((track) => track.export()),
+      lfos: this.LFOs.value.map((lfo) => lfo.export()),
+      patternChain: this.patternChain.value,
+      selectedPatternId: this.selectedPatternId.value,
+    }
+    return JSON.stringify(data)
+  }
+  
+  public addTrack(track: Track): Track {
+    const result = this.soundEngine.addTrack(track)
+    this.setupTransport()
+    
+    return result
   }
   
   private indicatorDrawCallback(trackIndex: number, trackLength: number): () => void {
@@ -784,10 +686,8 @@ export class Sequencer {
       }
       
       const cellIndexOfEnabledIndicator = this.indicatorMatrix.value[trackIndex].findIndex(_ => _)
-
-      this.indicatorMatrix.value[trackIndex].forEach(() => {
-        this.indicatorMatrix.value[trackIndex][cellIndexOfEnabledIndicator] = false
-      })
+      
+      this.indicatorMatrix.value[trackIndex][cellIndexOfEnabledIndicator] = false
       
       let columnOfNextStep = cellIndexOfEnabledIndicator + 1
       if (columnOfNextStep >= trackLength) {
@@ -797,20 +697,13 @@ export class Sequencer {
       this.indicatorMatrix.value[trackIndex][columnOfNextStep] = true
     }
   }
-  
-  
-  public export(): string {
-    const data = {
-      bpm: this.bpm,
-      sequenceGrid: cloneDeep(this.sequenceGrid.value).map((gridCell) => {
-        // @ts-ignore
-        gridCell.modifiers = Array.from(gridCell.modifiers.entries())
-        
-        return gridCell
-      }),
-      tracks: this.soundEngine.tracks.value.map((track) => track.export()),
-      lfos: this.LFOs.value.map((lfo) => lfo.export())
-    }
-    return JSON.stringify(data)
-  }
+}
+
+export type SequencerExportData = {
+  bpm: number,
+  patterns: Pattern[],
+  tracks: TrackExportOptions[],
+  lfos: LFOOptions[],
+  patternChain: string[],
+  selectedPatternId: string,
 }

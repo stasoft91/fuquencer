@@ -61,7 +61,7 @@ export const useGridEditorStore = defineStore('gridEditorStore', () => {
 		
 		isVisualizerActive,
 		selectedGridCell,
-
-        improviseOptions
+		
+		improviseOptions
 	}
 })

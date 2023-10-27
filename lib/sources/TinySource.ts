@@ -25,12 +25,11 @@ export class TinySource extends AbstractSource {
 	public async init(): Promise<void> {
 		this._isInitialized = true;
 		
-		console.log('smplr init ++')
 	}
 	
 	chain(...args: ToneAudioNode[]): any {
 		// this._voice.output.addInsert(this.output)
-		console.log('smplr chain ++')
+		console.log('tiny chain ++')
 		// this.output.chain(...args)
 	}
 	

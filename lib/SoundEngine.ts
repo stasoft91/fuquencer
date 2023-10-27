@@ -53,6 +53,9 @@ export class SoundEngine {
     }
     
     this.tracks.value.push(track)
+    
+    this.tracksCount.value = this.tracks.value.length;
+    
     triggerRef(this.tracks)
     
     return track

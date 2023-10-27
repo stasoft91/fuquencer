@@ -14,10 +14,11 @@ yarn install
 
 ### Features
 
-- [x] 16 step sequencer with conditional steps and probability
+- [x] 64 step sequencer with conditional steps and probability
+- [x] Pattern sequencer (in development)
 - [x] Per-step midi effects like flam, swing, velocity, etc
 - [x] Euclidean Arpeggiator
-- [x] Basic mono synth
+- [x] Multiple presets and instruments to choose from
 - [x] Basic sample player
 - [x] Melody Generation \ Improvisation
 - [x] Per-track Effects
@@ -29,7 +30,8 @@ yarn install
 - [X] Instruments \ DrumMachines Presets
 - [x] Track Mute \ Unmute with quantization (for live performance and stuff)
 - [ ] MORE instruments
-- [ ] More effects
+- [ ] More effects (EQ)
+- [ ] Tweakable instrument parameters
 - [ ] Oneshot \ LFO automations for some of the properties of the instruments and ~~effects~~ (soon)
 - [ ] Chokes on sampler
 - [ ] Export .wav

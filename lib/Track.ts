@@ -24,7 +24,7 @@ export type TrackExportOptions = Omit<TrackOptions, 'source'> & {
     sourceType: SOURCE_TYPES,
     source: RNBOSourceOptions | AbstractSourceOptions | SoundfontOptions | PulseqOptions,
     middlewares: UniversalEffect[],
-    length: number,
+	// length: number,
     loops: Omit<LoopOptions, 'track'>[],
 }
 
@@ -65,15 +65,15 @@ export class Track {
     public get middlewares(): UniversalEffect[] {
         return this._middlewares.value;
     }
-    
-    private _length: Ref<number> = ref(16);
+	
+	// private _length: Ref<number> = ref(16);
     
     /*
      * Starts with 1
      */
-    public get length(): number {
-        return this._length.value;
-    }
+	// public get length(): number {
+	//     return this._length.value;
+	// }
     
     private _meta: Ref<Map<string, any>> = ref(new Map());
     
@@ -114,8 +114,8 @@ export class Track {
             source,
             sourceType: trackOptions.sourceType,
         });
-        
-        newTrack._length.value = trackOptions.length;
+	    
+	    // newTrack._length.value = trackOptions.length;
         
         trackOptions.middlewares.filter(_ => _.name !== 'AutoDuck').forEach((middleware) => {
             newTrack.addMiddleware(middleware);
@@ -288,21 +288,21 @@ export class Track {
                 options: {..._.options, ..._.effect.get()},
                 effect: undefined,
             })) as UniversalEffect[],
-            length: this.length,
+	        // length: this.length,
             loops: this._loops.value.map((loop) => ({
                 ...loop.export()
             })),
             sourceType: this.sourceType.value
         }
     }
-    
-    public setLength(length: number): void {
-        this._length.value = length;
-        
-        const seq = Sequencer.getInstance();
-        const trackNumber = seq.soundEngine.tracks.value.findIndex((t) => t.name === this.name) + 1;
-        seq.updatePartDuration(trackNumber, length);
-    }
+	
+	// public setLength(length: number): void {
+	//     this._length.value = length;
+	//
+	//     const seq = Sequencer.getInstance();
+	//     const trackNumber = seq.soundEngine.tracks.value.findIndex((t) => t.name === this.name) + 1;
+	//     seq.updatePartDuration(trackNumber, length);
+	// }
     
     public get selectedPreset(): string {
         return this.source.selectedPreset.value

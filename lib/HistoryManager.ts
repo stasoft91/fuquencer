@@ -53,8 +53,6 @@ export class HistoryManager<T> {
 			this._history.value.shift()
 			this._index.value--
 		}
-		
-		console.log('push', this._history.value)
 	}
 	
 	public clearHistory() {

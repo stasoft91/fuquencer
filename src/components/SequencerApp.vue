@@ -35,16 +35,20 @@
       <SimpleButton @click="play">{{ sequencer.isPlaying ? 'STOP' : 'PLAY' }}</SimpleButton>
 
       <SimpleButton
-          v-for="page in [1, 2]"
+          v-for="page in [1, 2, 3, 4]"
           :key="page"
-          :value="page === sequencer.currentPage"
+          :style="getStylesForPageButton(page)"
           style="--indicator-false-color: grey; --indicator-false-color-shadow: darkgrey;"
+          :value="isPageButtonActive(page)"
           @click="onSetPage(page)"
-      >{{ page }}/2
+      >{{ page }}
       </SimpleButton>
     </div>
 
+    <PatternChainComposer></PatternChainComposer>
+
     <MixerDisplay :key="sequencer.isPlaying ? 'playing' : 'stopped'"></MixerDisplay>
+
 
     <SubPanel
         v-if="sequencer.soundEngine.tracks.value[selectedTrackIndex]"
@@ -62,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, h} from 'vue'
+import {computed, h, ref, watch} from 'vue'
 
 import {generateListOfAvailableNotes, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
@@ -85,6 +89,7 @@ import {useDialog} from 'naive-ui'
 import {useGridEditorStore} from "@/stores/gridEditor";
 import LegacySource from "~/lib/sources/LegacySource";
 import {cloneDeep} from "lodash";
+import PatternChainComposer from "@/components/ui/PatternChainComposer.vue";
 
 const dialog = useDialog()
 
@@ -98,6 +103,47 @@ const selectedTrackIndex = computed(() => trackNumberStore.selectedTrackIndex);
 const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 });
+
+watch(() => sequencer.isPlaying, (isPlaying) => {
+  if (isPlaying) {
+    startBlinking()
+  } else {
+    stopBlinking()
+  }
+})
+
+const blinkFlag = ref(true)
+let blinkInterval = 0
+
+const stopBlinking = () => {
+  clearInterval(blinkInterval)
+  blinkFlag.value = true
+}
+
+const startBlinking = () => {
+  blinkInterval = setInterval(() => {
+    blinkFlag.value = !blinkFlag.value
+  }, Tone.Time('16n').toMilliseconds())
+}
+
+const isPageButtonActive = (page: number) => {
+  const realPartDurationInSteps = Math.max(...sequencer.patternMemory.byId(sequencer.selectedPatternId.value).tracksDurationInSteps)
+
+  return (sequencer.currentPage === page && blinkFlag.value && !sequencer.isPlaying) ||
+      (sequencer.currentPage === page && sequencer.isPlaying) ||
+      (
+          Math.floor(sequencer.currentStep / 16) + 1 === page &&
+          sequencer.currentStep % 16 < realPartDurationInSteps &&
+          sequencer.isPlaying
+      ) && blinkFlag.value
+}
+
+const getStylesForPageButton = (page: number) => {
+  const realPartDurationInSteps = Math.max(...sequencer.patternMemory.byId(sequencer.selectedPatternId.value).tracksDurationInSteps)
+
+  return {}
+}
+
 const onSetPage = (page: number) => {
   sequencer.currentPage = page
 }
@@ -191,10 +237,6 @@ const onNoteWheel = (cell: GridCell, event: WheelEvent) => {
 
 const changeCellState = (row: number, column: number) => {
   const cell = sequencer.readCell(row, column)
-  const trackLength = sequencer.soundEngine.tracks.value[selectedTrackIndex.value]?.length
-  if (trackLength < column) {
-    return
-  }
 
   const newVelocity = sequencer.readCell(row, column).velocity > 0 ? 0 : 100;
 
@@ -273,7 +315,6 @@ const onRenameTrack = (trackIndex: number) => {
 }
 
 const onAddTrack = async () => {
-  // TODO!!!!!!
   if (sequencer.soundEngine.tracks.value.length >= 8) {
     throw new Error('Maximum number of tracks reached')
   }
@@ -295,7 +336,7 @@ const onAddTrack = async () => {
 
   await abstractSourceSynth.init();
 
-  sequencer.soundEngine.addTrack(new Track({
+  sequencer.addTrack(new Track({
     sourceType: SOURCE_TYPES.legacyMono,
     name: 'Tone #' + (sequencer.soundEngine.tracks.value.length + 1),
     source: abstractSourceSynth,

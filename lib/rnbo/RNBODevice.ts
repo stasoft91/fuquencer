@@ -67,7 +67,6 @@ class RNBODevice {
         const unsafeTime = (time * 1000) - (Tone.getContext().lookAhead * 1000)
         const safeTime = unsafeTime < 0 ? 0 : unsafeTime
         const message = new MessageEvent(safeTime, tag, [payload]);
-        console.log('message', message)
         this.device.scheduleEvent(message);
     }
 
@@ -100,7 +99,6 @@ class RNBODevice {
                 }
                 this.state.value[key] = value
                 this.messageDevice(key, value || 0, time)
-                console.log('setting', key, value, this.state.value[key])
             })
     }
 
