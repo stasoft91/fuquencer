@@ -29,7 +29,9 @@ export const getToneTimeNextMeasure = (addMeasures: number = 1): Tone.Unit.Time 
 	
 	const result = Tone.Time(`${addMeasures + parseInt(part)}:0:0`).toSeconds()
 	
-	if (loopEnd >= result) {
+	// if timepoint is after the finish of global loop
+	// we will set it to zero - which is a start of global loop
+	if (loopEnd < result) {
 		return 0
 	}
 	

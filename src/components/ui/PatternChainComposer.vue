@@ -91,7 +91,7 @@ const onDragStart = (evt: DragEvent) => {
 
 const isPatternButtonActive = (patternId: number) => {
   return (sequencer.selectedPatternId.value === patternId && !sequencer.isPlaying) ||
-      (sequencer.selectedPatternId.value === patternId && blinkFlag.value && sequencer.isPlaying) ||
+      (sequencer.selectedPatternId.value === patternId && sequencer.isPlaying) ||
       (
           // is current transport position within pattern duration
           sequencer.isPlaying &&
