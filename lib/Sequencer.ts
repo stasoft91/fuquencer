@@ -450,14 +450,32 @@ export class Sequencer {
             }
           })
         }
-        source.init()
-        sequencer.soundEngine.addTrack(
-          new Track({
-            name: trackName,
-            source,
+        source.init().then(() => {
+          sequencer.soundEngine.addTrack(
+            new Track({
+              name: trackName,
+              source,
+              sourceType: SOURCE_TYPES.SMPLR_Instrument,
+            })
+          )
+        }).catch((e) => {
+          
+          console.error(e)
+          source = createNewSource({
             sourceType: SOURCE_TYPES.SMPLR_Instrument,
+            source: {
+              instrument: 'acoustic_grand_piano'
+            }
           })
-        )
+          
+          sequencer.soundEngine.addTrack(
+            new Track({
+              name: trackName,
+              source,
+              sourceType: SOURCE_TYPES.SMPLR_Instrument,
+            })
+          )
+        })
       }
       
       if (track.instrument.percussion) {
@@ -795,7 +813,7 @@ export class Sequencer {
     return result
   }
   
-  public getCurrentlyPlayingPatternId(): string {
+  public getCurrentlyPlayingPatternId(): string | undefined {
     const patternChainDurations = this.patternChain.value
       .map(patternId => {
         return this.patternMemory.patterns.find(pattern => pattern.id === patternId)!
