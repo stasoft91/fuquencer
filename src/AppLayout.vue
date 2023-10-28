@@ -210,13 +210,13 @@ const stepJobsReactiveKey = computed(() => {
           <NIcon :component="FolderIcon"></NIcon>
           Load
         </SimpleButton>
-        <SimpleButton class="big" @click="handleDemo">
-          <NIcon :component="NotesIcon"></NIcon>
-          Demo #1
-        </SimpleButton>
         <SimpleButton class="big" @click="handleImportMidi">
           <NIcon :component="ImportIcon"></NIcon>
           Import
+        </SimpleButton>
+        <SimpleButton class="big" @click="handleDemo">
+          <NIcon :component="NotesIcon"></NIcon>
+          Demo #1
         </SimpleButton>
         <!--        <SimpleButton class="big">-->
         <!--          <NIcon :component="DownloadIcon"></NIcon>-->
