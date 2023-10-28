@@ -21,7 +21,7 @@ import {patternToTrackData} from "~/lib/utils/patternToTrackData";
 import {type PartEvent, PartsManager} from "~/lib/PartsManager";
 import {Midi} from '@tonejs/midi'
 import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
-import {createNewSource} from "~/lib/utils/createNewSource";
+import {createNewSource, type SourceType} from "~/lib/utils/createNewSource";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -394,7 +394,7 @@ export class Sequencer {
     const midi = await Midi.fromUrl(midiUrl)
     const sequencer = Sequencer.getInstance()
     
-    sequencer.bpm = midi.header.tempos[0].bpm
+    sequencer.bpm = parseInt(midi.header.tempos[0].bpm.toFixed(1))
     
     sequencer.soundEngine.clearTracks()
     
@@ -432,13 +432,13 @@ export class Sequencer {
       const trackName = track.instrument.name || 'Track #' + (index + 1)
       
       if (!track.instrument.percussion) {
-        let source = undefined
-        
+        let source!: SourceType
+        const instrumentName = track.instrument.name.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_').replaceAll('(', '').replaceAll(')', '')
         try {
           source = createNewSource({
             sourceType: SOURCE_TYPES.SMPLR_Instrument,
             source: {
-              instrument: track.instrument.name.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_').replaceAll('(', '').replaceAll(')', '')
+              instrument: instrumentName
             }
           })
         } catch (e) {
@@ -450,7 +450,7 @@ export class Sequencer {
             }
           })
         }
-        source.init().then(() => {
+        source?.init().then(() => {
           sequencer.soundEngine.addTrack(
             new Track({
               name: trackName,
@@ -459,14 +459,15 @@ export class Sequencer {
             })
           )
         }).catch((e) => {
-          
-          console.error(e)
+          console.warn(`Can't find '${instrumentName}', falling back to 'acoustic_grand_piano'\n`, e)
           source = createNewSource({
             sourceType: SOURCE_TYPES.SMPLR_Instrument,
             source: {
               instrument: 'acoustic_grand_piano'
             }
           })
+          
+          source.init()
           
           sequencer.soundEngine.addTrack(
             new Track({
