@@ -8,7 +8,7 @@
             v-for="pattern in availablePatterns"
             :key="pattern.id"
             :data-id="pattern.id"
-            :value="sequencer.selectedPatternId.value === pattern.id"
+            :value="isPatternButtonActive(pattern.id)"
             class="draggable handle"
             draggable="true"
             style="--indicator-false-color: grey; --indicator-false-color-shadow: darkgrey;"
@@ -38,11 +38,14 @@
 </template>
 
 <script lang="ts" setup>
-import {computed} from "vue";
+import {computed, watch} from "vue";
 import {Sequencer} from "~/lib/Sequencer";
 import SimpleButton from "@/components/ui/SimpleButton.vue";
+import {useBlinker} from "~/lib/utils/useBlinker";
 
 const sequencer = Sequencer.getInstance()
+
+const {blinkFlag, stopBlinking, startBlinking} = useBlinker()
 
 const availablePatterns = computed(() => [...sequencer.patternMemory.patterns])
 
@@ -55,7 +58,6 @@ const emit = defineEmits<{
 }>()
 
 const onSelectPattern = (patternId?: string) => {
-  console.log('onSelectPattern', patternId)
   sequencer.selectPatternById(patternId ?? '')
 }
 const onChange = (evt: DragEvent) => {
@@ -86,6 +88,24 @@ const onDragStart = (evt: DragEvent) => {
   evt.dataTransfer!.setData('text/plain', JSON.stringify({id, isFromChain}))
   evt.dataTransfer!.dropEffect = 'move'
 }
+
+const isPatternButtonActive = (patternId: number) => {
+  return (sequencer.selectedPatternId.value === patternId && !sequencer.isPlaying) ||
+      (sequencer.selectedPatternId.value === patternId && blinkFlag.value && sequencer.isPlaying) ||
+      (
+          // is current transport position within pattern duration
+          sequencer.isPlaying &&
+          patternId === sequencer.getCurrentlyPlayingPatternId()
+      ) && blinkFlag.value
+}
+
+watch(() => sequencer.isPlaying, (isPlaying) => {
+  if (isPlaying) {
+    startBlinking()
+  } else {
+    stopBlinking()
+  }
+})
 </script>
 
 <style lang="scss" scoped>

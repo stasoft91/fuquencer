@@ -10,12 +10,13 @@ import {
   InformationCircleOutline as InfoIcon,
   MusicalNoteOutline as NotesIcon,
   OptionsOutline as OptionsIcon,
+  PushOutline as ImportIcon,
   SaveOutline as SaveIcon
 } from '@vicons/ionicons5'
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {Sequencer} from "~/lib/Sequencer";
 import SettingsDrawer from "@/components/ui/SettingsDrawer.vue";
-import {computed, h, onMounted, ref, resolveComponent} from "vue";
+import {computed, h, nextTick, onMounted, ref, resolveComponent} from "vue";
 import {VERSION} from "@/constants";
 import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
@@ -72,12 +73,12 @@ const canRedo = computed(() => {
 
 const onUndo = () => {
   const cell = sequencer.history.undo()
-  cell && sequencer.writeCell(cell, true)
+  cell && sequencer.writeCell(cell, {ignoreHistory: true, patternId: sequencer.selectedPatternId.value})
 }
 
 const onRedo = () => {
   const cell = sequencer.history.redo()
-  cell && sequencer.writeCell(cell, true)
+  cell && sequencer.writeCell(cell, {ignoreHistory: true, patternId: sequencer.selectedPatternId.value})
 }
 
 const handleExport = () => {
@@ -94,7 +95,7 @@ const handleExport = () => {
   a.remove()
 }
 
-const handleImport = async () => {
+const handleImportJson = async () => {
   let importData = ''
 
   // read json from open file dialog
@@ -132,6 +133,48 @@ const handleImport = async () => {
   input.click();
 }
 
+const handleImportMidi = async () => {
+  let importedDataUrl = ''
+
+  // read midi from open file dialog
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'audio/midi';
+  input.onchange = (event) => {
+    nextTick(() => {
+      loadingBar.start()
+    })
+
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        importedDataUrl = event.target?.result as string;
+        Sequencer.importFromMidi(importedDataUrl).then(() => {
+          input.remove();
+          loadingBar.finish()
+        })
+      } catch (e) {
+        loadingBar.error()
+
+        console.error(e)
+        dialog.error({
+          title: 'Error',
+          content: 'Could not import file',
+        })
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+}
+
 const handleDemo = async () => {
   loadingBar.start()
   await fetch('./demo_1.json')
@@ -163,13 +206,17 @@ const stepJobsReactiveKey = computed(() => {
           <NIcon :component="SaveIcon"></NIcon>
           Save
         </SimpleButton>
-        <SimpleButton class="big" @click="handleImport">
+        <SimpleButton class="big" @click="handleImportJson">
           <NIcon :component="FolderIcon"></NIcon>
           Load
         </SimpleButton>
         <SimpleButton class="big" @click="handleDemo">
           <NIcon :component="NotesIcon"></NIcon>
           Demo #1
+        </SimpleButton>
+        <SimpleButton class="big" @click="handleImportMidi">
+          <NIcon :component="ImportIcon"></NIcon>
+          Import
         </SimpleButton>
         <!--        <SimpleButton class="big">-->
         <!--          <NIcon :component="DownloadIcon"></NIcon>-->

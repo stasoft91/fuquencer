@@ -2,7 +2,7 @@
   <div :style="{ '--grid-rows': GRID_ROWS, '--space': space }" class="vertical-indicator">
     <div
       class="vertical-indicator__cell"
-      v-for="(row, rowIndex) in rows"
+      v-for="(row, rowIndex) in Math.min(rows, GRID_ROWS)"
       :key="row"
       :style="getStyleForCell(row, 1)"
       :class="{ active: rowIndex === selectedRow }"

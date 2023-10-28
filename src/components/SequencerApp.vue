@@ -37,7 +37,6 @@
       <SimpleButton
           v-for="page in [1, 2, 3, 4]"
           :key="page"
-          :style="getStylesForPageButton(page)"
           style="--indicator-false-color: grey; --indicator-false-color-shadow: darkgrey;"
           :value="isPageButtonActive(page)"
           @click="onSetPage(page)"
@@ -66,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, h, ref, watch} from 'vue'
+import {computed, h, watch} from 'vue'
 
 import {generateListOfAvailableNotes, Sequencer} from '~/lib/Sequencer'
 import SubPanel from '@/components/SubPanel.vue'
@@ -90,6 +89,7 @@ import {useGridEditorStore} from "@/stores/gridEditor";
 import LegacySource from "~/lib/sources/LegacySource";
 import {cloneDeep} from "lodash";
 import PatternChainComposer from "@/components/ui/PatternChainComposer.vue";
+import {useBlinker} from "~/lib/utils/useBlinker";
 
 const dialog = useDialog()
 
@@ -104,6 +104,8 @@ const selectedTrack = computed<Track>(() => {
   return sequencer.soundEngine.tracks.value[selectedTrackIndex.value]
 });
 
+const {blinkFlag, stopBlinking, startBlinking} = useBlinker()
+
 watch(() => sequencer.isPlaying, (isPlaying) => {
   if (isPlaying) {
     startBlinking()
@@ -111,20 +113,6 @@ watch(() => sequencer.isPlaying, (isPlaying) => {
     stopBlinking()
   }
 })
-
-const blinkFlag = ref(true)
-let blinkInterval = 0
-
-const stopBlinking = () => {
-  clearInterval(blinkInterval)
-  blinkFlag.value = true
-}
-
-const startBlinking = () => {
-  blinkInterval = setInterval(() => {
-    blinkFlag.value = !blinkFlag.value
-  }, Tone.Time('16n').toMilliseconds())
-}
 
 const isPageButtonActive = (page: number) => {
   const realPartDurationInSteps = Math.max(...sequencer.patternMemory.byId(sequencer.selectedPatternId.value).tracksDurationInSteps)
@@ -136,12 +124,6 @@ const isPageButtonActive = (page: number) => {
           sequencer.currentStep % 16 < realPartDurationInSteps &&
           sequencer.isPlaying
       ) && blinkFlag.value
-}
-
-const getStylesForPageButton = (page: number) => {
-  const realPartDurationInSteps = Math.max(...sequencer.patternMemory.byId(sequencer.selectedPatternId.value).tracksDurationInSteps)
-
-  return {}
 }
 
 const onSetPage = (page: number) => {

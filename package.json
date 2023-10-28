@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@rnbo/js": "1.1.2",
+    "@tonejs/midi": "^2.0.28",
     "@vicons/ionicons5": "^0.12.0",
     "audio-buffer-utils": "audiojs/audio-buffer-utils",
     "lodash.clonedeep": "^4.5.0",

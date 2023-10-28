@@ -8,7 +8,7 @@ import {KeyboardManager} from "~/lib/KeyboardManager";
 import {stepsToLoopLength} from "~/lib/utils/stepsToLoopLength";
 import {LFO, type LFOOptions} from "~/lib/LFO";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
-import {GridCell} from "~/lib/GridCell";
+import {GridCell, GridCellNoteModeEnum} from "~/lib/GridCell";
 import {useGridEditorStore} from "@/stores/gridEditor";
 import {HistoryManager} from "~/lib/HistoryManager";
 import {GRID_COLS, GRID_ROWS} from "@/constants";
@@ -19,6 +19,9 @@ import {createPartFromData} from "~/lib/utils/createPartFromData";
 import {Pattern, PatternManager} from "~/lib/PatternManager";
 import {patternToTrackData} from "~/lib/utils/patternToTrackData";
 import {type PartEvent, PartsManager} from "~/lib/PartsManager";
+import {Midi} from '@tonejs/midi'
+import getStepFromBarsBeatsSixteens from "~/lib/utils/getStepFromBarsBeatsSixteens";
+import {createNewSource} from "~/lib/utils/createNewSource";
 
 export const DEFAULT_NOTE = 'C4'
 
@@ -387,23 +390,117 @@ export class Sequencer {
     return this._isPlaying
   }
   
-  public initGrid(page: number = 1): GridCell[] {
-    const result: GridCell[] = []
+  public static async importFromMidi(midiUrl: string): Promise<void> {
+    const midi = await Midi.fromUrl(midiUrl)
+    const sequencer = Sequencer.getInstance()
     
-    for (let i = 1; i <= GRID_ROWS; i++) {
-      // todo either page or 32
-      for (let j = 1 + 16 * (page - 1); j <= 16 * page; j++) {
-        result.push(new GridCell({
-          row: i,
-          column: j,
-          notes: [DEFAULT_NOTE],
-          velocity: 0,
-          duration: Tone.Time('16n').toSeconds(),
-          modifiers: new Map()
-        }))
-      }
+    sequencer.bpm = midi.header.tempos[0].bpm
+    
+    sequencer.soundEngine.clearTracks()
+    
+    sequencer.patternMemory.clear()
+    
+    let timeOfFirstNote = midi.tracks[0]?.notes[0]?.time ?? 99
+    
+    const trackLengths: number[] = []
+    midi.tracks.filter(track => track.notes.length).forEach((track, index) => {
+      track.notes[track.notes.length - 1] && trackLengths.push(
+        Tone.Time(Tone.Time(track.notes[track.notes.length - 1].time).quantize('16n')).toSeconds() +
+        Tone.Time(Tone.Time(track.notes[track.notes.length - 1].duration).quantize('16n')).toSeconds()
+      )
+      
+      timeOfFirstNote = Math.min(timeOfFirstNote, Tone.Time(track.notes[0].time).toSeconds())
+    })
+    
+    console.log(timeOfFirstNote)
+    const numOfPatterns = Math.ceil(Math.max(...trackLengths) / (64 * Tone.Time('16n').toSeconds()))
+    
+    for (let i = 1; i < numOfPatterns; i++) {
+      sequencer.patternMemory.set(new Pattern({
+        cells: [
+          ...sequencer.initGrid(1, []),
+          ...sequencer.initGrid(2, []),
+          ...sequencer.initGrid(3, []),
+          ...sequencer.initGrid(4, [])
+        ],
+        name: `Pattern ${i}`,
+        tracksDurationInSteps: new Array(midi.tracks.length).fill(64),
+      }))
     }
-    return result
+    
+    midi.tracks.filter(track => track.notes.length).forEach((track, index) => {
+      const trackName = track.instrument.name || 'Track #' + (index + 1)
+      
+      if (!track.instrument.percussion) {
+        let source = undefined
+        
+        try {
+          source = createNewSource({
+            sourceType: SOURCE_TYPES.SMPLR_Instrument,
+            source: {
+              instrument: track.instrument.name.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_').replaceAll('(', '').replaceAll(')', '')
+            }
+          })
+        } catch (e) {
+          console.error(e)
+          source = createNewSource({
+            sourceType: SOURCE_TYPES.SMPLR_Instrument,
+            source: {
+              instrument: 'acoustic_grand_piano'
+            }
+          })
+        }
+        source.init()
+        sequencer.soundEngine.addTrack(
+          new Track({
+            name: trackName,
+            source,
+            sourceType: SOURCE_TYPES.SMPLR_Instrument,
+          })
+        )
+      }
+      
+      if (track.instrument.percussion) {
+        return
+      }
+      
+      track.notes.forEach((note) => {
+        const patternIndex = Math.floor(Tone.Time(note.time).toSeconds() / (64 * Tone.Time('16n').toSeconds()))
+        
+        if (!sequencer.patternMemory.patterns[patternIndex]) {
+          return
+        }
+        
+        let time = note.time - timeOfFirstNote
+        while (time > 64 * Tone.Time('16n').toSeconds()) {
+          time = time - 64 * Tone.Time('16n').toSeconds()
+        }
+        
+        const gridCell = sequencer.patternMemory.patterns[patternIndex].cells.find((cell) => {
+          const position = Tone.Time(Tone.Time(time).quantize('32n')).toBarsBeatsSixteenths()
+          const step = getStepFromBarsBeatsSixteens(position)
+          return cell.row === index + 1 && cell.column === step
+        })
+        
+        if (!gridCell) {
+          return
+        }
+        
+        gridCell.notes.push(Tone.Frequency(note.midi, 'midi').toNote())
+        
+        if (gridCell.notes.length > 1) {
+          gridCell.mode = GridCellNoteModeEnum.chord
+        }
+        
+        gridCell.velocity = note.velocity * 100
+        gridCell.duration = Tone.Time(Tone.Time(note.duration).quantize('16n')).toSeconds() || Tone.Time('16n').toSeconds()
+      })
+    })
+    
+    sequencer.patternChain.value = sequencer.patternMemory.patterns.map((pattern) => pattern.id)
+    sequencer.selectedPatternId.value = sequencer.patternMemory.patterns[0].id
+    
+    sequencer.indicatorMatrix.value = Array.from({length: GRID_COLS}, () => Array.from({length: sequencer.soundEngine.tracks.value.length}, () => false))
   }
   
   public removeLFO(lfo: LFO): void {
@@ -679,9 +776,46 @@ export class Sequencer {
     return result
   }
   
+  public initGrid(page: number = 1, defaultNotes = [DEFAULT_NOTE]): GridCell[] {
+    const result: GridCell[] = []
+    
+    for (let i = 1; i <= GRID_ROWS; i++) {
+      // todo either page or 32
+      for (let j = 1 + 16 * (page - 1); j <= 16 * page; j++) {
+        result.push(new GridCell({
+          row: i,
+          column: j,
+          notes: defaultNotes,
+          velocity: 0,
+          duration: Tone.Time('16n').toSeconds(),
+          modifiers: new Map()
+        }))
+      }
+    }
+    return result
+  }
+  
+  public getCurrentlyPlayingPatternId(): string {
+    const patternChainDurations = this.patternChain.value
+      .map(patternId => {
+        return this.patternMemory.patterns.find(pattern => pattern.id === patternId)!
+      })
+      .map(_ => Math.max(..._.tracksDurationInSteps) * Tone.Time('16n').toSeconds())
+    
+    const currentSongPosition = Tone.Time(Tone.Transport.position).toSeconds()
+    
+    let position = 0
+    for (let i = 0; i < patternChainDurations.length; i++) {
+      position += patternChainDurations[i]
+      if (currentSongPosition < position) {
+        return this.patternChain.value[i]
+      }
+    }
+  }
+  
   private indicatorDrawCallback(trackIndex: number, trackLength: number): () => void {
     return () => {
-      if (!this.isPlaying) {
+      if (!this.isPlaying || !this.indicatorMatrix.value[trackIndex]) {
         return
       }
       
