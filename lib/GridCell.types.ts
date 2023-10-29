@@ -30,6 +30,7 @@ export enum GridCellModifierTypes {
 	slide = 'slide', // portamento of monophonic
 	reverse = 'reverse',
 	playbackRate = 'playbackRate',
+	octaveShift = 'octaveShift',
 	// instrumentSpecific = 'instrumentSpecific' // TODO: research if possible
 }
 
@@ -47,6 +48,9 @@ export type GridCellModifier = {
 	timesTriggered?: number
 	slide?: number
 	playbackRate?: number
+	
+	octaveShiftProbability?: number
+	octaveShiftAmount?: number
 }
 
 export type SwingParams = {

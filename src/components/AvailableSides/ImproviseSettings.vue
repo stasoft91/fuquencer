@@ -35,7 +35,7 @@
 
       <label for="improvise-options">N-th step activation probability (0-1)
         <input v-model="gridStore.improviseOptions.columnMutationProbability" class="full-size big"
-               max="100"
+               max="1"
                min="0"
                placeholder="75"
                step="0.01" type="number"/>
@@ -48,7 +48,7 @@
 
       <label for="improvise-options">Step mute probability (0-1)
         <input v-model="gridStore.improviseOptions.columnMuteProbability" class="full-size big"
-               max="100"
+               max="1"
                min="0"
                step="0.01"
                type="number"/>
@@ -74,7 +74,7 @@
 
       <label for="improvise-options">Skip probability (0-1)
         <input v-model="gridStore.improviseOptions.skipModProbability" class="full-size big"
-               max="100"
+               max="1"
                min="0"
                step="0.01"
                type="number"/>
@@ -87,7 +87,7 @@
 
       <label for="improvise-options">Slide probability (0-1)
         <input v-model="gridStore.improviseOptions.slideModProbability" class="full-size big"
-               max="100"
+               max="1"
                min="0"
                step="0.01"
                type="number"/>
@@ -100,13 +100,26 @@
 
       <label for="improvise-options">Rnd probability (0-1)
         <input v-model="gridStore.improviseOptions.probabilityModProbability" class="full-size big"
-               max="100"
+               max="1"
                min="0"
                step="0.01"
                type="number"/>
         <button
             v-if="gridStore.improviseOptions.probabilityModProbability !== IMPROVISATOR_DEFAULTS.probabilityModProbability"
             @click="gridStore.improviseOptions.probabilityModProbability = IMPROVISATOR_DEFAULTS.probabilityModProbability"
+        >reset
+        </button>
+      </label>
+
+      <label for="improvise-options">Oct shift probability (0-1)
+        <input v-model="gridStore.improviseOptions.octaveShiftProbability" class="full-size big"
+               max="1"
+               min="0"
+               step="0.01"
+               type="number"/>
+        <button
+            v-if="gridStore.improviseOptions.octaveShiftProbability !== IMPROVISATOR_DEFAULTS.octaveShiftProbability"
+            @click="gridStore.improviseOptions.octaveShiftProbability = IMPROVISATOR_DEFAULTS.octaveShiftProbability"
         >reset
         </button>
       </label>

@@ -116,6 +116,28 @@
                   @change="onCellModifierUpdate(key, 'probability', $event)">
             </label>
 
+            <label v-if="key === GridCellModifierTypes.octaveShift" for="">
+              Octave +/- probability
+              <input
+                  :value="cell.modifiers.get(key)!['octaveShiftProbability']"
+                  class="big full-size"
+                  max="100"
+                  min="0"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'octaveShiftProbability', $event)">
+            </label>
+
+            <label v-if="key === GridCellModifierTypes.octaveShift" for="">
+              Shift amount
+              <input
+                  :value="cell.modifiers.get(key)!['octaveShiftAmount']"
+                  class="big full-size"
+                  max="100"
+                  min="0"
+                  type="number"
+                  @change="onCellModifierUpdate(key, 'octaveShiftAmount', $event)">
+            </label>
+
             <label v-if="key === GridCellModifierTypes.flam" for="">
               Roll
               <input

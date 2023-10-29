@@ -71,6 +71,12 @@
               :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.playbackRate)" class="fx-indicator">
             <span>rat</span>
           </span>
+
+          <span
+              v-if="gridCell.hasModifier(GridCellModifierTypes.octaveShift)"
+              :class="getClassForFxIndicator(gridCell, GridCellModifierTypes.octaveShift)" class="fx-indicator">
+            <span>oct</span>
+          </span>
         </span>
       </button>
     </div>

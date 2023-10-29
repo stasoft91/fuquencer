@@ -3,8 +3,9 @@ import * as Tone from "tone/Tone";
 import type {PatternName} from "~/lib/PatternGenerator";
 import {GridCellModifierTypes} from "~/lib/GridCell.types";
 import {DISTORTION_ALGORITHMS} from "~/lib/sound-components/DistortionModule/DistortionModule.utils";
+import type {ImproviseOptions} from "~/lib/Sequencer";
 
-export const VERSION = '0.9.6'
+export const VERSION = '0.9.8'
 
 export const GRID_ROWS = 8;
 export const GRID_COLS = 16;
@@ -210,6 +211,7 @@ export const GLOBAL_CELL_MODIFIERS: GridCellModifierTypes[] = [
 	GridCellModifierTypes.skip,
 	GridCellModifierTypes.swing,
 	GridCellModifierTypes.flam,
+	GridCellModifierTypes.octaveShift
 ]
 
 export const OPTIONAL_CELL_MODIFIERS: GridCellModifierTypes[] = [
@@ -418,7 +420,7 @@ export const DEFAULT_PULSEQ_PARAMS: {
     }
 };
 
-export const IMPROVISATOR_DEFAULTS = {
+export const IMPROVISATOR_DEFAULTS: ImproviseOptions = {
     notesInKey: ['C2', 'B2', 'E2', 'F2', 'B1'],
     probabilityModProbability: 0.25,
     skipModProbability: 0.35,
@@ -427,4 +429,5 @@ export const IMPROVISATOR_DEFAULTS = {
     columnMutationMod: 3,
     columnMutationProbability: 0.25,
     columnMuteProbability: 0.35,
+	octaveShiftProbability: 0.25,
 }

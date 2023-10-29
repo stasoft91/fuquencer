@@ -16,7 +16,7 @@ import {
 import SimpleButton from "@/components/ui/SimpleButton.vue";
 import {Sequencer} from "~/lib/Sequencer";
 import SettingsDrawer from "@/components/ui/SettingsDrawer.vue";
-import {computed, h, nextTick, onMounted, ref, resolveComponent} from "vue";
+import {computed, h, onMounted, ref, resolveComponent} from "vue";
 import {VERSION} from "@/constants";
 import * as Tone from "tone/Tone";
 import {useGridEditorStore} from "@/stores/gridEditor";
@@ -141,9 +141,7 @@ const handleImportMidi = async () => {
   input.type = 'file';
   input.accept = 'audio/midi';
   input.onchange = (event) => {
-    nextTick(() => {
-      loadingBar.start()
-    })
+    loadingBar.start()
 
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
@@ -152,13 +150,11 @@ const handleImportMidi = async () => {
     const reader = new FileReader();
 
     reader.onload = (event) => {
-      try {
-        importedDataUrl = event.target?.result as string;
-        Sequencer.importFromMidi(importedDataUrl).then(() => {
-          input.remove();
-          loadingBar.finish()
-        })
-      } catch (e) {
+      importedDataUrl = event.target?.result as string;
+      Sequencer.importFromMidi(importedDataUrl).then(() => {
+        input.remove();
+        loadingBar.finish()
+      }).catch((e) => {
         loadingBar.error()
 
         console.error(e)
@@ -166,7 +162,7 @@ const handleImportMidi = async () => {
           title: 'Error',
           content: 'Could not import file',
         })
-      }
+      })
     };
 
     reader.readAsDataURL(file);

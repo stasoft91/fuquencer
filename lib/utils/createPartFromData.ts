@@ -184,6 +184,19 @@ export function createPartFromData(options: PartFromDataOptions): Tone.Part {
 					)
 				})
 			} else {
+				let notes = cloneDeep(partEvent.notes)
+				if (partEvent.modifiers.has(GridCellModifierTypes.octaveShift)) {
+					const octaveShiftParams = partEvent.modifiers.get(GridCellModifierTypes.octaveShift)
+					
+					if (octaveShiftParams?.octaveShiftProbability && octaveShiftParams.octaveShiftAmount && Math.random() * 100 < octaveShiftParams.octaveShiftProbability) {
+						notes = partEvent.notes.map((note) => {
+							const transposeAmount = (Math.random() > 0.5 ? octaveShiftParams.octaveShiftAmount : -octaveShiftParams.octaveShiftAmount!) ?? 0
+							
+							return Tone.Frequency(note).transpose(transposeAmount).toNote()
+						})
+					}
+				}
+				
 				// DEFAULT section
 				try {
 					if (partEvent.modifiers.has(GridCellModifierTypes.slide)) {
@@ -192,9 +205,9 @@ export function createPartFromData(options: PartFromDataOptions): Tone.Part {
 						}
 						
 						const slideParams = partEvent.modifiers.get(GridCellModifierTypes.slide) as SlideParams
-						// Only if it's a slde and it's an instrument that supports slide
+						// Only if it's a slide and it's an instrument that supports slide
 						if (slideParams.slide && track.source.AVAILABLE_SETTINGS.includes('slide')) {
-							track.source.slideTo(partEvent.notes[0], partEvent.velocity, time, slideParams.slide / 100)
+							track.source.slideTo(notes[0], partEvent.velocity, time, slideParams.slide / 100)
 							return;
 						}
 					}
@@ -202,7 +215,7 @@ export function createPartFromData(options: PartFromDataOptions): Tone.Part {
 					switch (partEvent.mode) {
 						case GridCellNoteModeEnum.random:
 							track.source.triggerAttackRelease(
-								partEvent.notes[Math.floor(Math.random() * partEvent.notes.length)],
+								notes[Math.floor(Math.random() * partEvent.notes.length)],
 								partEvent.duration,
 								time,
 								partEvent.velocity
@@ -211,7 +224,7 @@ export function createPartFromData(options: PartFromDataOptions): Tone.Part {
 						
 						case GridCellNoteModeEnum.arpeggio: // it's handled above, ignoring
 						case GridCellNoteModeEnum.chord:
-							partEvent.notes.forEach((note) => {
+							notes.forEach((note) => {
 								track.source.triggerAttackRelease(
 									note,
 									partEvent.duration,
@@ -223,7 +236,7 @@ export function createPartFromData(options: PartFromDataOptions): Tone.Part {
 						
 						default:
 							track.source
-								.triggerAttackRelease(partEvent.notes[0], partEvent.duration, time, partEvent.velocity);
+								.triggerAttackRelease(notes[0], partEvent.duration, time, partEvent.velocity);
 					}
 					
 				} catch (e) {

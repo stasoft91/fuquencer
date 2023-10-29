@@ -89,14 +89,14 @@ const onDragStart = (evt: DragEvent) => {
   evt.dataTransfer!.dropEffect = 'move'
 }
 
-const isPatternButtonActive = (patternId: number) => {
+const isPatternButtonActive = (patternId: string) => {
   return (sequencer.selectedPatternId.value === patternId && !sequencer.isPlaying) ||
       (sequencer.selectedPatternId.value === patternId && sequencer.isPlaying) ||
       (
           // is current transport position within pattern duration
           sequencer.isPlaying &&
           patternId === sequencer.getCurrentlyPlayingPatternId()
-      ) && blinkFlag.value
+      ) && blinkFlag.value && Boolean(sequencer.currentStep)
 }
 
 watch(() => sequencer.isPlaying, (isPlaying) => {

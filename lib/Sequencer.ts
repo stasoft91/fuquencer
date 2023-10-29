@@ -58,6 +58,7 @@ export type ImproviseOptions = {
   columnMutationMod?: number,
   columnMutationProbability?: number,
   columnMuteProbability?: number,
+  octaveShiftProbability?: number,
 }
 
 export class Sequencer {
@@ -318,78 +319,6 @@ export class Sequencer {
     Tone.Transport.bpm.value = value
   }
 
-  public regenerateSequence(trackNumber: number): void {
-    const {
-      notesInKey,
-      probabilityModProbability,
-      skipModProbability,
-      flamModeProbability,
-      slideModProbability,
-      columnMutationMod,
-      columnMutationProbability,
-      columnMuteProbability
-      // we are sure they will be present in store
-    }: Required<ImproviseOptions> = useGridEditorStore().improviseOptions as unknown as Required<ImproviseOptions>
-    
-    this.sequenceGrid.filter(cell => cell.row === trackNumber &&
-      cell.column >= 1 + 16 * (this.currentPage - 1) &&
-      cell.column <= 16 * this.currentPage
-    ).map(cell => {
-      
-      cell.velocity = cell.column % 2 === 1 ? 100 : 0;
-
-      Math.random() > (1 - probabilityModProbability) ?
-        cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 50}) :
-        cell.modifiers.delete(GridCellModifierTypes.probability)
-
-      Math.random() > (1 - skipModProbability) ?
-        cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
-        cell.modifiers.delete(GridCellModifierTypes.skip)
-
-      Math.random() > (1 - flamModeProbability) ?
-        cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
-        cell.modifiers.delete(GridCellModifierTypes.flam)
-
-      Math.random() > (1 - slideModProbability) ?
-          cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 20}) :
-        cell.modifiers.delete(GridCellModifierTypes.slide)
-
-      let columnMutationModFinal = columnMutationMod;
-      if (!columnMutationModFinal) {
-        columnMutationModFinal = Math.random() > 0.5 ? 2 : 3
-      }
-
-      if (cell.column % columnMutationModFinal === 0 && Math.random() > (1 - columnMutationProbability)) {
-        cell.velocity = 100;
-        this.writeCell(cell)
-        
-        return
-      }
-
-      if (cell.velocity === 100 && Math.random() > (1 - columnMuteProbability)) {
-        cell.velocity = 0;
-        this.writeCell(cell)
-        
-        return
-      }
-      
-      cell.notes = [
-        // get random note from notesInKey
-        notesInKey.sort(() => Math.random() - 0.5) [Math.floor(Math.random() * notesInKey.length)]
-      ]
-      
-      this.writeCell(cell)
-    })
-  }
-  
-  public get indicatorMatrix(): Ref<boolean[][]> {
-    return this._indicatorMatrix
-  }
-  
-  public get isPlayingRef(): Ref<boolean> {
-    return this._isPlaying
-  }
-  
   public static async importFromMidi(midiUrl: string): Promise<void> {
     const midi = await Midi.fromUrl(midiUrl)
     const sequencer = Sequencer.getInstance()
@@ -512,7 +441,39 @@ export class Sequencer {
         }
         
         gridCell.velocity = note.velocity * 100
-        gridCell.duration = Tone.Time(Tone.Time(note.duration).quantize('16n')).toSeconds() || Tone.Time('16n').toSeconds()
+        const originalDuration = Tone.Time(Tone.Time(note.duration).quantize('16n')).toSeconds() || Tone.Time('16n').toSeconds()
+        gridCell.duration = originalDuration
+        
+        const gridCellEndTime = Tone.Time(getBarsBeatsSixteensFromStep(gridCell.column)).toSeconds() + gridCell.duration
+        const gridCellPageOfPattern = Math.floor(gridCell.column / 16) + 1
+        const isGridCellOutOfPage = gridCellEndTime > 64 * Tone.Time('16n').toSeconds() * gridCellPageOfPattern / 4
+        
+        if (isGridCellOutOfPage) {
+          gridCell.duration = Tone.Time(
+            64 * gridCellPageOfPattern / 4 * Tone.Time('16n').toSeconds() -
+            Tone.Time(getBarsBeatsSixteensFromStep(gridCell.column)).toSeconds() +
+            Tone.Time('16n').toSeconds()).quantize('16n')
+          
+          const remainingDuration = originalDuration - gridCell.duration
+          
+          
+          if (Tone.Time(remainingDuration).toSeconds() < Tone.Time('16n').toSeconds()) {
+            return
+          }
+          
+          console.log(gridCell, remainingDuration, gridCell.duration, originalDuration)
+          
+          const remainingStep = sequencer.patternMemory.patterns[patternIndex + 1]?.cells.find((cell) => {
+            return (cell.column === gridCellPageOfPattern * 16 - 15)
+              && cell.row === gridCell.row
+          })
+          
+          if (remainingStep) {
+            remainingStep.notes = gridCell.notes
+            remainingStep.velocity = note.velocity * 100
+            remainingStep.duration = remainingDuration
+          }
+        }
       })
     })
     
@@ -520,6 +481,83 @@ export class Sequencer {
     sequencer.selectedPatternId.value = sequencer.patternMemory.patterns[0].id
     
     sequencer.indicatorMatrix.value = Array.from({length: GRID_COLS}, () => Array.from({length: sequencer.soundEngine.tracks.value.length}, () => false))
+  }
+  
+  public get indicatorMatrix(): Ref<boolean[][]> {
+    return this._indicatorMatrix
+  }
+  
+  public get isPlayingRef(): Ref<boolean> {
+    return this._isPlaying
+  }
+  
+  public regenerateSequence(trackNumber: number): void {
+    const {
+      notesInKey,
+      probabilityModProbability,
+      skipModProbability,
+      flamModeProbability,
+      slideModProbability,
+      columnMutationMod,
+      columnMutationProbability,
+      columnMuteProbability,
+      octaveShiftProbability
+      // we are sure they will be present in store
+    }: Required<ImproviseOptions> = useGridEditorStore().improviseOptions as unknown as Required<ImproviseOptions>
+    
+    this.sequenceGrid.filter(cell => cell.row === trackNumber &&
+      cell.column >= 1 + 16 * (this.currentPage - 1) &&
+      cell.column <= 16 * this.currentPage
+    ).map(cell => {
+      
+      cell.velocity = cell.column % 2 === 1 ? 100 : 0;
+
+      Math.random() > (1 - probabilityModProbability) ?
+        cell.modifiers.set(GridCellModifierTypes.probability, {type: GridCellModifierTypes.probability, probability: 50}) :
+        cell.modifiers.delete(GridCellModifierTypes.probability)
+
+      Math.random() > (1 - skipModProbability) ?
+        cell.modifiers.set(GridCellModifierTypes.skip, {type: GridCellModifierTypes.skip, skip: Math.floor(Math.random() * 3) + 2}) :
+        cell.modifiers.delete(GridCellModifierTypes.skip)
+
+      Math.random() > (1 - flamModeProbability) ?
+        cell.modifiers.set(GridCellModifierTypes.flam, {type: GridCellModifierTypes.flam, roll: Math.floor(Math.random() * 3) + 2}) :
+        cell.modifiers.delete(GridCellModifierTypes.flam)
+
+      Math.random() > (1 - slideModProbability) ?
+          cell.modifiers.set(GridCellModifierTypes.slide, {type: GridCellModifierTypes.slide, slide: 20}) :
+        cell.modifiers.delete(GridCellModifierTypes.slide)
+      
+      Math.random() > (1 - octaveShiftProbability) ?
+        cell.modifiers.set(GridCellModifierTypes.octaveShift, {type: GridCellModifierTypes.octaveShift, octaveShiftProbability: 50, octaveShiftAmount: Math.random() > 0.5 ? 12 : 7}) :
+        cell.modifiers.delete(GridCellModifierTypes.octaveShift)
+
+      let columnMutationModFinal = columnMutationMod;
+      if (!columnMutationModFinal) {
+        columnMutationModFinal = Math.random() > 0.5 ? 2 : 3
+      }
+
+      if (cell.column % columnMutationModFinal === 0 && Math.random() > (1 - columnMutationProbability)) {
+        cell.velocity = 100;
+        this.writeCell(cell)
+        
+        return
+      }
+
+      if (cell.velocity === 100 && Math.random() > (1 - columnMuteProbability)) {
+        cell.velocity = 0;
+        this.writeCell(cell)
+        
+        return
+      }
+      
+      cell.notes = [
+        // get random note from notesInKey
+        notesInKey.sort(() => Math.random() - 0.5) [Math.floor(Math.random() * notesInKey.length)]
+      ]
+      
+      this.writeCell(cell)
+    })
   }
   
   public removeLFO(lfo: LFO): void {

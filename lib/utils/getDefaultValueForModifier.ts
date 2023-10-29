@@ -17,5 +17,7 @@ export function getDefaultValueForModifier(type: GridCellModifierTypes): GridCel
             return {type}
         case GridCellModifierTypes.playbackRate:
             return {type, playbackRate: 1}
+        case GridCellModifierTypes.octaveShift:
+            return {type, octaveShiftProbability: 50, octaveShiftAmount: 12}
     }
 }
