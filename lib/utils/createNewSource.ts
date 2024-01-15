@@ -8,6 +8,7 @@ import type {DrumMachineOptions} from "~/modules/tonejs-smplr/src";
 import {type SoundfontOptions} from "~/modules/tonejs-smplr/src";
 import {SmplrDrumSource} from "~/lib/sources/SmplrDrumSource";
 import {PulseqMonoSource, type PulseqOptions} from "~/lib/sources/PulseqMonoSource";
+import {MIDISource} from "~/lib/sources/MIDISource";
 
 export type SourceType =
     LegacySource |
@@ -15,7 +16,8 @@ export type SourceType =
     SmplrSource |
     SmplrDrumSource |
     TinySource |
-    PulseqMonoSource;
+	PulseqMonoSource |
+	MIDISource;
 
 export type SourceOptions = Pick<TrackExportOptions, 'sourceType' | 'source'>
 
@@ -44,6 +46,10 @@ export function createNewSource(sourceOptions: Pick<TrackExportOptions, 'sourceT
 		
 		case SOURCE_TYPES.PulseqMono:
 			source = new PulseqMonoSource(sourceOptions.source as PulseqOptions)
+			break;
+		
+		case SOURCE_TYPES.MIDIOut:
+			source = new MIDISource(sourceOptions.source as PulseqOptions)
 			break;
 
 		default:
